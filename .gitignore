@@ -1,0 +1,21 @@
+# Secrets & saved session — NEVER commit these
+.env
+.auth/
+data/
+output/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
