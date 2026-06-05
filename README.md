@@ -52,8 +52,10 @@ soic-toolkit status
 soic-toolkit crawl --limit 5
 soic-toolkit crawl
 
-# 4a. Build an Obsidian vault (one linked note per lesson) under vault/.
-soic-toolkit build-vault
+# 4a. Build an Obsidian vault (one linked note per lesson).
+#     Write straight into your real Obsidian vault with --vault-path (or set
+#     SOIC_VAULT_DIR in .env); omit it to use a local ./vault folder.
+soic-toolkit build-vault --vault-path ~/Documents/Obsidian/MyVault/SOIC
 
 # 4b. (optional) Also build a Markmap mind map under output/.
 soic-toolkit build-map
@@ -72,8 +74,14 @@ vault/              # Obsidian vault — one Markdown note per lesson + MOCs
 output/             # mindmap.md / mindmap.html
 ```
 
+By default the vault is written to `./vault` in the repo, but you can write the
+notes **directly into your existing Obsidian vault** so they appear there
+automatically — either pass `--vault-path ~/Obsidian/MyVault/SOIC` to
+`build-vault`, or set `SOIC_VAULT_DIR` in `.env`. A dedicated subfolder (e.g.
+`SOIC`) inside your vault keeps the imported notes tidy.
+
 The **Obsidian vault** is the human-facing knowledge store. Each lesson is its
-own note (`vault/<Course>/<Module>/<Lesson>.md`) with YAML frontmatter (title,
+own note (`<vault>/<Course>/<Module>/<Lesson>.md`) with YAML frontmatter (title,
 source URL, course, module, tags, crawl date), the lesson body, key points, and
 resources. Notes are wired together with `[[wikilinks]]`:
 

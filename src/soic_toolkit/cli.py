@@ -72,10 +72,17 @@ def crawl(
 
 
 @app.command("build-vault")
-def build_vault() -> None:
-    """Build an Obsidian vault (one linked note per lesson) under vault/."""
+def build_vault(
+    vault_path: Optional[str] = typer.Option(
+        None,
+        "--vault-path",
+        help="Folder to write notes into, e.g. a folder inside your Obsidian vault "
+        "(~/Obsidian/MyVault/SOIC). Overrides SOIC_VAULT_DIR / the default ./vault.",
+    )
+) -> None:
+    """Build an Obsidian vault (one linked note per lesson)."""
     try:
-        vault_mod.build_vault_from_disk()
+        vault_mod.build_vault_from_disk(vault_dir=vault_path)
     except RuntimeError as exc:
         console.print(f"[yellow]{exc}[/yellow]")
         raise typer.Exit(code=1)

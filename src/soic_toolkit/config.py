@@ -21,7 +21,13 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 AUTH_DIR = ROOT_DIR / ".auth"
 DATA_DIR = ROOT_DIR / "data"
 OUTPUT_DIR = ROOT_DIR / "output"
-VAULT_DIR = ROOT_DIR / "vault"
+
+# Where the Obsidian notes are written. Point SOIC_VAULT_DIR at a folder inside
+# your real Obsidian vault (e.g. ~/Obsidian/MyVault/SOIC) to have the notes show
+# up directly in Obsidian. Defaults to a local ./vault folder in the repo.
+VAULT_DIR = Path(
+    os.environ.get("SOIC_VAULT_DIR", str(ROOT_DIR / "vault"))
+).expanduser()
 
 STATE_PATH = AUTH_DIR / "state.json"
 CONTENT_PATH = DATA_DIR / "content.json"

@@ -60,6 +60,15 @@ def test_notes_have_frontmatter_and_links(tmp_path, monkeypatch):
     assert "[[discounted-cash-flow]]" in note
 
 
+def test_vault_dir_override_writes_to_custom_path(tmp_path):
+    # Simulates pointing at a folder inside an existing Obsidian vault.
+    target = tmp_path / "MyObsidianVault" / "SOIC"
+    returned = vault.build_vault(_catalog(), vault_dir=target)
+    assert returned == target
+    assert (target / "Home.md").exists()
+    assert (target / "valuation" / "fundamentals" / "intrinsic-value.md").exists()
+
+
 def test_slugify():
     assert vault.slugify("Intrinsic Value!") == "intrinsic-value"
     assert vault.slugify("  A/B  Test ") == "ab-test"

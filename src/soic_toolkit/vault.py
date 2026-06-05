@@ -242,16 +242,21 @@ def _write(path: Path, content: str) -> None:
     path.write_text(content, encoding="utf-8")
 
 
-def build_vault(catalog: Catalog) -> Path:
-    """Write the full Obsidian vault under ``vault/`` and return its path."""
+def build_vault(catalog: Catalog, vault_dir: Path | str | None = None) -> Path:
+    """Write the full Obsidian vault and return its path.
+
+    ``vault_dir`` overrides the destination (e.g. a folder inside your real
+    Obsidian vault); when omitted it falls back to the configured ``VAULT_DIR``.
+    """
     ensure_dirs()
+    target_dir = Path(vault_dir).expanduser() if vault_dir else VAULT_DIR
     notes = _plan_notes(catalog)
     by_url = {n.lesson.url: n for n in notes}
     written = 0
 
     # Lesson notes.
     for note in notes:
-        _write(VAULT_DIR / note.rel_path, _render_note(note))
+        _write(target_dir / note.rel_path, _render_note(note))
         written += 1
 
     # MOCs, rebuilt from the catalog structure (reusing planned basenames).
@@ -267,27 +272,28 @@ def build_vault(catalog: Catalog) -> Path:
             module_moc = mod_notes[0].module_moc
             course_moc = mod_notes[0].course_moc
             _write(
-                VAULT_DIR / course_slug / f"{module_moc}.md",
+                target_dir / course_slug / f"{module_moc}.md",
                 _render_module_moc(module.title, course_moc, mod_notes),
             )
             course_modules.append((module_moc, module.title))
         if course_moc:
-            _write(VAULT_DIR / course_slug / f"{course_moc}.md",
+            _write(target_dir / course_slug / f"{course_moc}.md",
                    _render_course_moc(course.title, course_modules))
             home_courses.append((course_moc, course.title))
 
-    _write(VAULT_DIR / "Home.md", _render_home(home_courses))
+    _write(target_dir / "Home.md", _render_home(home_courses))
 
-    console.print(f"[green]Obsidian vault written:[/green] {VAULT_DIR} "
+    console.print(f"[green]Obsidian vault written:[/green] {target_dir} "
                   f"({written} lesson notes)")
-    console.print("Open the [bold]vault/[/bold] folder in Obsidian and use the graph view.")
-    return VAULT_DIR
+    console.print("Open that folder in Obsidian (or it's already inside your vault) "
+                  "and use the graph view.")
+    return target_dir
 
 
-def build_vault_from_disk() -> Path:
+def build_vault_from_disk(vault_dir: Path | str | None = None) -> Path:
     if not CONTENT_PATH.exists():
         raise RuntimeError(
             f"No crawled content at {CONTENT_PATH}. Run `soic-toolkit crawl` first."
         )
     catalog = Catalog.model_validate_json(CONTENT_PATH.read_text(encoding="utf-8"))
-    return build_vault(catalog)
+    return build_vault(catalog, vault_dir=vault_dir)
