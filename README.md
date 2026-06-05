@@ -12,6 +12,8 @@ collects the lesson text the platform legitimately displays, and builds an
 - ✅ **Collects accessible text** — course/module/lesson structure, titles,
   descriptions, any transcript/notes panels the page renders, caption-track URLs
   *if* the portal exposes them, and links to attached documents.
+- ✅ **Builds an Obsidian vault** — one linked Markdown note per lesson, so
+  Obsidian's graph view shows how topics correlate.
 - ✅ **Builds a mind map** — a portable Markmap Markdown file, optionally rendered
   to a zoomable, collapsible interactive HTML page.
 - ❌ **No DRM circumvention** — it never downloads, decrypts, or rips protected
@@ -50,12 +52,39 @@ soic-toolkit status
 soic-toolkit crawl --limit 5
 soic-toolkit crawl
 
-# 4. Build the mind map (output/mindmap.md and, if Node is present, mindmap.html).
+# 4a. Build an Obsidian vault (one linked note per lesson) under vault/.
+soic-toolkit build-vault
+
+# 4b. (optional) Also build a Markmap mind map under output/.
 soic-toolkit build-map
 ```
 
-Then open `output/mindmap.html` in a browser, or paste `output/mindmap.md` into
+Open the `vault/` folder in Obsidian (**Open folder as vault**) and turn on the
+**graph view** to explore the correlations between topics. Or open
+`output/mindmap.html` in a browser / paste `output/mindmap.md` into
 <https://markmap.js.org/repl>.
+
+## Where extracted knowledge is stored
+
+```
+data/content.json   # internal, resumable crawl cache (the raw catalog)
+vault/              # Obsidian vault — one Markdown note per lesson + MOCs
+output/             # mindmap.md / mindmap.html
+```
+
+The **Obsidian vault** is the human-facing knowledge store. Each lesson is its
+own note (`vault/<Course>/<Module>/<Lesson>.md`) with YAML frontmatter (title,
+source URL, course, module, tags, crawl date), the lesson body, key points, and
+resources. Notes are wired together with `[[wikilinks]]`:
+
+- **Structural** — each lesson links up to its Module/Course *Map-of-Content*
+  (MOC) note; MOCs link back down to lessons; `Home.md` links all courses.
+- **Sequential** — prev/next links along lesson order.
+- **Content-based** — a *Related* section links lessons sharing the most
+  keywords, and derived `#tags` cluster related topics in the graph view.
+
+All three folders are gitignored, so your session and captured content never get
+committed.
 
 ## How it works
 
@@ -64,6 +93,7 @@ Then open `output/mindmap.html` in a browser, or paste `output/mindmap.md` into
 | `auth.py` | Interactive login + saving/loading the Playwright session (`.auth/state.json`). |
 | `crawler.py` | Walks course → module → lesson, polite & resumable, writes `data/content.json`. |
 | `extract.py` | Parses a lesson page's HTML into structured, legitimately-displayed text. |
+| `vault.py` | Turns `content.json` into an Obsidian vault of linked lesson notes + MOCs. |
 | `mindmap.py` | Turns `content.json` into Markmap Markdown and (optionally) interactive HTML. |
 | `models.py` | Pydantic models for the captured catalog. |
 | `cli.py` | The `soic-toolkit` command. |

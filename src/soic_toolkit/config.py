@@ -21,6 +21,7 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 AUTH_DIR = ROOT_DIR / ".auth"
 DATA_DIR = ROOT_DIR / "data"
 OUTPUT_DIR = ROOT_DIR / "output"
+VAULT_DIR = ROOT_DIR / "vault"
 
 STATE_PATH = AUTH_DIR / "state.json"
 CONTENT_PATH = DATA_DIR / "content.json"
@@ -56,5 +57,5 @@ settings = Settings()
 
 def ensure_dirs() -> None:
     """Create the local working directories if they don't already exist."""
-    for d in (AUTH_DIR, DATA_DIR, OUTPUT_DIR):
+    for d in (AUTH_DIR, DATA_DIR, OUTPUT_DIR, VAULT_DIR):
         d.mkdir(parents=True, exist_ok=True)

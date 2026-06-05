@@ -3,6 +3,7 @@
 .auth/
 data/
 output/
+vault/
 
 # Python
 __pycache__/

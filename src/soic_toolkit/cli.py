@@ -16,6 +16,7 @@ from rich.console import Console
 
 from . import auth as auth_mod
 from . import mindmap as mindmap_mod
+from . import vault as vault_mod
 from .config import STATE_PATH, settings
 
 app = typer.Typer(
@@ -65,6 +66,16 @@ def crawl(
     )
     try:
         crawler_mod.crawl(limit=limit)
+    except RuntimeError as exc:
+        console.print(f"[yellow]{exc}[/yellow]")
+        raise typer.Exit(code=1)
+
+
+@app.command("build-vault")
+def build_vault() -> None:
+    """Build an Obsidian vault (one linked note per lesson) under vault/."""
+    try:
+        vault_mod.build_vault_from_disk()
     except RuntimeError as exc:
         console.print(f"[yellow]{exc}[/yellow]")
         raise typer.Exit(code=1)
