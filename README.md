@@ -28,6 +28,9 @@ collects the lesson text the platform legitimately displays, and builds an
 > of Service even for your own account. Review SOIC/Learnyst's terms and use this
 > at a polite rate and for personal study only.
 
+> **Full walkthrough:** see [`docs/END_TO_END_PLAN.md`](docs/END_TO_END_PLAN.md)
+> for the complete end-to-end plan, architecture, and step-by-step runbook.
+
 ## Setup
 
 ```bash
