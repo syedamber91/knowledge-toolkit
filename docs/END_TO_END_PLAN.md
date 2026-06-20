@@ -4,6 +4,15 @@ This document is the single source of truth for what the toolkit does, how the
 pieces fit together, and how to take it from a fresh clone to a populated
 Obsidian vault on your own machine.
 
+> **Update (2026-06-20): the live portal was inspected while logged in.** It is a
+> Next.js + Learnyst "Bodhi" web-component PWA — content is in Shadow DOM with no
+> anchors, the hierarchy is **Bundle → Course → Section → Lesson**, and lesson
+> bodies/transcripts are **protected** (sandboxed iframe + watermark + an explicit
+> "Downloading or sharing content is prohibited" notice). See
+> [`PORTAL_NOTES.md`](PORTAL_NOTES.md). To honor the no-circumvention / no-A-V-rip
+> guardrails, the crawler captures **structure + the openly-rendered AI summaries +
+> attachment flags only** — not article bodies and not verbatim transcripts.
+
 ## Goal
 
 Log into **your own** SOIC ("School of Intrinsic Compounding") membership on the
@@ -77,18 +86,23 @@ soic-toolkit login     # Chromium opens; sign in to SOIC (incl. OTP); press Ente
 soic-toolkit status    # expect: "Session looks valid"
 ```
 
-### Phase 2 — Confirm selectors (the one manual tuning step)
-The live Learnyst DOM is only knowable once logged in. Do a tiny crawl and check
-the captured text is real (not nav/boilerplate):
+### Phase 2 — Validate the crawl against the live portal
+The crawler has been rewritten for the real Bodhi portal (shadow-DOM reads +
+click-driven navigation; see `crawler.py` and `PORTAL_NOTES.md`). The pure
+parsing/cleaning helpers are unit-tested against real captured strings
+(`tests/test_portal.py`), but the live click-navigation can only be exercised
+with your session, so run a small crawl and confirm:
 ```bash
+# Optional: set your watermark identity so it's stripped from summaries
+#   SOIC_WATERMARK_LINES=you@example.com|+910000000000  (in .env)
 soic-toolkit crawl --limit 3
 ```
-Open `data/content.json`. If `body_text` / titles look wrong or empty, adjust:
-- `crawler.py` -> `SELECTORS` (how courses/lessons are discovered)
-- `extract.py` -> `_TITLE_SELECTORS`, `_BODY_SELECTORS` (where lesson text lives)
-
-Re-run the limited crawl until the captured text looks right. (Tip: in the
-browser, right-click a lesson's content → Inspect to find the real CSS classes.)
+Open `data/content.json` and confirm it shows a Bundle→Course→Section→Lesson tree
+with each lesson's `lesson_type`, `duration`, `has_attachment`, and (for videos)
+a cleaned `ai_summary`. If section/lesson grouping or summary text looks off,
+the things to adjust live in `crawler.py` (`_SHADOW_WALK`, `_SUMMARY_EXTRACT`,
+`_course_cards`, click selectors) and `extract.py` (`parse_section_header`,
+`parse_lesson_meta`, `clean_summary`).
 
 ### Phase 3 — Full crawl (resumable)
 ```bash

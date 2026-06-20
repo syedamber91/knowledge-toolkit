@@ -5,6 +5,10 @@ data/
 output/
 vault/
 
+# Local Phase-2 DOM-tuning helper + its captured HTML (scraped content)
+debug_dom/
+dump_dom.py
+
 # Python
 __pycache__/
 *.py[cod]
