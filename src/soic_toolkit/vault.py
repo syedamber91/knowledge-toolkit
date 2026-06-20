@@ -155,6 +155,12 @@ def _render_note(note: Note) -> str:
         f"module: \"{note.module_title}\"",
         f"source_url: {lesson.url}",
     ]
+    if lesson.lesson_type:
+        fm.append(f"type: {lesson.lesson_type}")
+    if lesson.duration:
+        fm.append(f'duration: "{lesson.duration}"')
+    if lesson.has_attachment:
+        fm.append("has_attachment: true")
     if lesson.captions_url:
         fm.append(f"captions_url: {lesson.captions_url}")
     if lesson.crawled_at:
@@ -167,6 +173,9 @@ def _render_note(note: Note) -> str:
                 f"[[{note.course_moc}|{note.course_title}]]*")
     if lesson.url:
         body.append(f"\n> Source: [Open lesson]({lesson.url})")
+    if lesson.ai_summary:
+        body += ["", "## AI summary", "", "> _AI-generated summary the portal "
+                 "displays; not the original lesson body._", "", lesson.ai_summary]
     if lesson.body_text:
         body += ["", lesson.body_text]
     if lesson.key_points:

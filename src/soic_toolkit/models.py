@@ -16,8 +16,16 @@ from pydantic import BaseModel, Field
 class Lesson(BaseModel):
     title: str
     url: str
-    # Free-text body the portal renders for the lesson (description/notes/transcript).
+    # Free-text body the portal renders for the lesson (description/notes).
     body_text: str = ""
+    # Lesson type as the portal labels it: "video" | "article" | "quiz" | ...
+    lesson_type: Optional[str] = None
+    # Human-readable duration for video lessons, e.g. "4m 30s".
+    duration: Optional[str] = None
+    # Openly-rendered, AI-generated lesson summary (NOT the protected body/transcript).
+    ai_summary: str = ""
+    # Whether the lesson advertises a downloadable attachment (PDF etc.).
+    has_attachment: bool = False
     # URL of a captions/subtitle track, only if the portal openly exposes one.
     captions_url: Optional[str] = None
     # Links to attached resources (PDFs etc.) the portal exposes.
