@@ -146,6 +146,10 @@ def _yaml_list(items: Iterable[str]) -> str:
     return "[" + ", ".join(items) + "]"
 
 
+def _transcript_basename(note: Note) -> str:
+    return f"{note.basename}-transcript"
+
+
 def _render_note(note: Note) -> str:
     lesson = note.lesson
     fm = [
@@ -177,7 +181,8 @@ def _render_note(note: Note) -> str:
         body += ["", "## AI summary", "", "> _AI-generated summary the portal "
                  "displays; not the original lesson body._", "", lesson.ai_summary]
     if lesson.body_text:
-        body += ["", lesson.body_text]
+        tname = _transcript_basename(note)
+        body += ["", "## Transcript", "", f"[[{tname}|📄 Full transcript →]]"]
     if lesson.key_points:
         body += ["", "## Key points"] + [f"- {p}" for p in lesson.key_points]
     if lesson.resource_links:
@@ -194,6 +199,29 @@ def _render_note(note: Note) -> str:
         body += ["", "---", " · ".join(nav)]
 
     return "\n".join(fm + body).rstrip() + "\n"
+
+
+def _render_transcript(note: Note) -> str:
+    lesson = note.lesson
+    lines = [
+        "---",
+        f'title: "{lesson.title} — Transcript"',
+        f"course: \"{note.course_title}\"",
+        f"source_url: {lesson.url}",
+        f"lesson: \"[[{note.basename}|{lesson.title}]]\"",
+        "tags: [transcript]",
+        "---",
+        "",
+        f"# {lesson.title} — Transcript",
+        "",
+        f"*← [[{note.basename}|Back to lesson note]] · "
+        f"[Open lesson]({lesson.url})*",
+        "",
+        "---",
+        "",
+        lesson.body_text,
+    ]
+    return "\n".join(lines).rstrip() + "\n"
 
 
 def _render_module_moc(module_title: str, course_moc: str, lessons: list[Note]) -> str:
@@ -263,10 +291,15 @@ def build_vault(catalog: Catalog, vault_dir: Path | str | None = None) -> Path:
     by_url = {n.lesson.url: n for n in notes}
     written = 0
 
-    # Lesson notes.
+    # Lesson notes (and separate transcript files where available).
     for note in notes:
         _write(target_dir / note.rel_path, _render_note(note))
         written += 1
+        if note.lesson.body_text:
+            transcript_path = (
+                target_dir / note.rel_path.parent / f"{_transcript_basename(note)}.md"
+            )
+            _write(transcript_path, _render_transcript(note))
 
     # MOCs, rebuilt from the catalog structure (reusing planned basenames).
     home_courses: list[tuple[str, str]] = []
