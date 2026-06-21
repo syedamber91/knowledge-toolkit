@@ -15,6 +15,7 @@ dependencies = [
     "python-dotenv>=1.0",
     "beautifulsoup4>=4.12",
     "lxml>=4.9",
+    "markdownify>=0.11",
     "typer>=0.9",
     "rich>=13.0",
 ]
@@ -26,6 +27,7 @@ dev = [
 
 [project.scripts]
 soic-toolkit = "soic_toolkit.cli:app"
+substack-toolkit = "substack_toolkit.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
