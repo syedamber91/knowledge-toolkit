@@ -69,6 +69,36 @@ Open the `vault/` folder in Obsidian (**Open folder as vault**) and turn on the
 `output/mindmap.html` in a browser / paste `output/mindmap.md` into
 <https://markmap.js.org/repl>.
 
+## Substack toolkit
+
+A second source in this repo: capture posts from a Substack publication you
+subscribe to into a **dedicated** Obsidian vault, with cross-channel topic
+linking. Free and paywalled posts are captured via your own logged-in session;
+posts are matched against a shared canonical topic vocabulary so the same topic
+(e.g. `dbt`) resolves to one shared note across every channel.
+
+```bash
+substack-toolkit login --handle vutr     # one-time: a browser opens, you log in; session saved
+substack-toolkit crawl vutr --limit 5    # capture a few posts to start (resumable)
+substack-toolkit build-vault             # write the Obsidian vault
+substack-toolkit list-topics             # see topic coverage
+```
+
+The vault is written to `SUBSTACK_VAULT_DIR` (default `~/Documents/Obsidian Vault/Substack`):
+
+```
+<vault>/Home.md                       # channels + topics index
+<vault>/channels/<handle>-channel.md  # one MOC per channel
+<vault>/posts/<handle>/<slug>.md      # one note per post
+<vault>/topics/<topic>.md             # shared topic notes (cross-channel)
+```
+
+Personal use of your own subscription only. Only text the authenticated page
+renders is captured — no media is downloaded. Your password is never stored;
+only the session cookie is saved under `.auth/` (gitignored). The crawl cache
+lives in `data/substack.json`. To recognise more topics, extend
+`TOPIC_VOCABULARY` in `src/substack_toolkit/topics.py` and rebuild the vault.
+
 ## Where extracted knowledge is stored
 
 ```
