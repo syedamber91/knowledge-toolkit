@@ -71,3 +71,38 @@ def test_build_vault_from_disk_errors_without_cache(tmp_path, monkeypatch):
 def test_slugify():
     assert vault.slugify("Apache Airflow") == "apache-airflow"
     assert vault.slugify("dbt!") == "dbt"
+
+
+def test_post_frontmatter_is_valid_yaml_with_special_chars(tmp_path):
+    from datetime import datetime, timezone
+
+    tricky = SubstackCatalog(
+        channels=[
+            Channel(handle="vutr", url="https://vutr.substack.com", posts=[
+                Post(
+                    title=r'Paths like C:\Users and a "quote"',
+                    slug="tricky-post",
+                    url="https://vutr.substack.com/p/tricky-post",
+                    published_at=datetime(2025, 1, 1, tzinfo=timezone.utc),
+                    body_markdown="body",
+                    topics=["dbt"],
+                ),
+            ]),
+        ]
+    )
+    vault.build_vault(tricky, vault_dir=tmp_path)
+    note = (tmp_path / "posts" / "vutr" / "tricky-post.md").read_text()
+
+    # Extract the frontmatter block and confirm it parses as valid YAML.
+    assert note.startswith("---\n")
+    fm_block = note.split("---\n", 2)[1]
+
+    import importlib.util
+    if importlib.util.find_spec("yaml") is not None:
+        import yaml
+        meta = yaml.safe_load(fm_block)
+        assert meta["title"] == r'Paths like C:\Users and a "quote"'
+    else:
+        # No PyYAML available: at least assert the title line is present and the
+        # backslash/quote were escaped (not left raw to break parsing).
+        assert r'title: "Paths like C:\\Users and a \"quote\""' in note

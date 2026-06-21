@@ -42,7 +42,11 @@ def _yaml_list(items: Iterable[str]) -> str:
 
 
 def _yaml_quote(value: str) -> str:
-    return '"' + value.replace('"', "'") + '"'
+    # Double-quoted YAML scalar: backslash is the escape char, so escape it
+    # first, then escape embedded double-quotes. Keeps titles with paths,
+    # regexes, or quotes from producing invalid frontmatter.
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def _post_basename(post: Post) -> str:
