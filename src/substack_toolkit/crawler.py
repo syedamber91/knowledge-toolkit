@@ -34,7 +34,11 @@ def _load_cookie_header() -> str:
             "No saved session. Run `substack-toolkit login --handle <handle>` first."
         )
     state = json.loads(STATE_PATH.read_text())
-    pairs = [f"{c['name']}={c['value']}" for c in state.get("cookies", [])]
+    pairs = [
+        f"{c['name']}={c['value']}"
+        for c in state.get("cookies", [])
+        if c.get("name") and c.get("value") is not None
+    ]
     return "; ".join(pairs)
 
 
@@ -106,8 +110,12 @@ def crawl(
         url_guess = f"{channel_url(handle)}/p/{slug}"
         if url_guess in existing:
             continue
-        detail = fetch(f"{channel_url(handle)}/api/v1/posts/{slug}")
-        post = enrich(post_from_api(detail, handle))
+        try:
+            detail = fetch(f"{channel_url(handle)}/api/v1/posts/{slug}")
+            post = enrich(post_from_api(detail, handle))
+        except Exception as exc:  # noqa: BLE001 - one bad post must not abort the crawl
+            console.print(f"  [yellow]skipped {slug}: {exc}[/yellow]")
+            continue
         if post.url in existing:
             continue
         channel.posts.append(post)

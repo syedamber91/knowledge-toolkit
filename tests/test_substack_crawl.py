@@ -55,3 +55,22 @@ def test_crawl_respects_limit(tmp_path, monkeypatch):
 
     channel = catalog.get_channel("vutr")
     assert len(channel.posts) == 1
+
+
+def test_crawl_continues_when_one_post_fails(tmp_path, monkeypatch):
+    monkeypatch.setattr(crawler, "CONTENT_PATH", tmp_path / "substack.json")
+    monkeypatch.setattr(crawler.time, "sleep", lambda *a, **k: None)
+
+    def flaky_fetch(url: str):
+        if "/api/v1/archive" in url:
+            return ARCHIVE if "offset=0" in url else []
+        if url.endswith("/p1"):
+            raise RuntimeError("boom")
+        slug = url.rsplit("/", 1)[-1]
+        return DETAILS[slug]
+
+    catalog = crawler.crawl("vutr", fetch=flaky_fetch)
+
+    channel = catalog.get_channel("vutr")
+    # p1 failed and was skipped; p2 still captured.
+    assert {p.slug for p in channel.posts} == {"p2"}
