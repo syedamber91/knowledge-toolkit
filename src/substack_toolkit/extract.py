@@ -7,6 +7,7 @@ Markdown links, never downloaded.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime, timezone
 from typing import Any, Optional
 
@@ -17,16 +18,29 @@ from .models import Post
 from .topics import keywords, match_topics
 
 # Substack "audience" values that mean freely available to everyone.
+# Any value NOT in this set is treated as paid (safe default for unknown values).
 _FREE_AUDIENCES = {"", "everyone", "only_free"}
 
 
 def _parse_date(raw: Optional[str]) -> Optional[datetime]:
     if not raw:
         return None
+    cleaned = raw.replace("Z", "+00:00")
     try:
-        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+        return datetime.fromisoformat(cleaned)
     except ValueError:
-        return None
+        pass
+    # Python 3.9's fromisoformat only accepts 3- or 6-digit fractional seconds.
+    # Normalise any fractional part to 6 digits and retry.
+    match = re.match(r"^(.*?)\.(\d+)(.*)$", cleaned)
+    if match:
+        head, frac, tail = match.groups()
+        normalised = f"{head}.{frac[:6].ljust(6, '0')}{tail}"
+        try:
+            return datetime.fromisoformat(normalised)
+        except ValueError:
+            return None
+    return None
 
 
 def _author(data: dict[str, Any]) -> str:
@@ -63,7 +77,7 @@ def post_from_api(data: dict[str, Any], handle: str) -> Post:
 
 
 def enrich(post: Post) -> Post:
-    """Attach canonical topics and secondary keyword tags to a Post."""
+    """Attach canonical topics and secondary keyword tags (mutates and returns post)."""
     text = f"{post.title}\n{post.subtitle}\n{post.body_markdown}"
     post.topics = match_topics(text)
     post.keywords = keywords(text)
