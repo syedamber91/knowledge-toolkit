@@ -45,8 +45,8 @@ def test_topic_note_aggregates_across_channels(tmp_path):
     dbt_note = (tmp_path / "topics" / "dbt.md").read_text()
     assert "## vutr" in dbt_note
     assert "## other" in dbt_note
-    assert "[[dbt-deep-dive|dbt deep dive]]" in dbt_note
-    assert "[[dbt-at-scale|dbt at scale]]" in dbt_note
+    assert "[[posts/vutr/dbt-deep-dive|dbt deep dive]]" in dbt_note
+    assert "[[posts/other/dbt-at-scale|dbt at scale]]" in dbt_note
 
 
 def test_post_note_frontmatter_and_links(tmp_path):
@@ -106,3 +106,24 @@ def test_post_frontmatter_is_valid_yaml_with_special_chars(tmp_path):
         # No PyYAML available: at least assert the title line is present and the
         # backslash/quote were escaped (not left raw to break parsing).
         assert r'title: "Paths like C:\\Users and a \"quote\""' in note
+
+
+def test_topic_links_are_channel_qualified_on_slug_collision(tmp_path):
+    # Two channels share the slug "intro"; links must stay unambiguous.
+    catalog = SubstackCatalog(
+        channels=[
+            Channel(handle="vutr", url="https://vutr.substack.com", posts=[
+                _post("Intro A", "intro", ["dbt"], "vutr"),
+            ]),
+            Channel(handle="other", url="https://other.substack.com", posts=[
+                _post("Intro B", "intro", ["dbt"], "other"),
+            ]),
+        ]
+    )
+    vault.build_vault(catalog, vault_dir=tmp_path)
+    dbt_note = (tmp_path / "topics" / "dbt.md").read_text()
+    # Both channels' posts are linked by distinct, full vault-relative paths.
+    assert "[[posts/vutr/intro|Intro A]]" in dbt_note
+    assert "[[posts/other/intro|Intro B]]" in dbt_note
+    # The ambiguous bare-slug link must NOT appear.
+    assert "[[intro|" not in dbt_note

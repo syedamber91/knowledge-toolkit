@@ -53,6 +53,17 @@ def _post_basename(post: Post) -> str:
     return slugify(post.slug or post.title)
 
 
+def _post_link(handle: str, post: Post) -> str:
+    """Vault-root-relative link target for a post.
+
+    Post slugs are unique only within a publication, so two channels can reuse
+    the same slug (e.g. "intro"). A bare ``[[slug]]`` would then be ambiguous in
+    Obsidian; the full ``posts/<handle>/<slug>`` path keeps cross-channel links
+    pointing at the right note.
+    """
+    return f"posts/{slugify(handle)}/{_post_basename(post)}"
+
+
 def _channel_moc_name(channel: Channel) -> str:
     return f"{slugify(channel.handle)}-channel"
 
@@ -101,7 +112,7 @@ def _render_topic(topic: str, posts_by_channel: dict[str, list[Post]]) -> str:
     for handle in sorted(posts_by_channel):
         lines.append(f"## {handle}")
         for post in posts_by_channel[handle]:
-            lines.append(f"- [[{_post_basename(post)}|{post.title}]]")
+            lines.append(f"- [[{_post_link(handle, post)}|{post.title}]]")
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
@@ -114,7 +125,7 @@ def _render_channel_moc(channel: Channel) -> str:
              f"> {channel.url}", "", "## Posts"]
     for post in posts:
         date = f" — {post.published_at.date().isoformat()}" if post.published_at else ""
-        lines.append(f"- [[{_post_basename(post)}|{post.title}]]{date}")
+        lines.append(f"- [[{_post_link(channel.handle, post)}|{post.title}]]{date}")
     return "\n".join(lines).rstrip() + "\n"
 
 
