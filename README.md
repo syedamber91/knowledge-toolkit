@@ -78,11 +78,22 @@ posts are matched against a shared canonical topic vocabulary so the same topic
 (e.g. `dbt`) resolves to one shared note across every channel.
 
 ```bash
-substack-toolkit login --handle vutr     # one-time: a browser opens, you log in; session saved
+substack-toolkit login --from-chrome     # reuse your existing Chrome session (recommended)
+# or: substack-toolkit login --handle vutr  # open a browser and log in manually
 substack-toolkit crawl vutr --limit 5    # capture a few posts to start (resumable)
 substack-toolkit build-vault             # write the Obsidian vault
 substack-toolkit list-topics             # see topic coverage
 ```
+
+**Authentication.** The only cookie that proves an authenticated session is
+`substack.sid` (httpOnly); `substack.lli` is just a client-side hint and is not
+enough. `login --from-chrome` imports the Substack cookies from your everyday
+Google Chrome (where you are already logged in) by decrypting Chrome's local
+cookie store — macOS will ask you to approve Keychain access. This is the
+reliable path; the manual browser login is a fallback. Paid posts return only a
+truncated *preview* unless the session is authenticated and entitled: the API
+marks a gated response with `hidden: true`, so `body_accessible` is true only
+when the full body came back (a non-empty body alone does **not** prove access).
 
 The vault is written to `SUBSTACK_VAULT_DIR` (default `~/Documents/Obsidian Vault/Substack`):
 

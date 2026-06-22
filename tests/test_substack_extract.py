@@ -35,6 +35,42 @@ def test_post_from_api_paid_without_body():
     assert post.body_markdown == ""
 
 
+def test_paid_preview_with_nonempty_body_is_not_accessible():
+    # Regression: a paywalled PREVIEW has a non-empty body but is gated with
+    # hidden=True. bool(body_md) alone would wrongly mark it accessible.
+    data = dict(
+        API_POST,
+        audience="only_paid",
+        hidden=True,  # Substack's gated-response marker
+        body_html="<p>Intro paragraph then a subscribe call-to-action…</p>",
+        truncated_body_text="Join my paid membership…",  # present even when full
+    )
+    post = post_from_api(data, "vutr")
+    assert post.is_paid is True
+    assert post.body_accessible is False  # the fix
+    assert post.body_markdown  # preview text is still captured
+
+
+def test_paid_full_body_when_authenticated_is_accessible():
+    # Authenticated + entitled: full body, no `hidden` flag.
+    data = dict(
+        API_POST,
+        audience="only_paid",
+        body_html="<h2>Full</h2><p>" + ("content " * 200) + "</p>",
+    )
+    post = post_from_api(data, "vutr")
+    assert post.is_paid is True
+    assert post.body_accessible is True
+
+
+def test_free_post_with_truncated_body_text_stays_accessible():
+    # truncated_body_text on a FREE post must not be mistaken for a paywall.
+    data = dict(API_POST, audience="everyone", truncated_body_text="snippet")
+    post = post_from_api(data, "vutr")
+    assert post.is_paid is False
+    assert post.body_accessible is True
+
+
 def test_post_from_api_builds_url_when_canonical_missing():
     data = dict(API_POST)
     del data["canonical_url"]

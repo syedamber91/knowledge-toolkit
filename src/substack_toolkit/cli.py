@@ -28,9 +28,26 @@ console = Console()
 
 @app.command()
 def login(
-    handle: str = typer.Option(..., "--handle", help="Publication handle, e.g. vutr.")
+    handle: str = typer.Option(
+        None, "--handle", help="Publication handle, e.g. vutr (browser login only)."
+    ),
+    from_chrome: bool = typer.Option(
+        False, "--from-chrome",
+        help="Reuse your existing Google Chrome session instead of opening a "
+             "browser. Requires being logged into Substack in Chrome.",
+    ),
 ) -> None:
-    """Open a browser, log in manually, and save the session cookie."""
+    """Save a Substack session cookie — via browser login or by importing Chrome's."""
+    if from_chrome:
+        try:
+            auth_mod.import_from_chrome()
+        except RuntimeError as exc:
+            console.print(f"[yellow]{exc}[/yellow]")
+            raise typer.Exit(code=1)
+        return
+    if not handle:
+        console.print("[yellow]Provide --handle for browser login, or use --from-chrome.[/yellow]")
+        raise typer.Exit(code=1)
     auth_mod.login(handle)
 
 

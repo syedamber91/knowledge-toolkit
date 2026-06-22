@@ -22,6 +22,18 @@ from .topics import keywords, match_topics
 _FREE_AUDIENCES = {"", "everyone", "only_free"}
 
 
+def _is_truncated_preview(data: dict[str, Any]) -> bool:
+    """True when the API returned only the paywalled preview, not the full body.
+
+    Substack marks the gated response for a paid post with ``hidden: True``; an
+    authenticated reader who actually has access gets the full body and the
+    ``hidden`` flag is absent. ``truncated_body_text`` is NOT a reliable signal —
+    it is the listing snippet and is present even in the full authenticated
+    response — so we key off ``hidden`` only.
+    """
+    return data.get("hidden") is True
+
+
 def _parse_date(raw: Optional[str]) -> Optional[datetime]:
     if not raw:
         return None
@@ -62,6 +74,10 @@ def post_from_api(data: dict[str, Any], handle: str) -> Post:
     url = data.get("canonical_url") or f"{channel_url(handle)}/p/{slug}"
     audience = data.get("audience", "") or ""
     is_paid = audience not in _FREE_AUDIENCES
+    # A paid post returns only a truncated preview unless the session is
+    # authenticated AND entitled. bool(body_md) is NOT enough — a preview is also
+    # non-empty — so a paid post counts as accessible only when it is not gated.
+    accessible = bool(body_md) and not (is_paid and _is_truncated_preview(data))
     return Post(
         title=data.get("title") or "(untitled)",
         subtitle=data.get("subtitle") or "",
@@ -70,7 +86,7 @@ def post_from_api(data: dict[str, Any], handle: str) -> Post:
         author=_author(data),
         published_at=_parse_date(data.get("post_date")),
         is_paid=is_paid,
-        body_accessible=bool(body_md),
+        body_accessible=accessible,
         body_markdown=body_md,
         captured_at=datetime.now(timezone.utc),
     )
