@@ -1,7 +1,7 @@
 import re
 
-from media_toolkit import vault
-from media_toolkit.models import KIND_ARTICLE, KIND_YOUTUBE, MediaCatalog, MediaItem
+from media_core import unified_vault as vault
+from media_core.models import KIND_ARTICLE, KIND_YOUTUBE, MediaCatalog, MediaItem
 
 
 def _catalog():

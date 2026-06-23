@@ -25,7 +25,7 @@ from rich.console import Console
 
 from .config import CONTENT_PATH, VAULT_DIR
 from .models import KIND_ARTICLE, KIND_YOUTUBE, MediaCatalog, MediaItem
-from .youtube import video_id_of
+from youtube_toolkit.capture import video_id_of
 
 console = Console()
 

@@ -1,4 +1,4 @@
-from media_toolkit.topics import TOPIC_VOCABULARY, keywords, match_topics
+from media_core.topics import TOPIC_VOCABULARY, keywords, match_topics
 
 
 def test_extended_vocabulary_includes_base_and_systemdesign():
