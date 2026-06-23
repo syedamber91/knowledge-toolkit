@@ -1,5 +1,5 @@
-import media_toolkit.store as store
-import media_toolkit.web as web
+import media_core.store as store
+import web_toolkit.capture as web
 
 # A realistic, clearly-extractable article (enough body for trafilatura).
 _PARA = ("Caching with Redis and load balancing across microservices are core "

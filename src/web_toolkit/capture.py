@@ -15,10 +15,10 @@ from urllib.parse import urlparse
 
 from rich.console import Console
 
-from .config import settings
-from .models import KIND_ARTICLE, MediaCatalog, MediaItem
-from .store import load_catalog, save_catalog
-from .topics import keywords, match_topics
+from media_core.config import settings
+from media_core.models import KIND_ARTICLE, MediaCatalog, MediaItem
+from media_core.store import load_catalog, save_catalog
+from media_core.topics import keywords, match_topics
 
 console = Console()
 
