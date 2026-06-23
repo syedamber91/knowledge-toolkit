@@ -48,6 +48,19 @@ _EXTRA_VOCABULARY: dict[str, list[str]] = {
     "MCP": ["model context protocol", "mcp"],
     "Web Development": ["web development", "frontend", "backend"],
     "Python": ["python"],
+    # Education & productivity (common in YouTube / learning channels)
+    "Learning": ["learning", "study", "studying", "how to learn",
+                 "active recall", "spaced repetition", "flashcard",
+                 "comprehension", "retention", "memorization"],
+    "Productivity": ["productivity", "time management", "deep work",
+                     "focus", "procrastination", "habit", "pomodoro"],
+    "Career": ["career", "job search", "interview", "salary", "networking",
+               "resume", "linkedin", "job offer", "internship"],
+    "Education": ["education", "college", "university", "student",
+                  "course", "degree", "class", "lecture", "exam",
+                  "test-taking", "note-taking"],
+    "AI & Future of Work": ["ai replacing", "automation replacing",
+                             "future of work", "ai and jobs"],
 }
 
 # Merge: base first (preserves canonical ordering), then extras.

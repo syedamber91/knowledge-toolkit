@@ -24,8 +24,7 @@ DATA_DIR = ROOT_DIR / "data"
 # iCloud container (same place the Substack vault lives) so it syncs to iOS/other
 # Macs without paying for Obsidian Sync.
 _DEFAULT_VAULT = (
-    "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
-    "learning_from_youtube_and_websites"
+    "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/Obsidian Vault"
 )
 VAULT_DIR = Path(os.environ.get("MEDIA_VAULT_DIR", _DEFAULT_VAULT)).expanduser()
 

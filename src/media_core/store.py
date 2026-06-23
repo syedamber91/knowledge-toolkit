@@ -19,3 +19,20 @@ def load_catalog() -> MediaCatalog:
 def save_catalog(catalog: MediaCatalog) -> None:
     CONTENT_PATH.parent.mkdir(parents=True, exist_ok=True)
     CONTENT_PATH.write_text(catalog.model_dump_json(indent=2))
+
+
+def retag_catalog(catalog: MediaCatalog) -> int:
+    """Re-apply topic matching to every item in *catalog* in-place.
+
+    Returns the number of items whose topic list changed.
+    """
+    from .topics import match_topics  # lazy import avoids circular at module level
+
+    changed = 0
+    for item in catalog.items:
+        text = " ".join(filter(None, [item.title, item.description, item.body_markdown]))
+        new_topics = match_topics(text)
+        if new_topics != item.topics:
+            item.topics = new_topics
+            changed += 1
+    return changed
