@@ -67,7 +67,23 @@ def test_capture_channel_respects_limit_and_resumes(tmp_path, monkeypatch):
     assert len(cat2.items) == 2
 
 
-def test_missing_transcript_marks_inaccessible(tmp_path, monkeypatch):
+def test_short_video_skipped(tmp_path, monkeypatch):
+    """Videos ≤60s (Shorts) are skipped regardless of transcript availability."""
+    monkeypatch.setattr(store, "CONTENT_PATH", tmp_path / "media.json")
+    monkeypatch.setattr(yt.time, "sleep", lambda *a, **k: None)
+
+    short_info = {**_info("abcdefghijk", "Quick tip"), "duration": 45}
+    cat = yt.capture(
+        "https://www.youtube.com/watch?v=abcdefghijk",
+        info_fetch=lambda u: short_info,
+        transcript_fetch=lambda vid: "some transcript text here",
+        entries_fetch=lambda u: [],
+    )
+    assert len(cat.items) == 0  # skipped because duration <= 60
+
+
+def test_missing_transcript_skipped(tmp_path, monkeypatch):
+    """Videos with no transcript are silently skipped (not stored)."""
     monkeypatch.setattr(store, "CONTENT_PATH", tmp_path / "media.json")
     monkeypatch.setattr(yt.time, "sleep", lambda *a, **k: None)
 
@@ -77,9 +93,7 @@ def test_missing_transcript_marks_inaccessible(tmp_path, monkeypatch):
         transcript_fetch=lambda vid: "",   # transcripts disabled
         entries_fetch=lambda u: [],
     )
-    it = cat.items[0]
-    assert it.body_accessible is False
-    assert it.body_markdown == ""
+    assert len(cat.items) == 0  # skipped, not stored
 
 
 def test_flatten_entries_handles_nested_shorts_tab():

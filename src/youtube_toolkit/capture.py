@@ -26,6 +26,10 @@ console = Console()
 
 _VIDEO_ID_RE = re.compile(r"(?:v=|/shorts/|/embed/|youtu\.be/)([0-9A-Za-z_-]{11})")
 
+# Maximum duration (seconds) allowed for capture. YouTube Shorts are ≤60s and
+# almost never have accessible transcripts — skip them to keep the vault clean.
+MAX_DURATION_SECONDS = 61
+
 
 # --- network seams (overridable in tests) -----------------------------------
 
@@ -189,7 +193,18 @@ def capture(
         if not info:
             console.print(f"  [yellow]skipped {target}: no info[/yellow]")
             continue
+        # Guardrail 1: skip Shorts (≤60s) — they rarely have transcripts
+        duration = info.get("duration") or 0
+        if duration and duration < MAX_DURATION_SECONDS:
+            console.print(f"  [dim]skipped (short {duration}s): {info.get('title', target)}[/dim]")
+            existing.add(target)  # mark seen so resume skips it too
+            continue
         transcript = transcript_fetch(info.get("id") or video_id_of(target))
+        # Guardrail 2: skip videos with no accessible transcript
+        if not transcript:
+            console.print(f"  [dim]skipped (no transcript): {info.get('title', target)}[/dim]")
+            existing.add(target)
+            continue
         item = item_from_info(info, transcript)
         if item.url in existing:
             continue
@@ -197,8 +212,7 @@ def capture(
         existing.add(item.url)
         new_count += 1
         _save_catalog(catalog)  # incremental — survive interruption
-        flag = "" if item.body_accessible else " [no transcript]"
-        console.print(f"  captured: {item.title}{flag}")
+        console.print(f"  captured: {item.title}")
         time.sleep(random.uniform(settings.capture_min_delay, settings.capture_max_delay))
 
     _save_catalog(catalog)
