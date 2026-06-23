@@ -1,5 +1,5 @@
-import media_toolkit.store as store
-import media_toolkit.youtube as yt
+import media_core.store as store
+import youtube_toolkit.capture as yt
 
 
 def _info(vid, title, desc=""):

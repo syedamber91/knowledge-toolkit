@@ -16,11 +16,11 @@ from typing import Callable, Optional
 
 from rich.console import Console
 
-from .config import settings
-from .models import KIND_YOUTUBE, MediaCatalog, MediaItem
-from .store import load_catalog as _load_catalog
-from .store import save_catalog as _save_catalog
-from .topics import keywords, match_topics
+from media_core.config import settings
+from media_core.models import KIND_YOUTUBE, MediaCatalog, MediaItem
+from media_core.store import load_catalog as _load_catalog
+from media_core.store import save_catalog as _save_catalog
+from media_core.topics import keywords, match_topics
 
 console = Console()
 
