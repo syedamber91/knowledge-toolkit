@@ -114,6 +114,40 @@ only the session cookie is saved under `.auth/` (gitignored). The crawl cache
 lives in `data/substack.json`. To recognise more topics, extend
 `TOPIC_VOCABULARY` in `src/substack_toolkit/topics.py` and rebuild the vault.
 
+## YouTube & web toolkit
+
+A third source: capture **YouTube** transcripts (single videos, whole channels,
+or playlists) and **readable web articles** into a single unified Obsidian vault
+where videos and articles cross-link by shared topic. No API keys: YouTube
+metadata via `yt-dlp`, transcripts via `youtube-transcript-api`, article text via
+`trafilatura`.
+
+```bash
+media-toolkit youtube "https://www.youtube.com/watch?v=<id>"      # one video
+media-toolkit youtube "https://www.youtube.com/@channel" --limit 20  # channel/playlist
+media-toolkit web "https://example.com/post" "https://example.com/other"  # articles
+media-toolkit web --file urls.txt                                 # a reading list (one URL per line)
+media-toolkit build-vault                                         # build the unified vault
+media-toolkit list-topics                                        # topic coverage
+```
+
+The vault defaults to `MEDIA_VAULT_DIR` (a new vault inside the Obsidian iCloud
+container, `…/learning_from_youtube_and_websites`, separate from the Substack
+vault). Layout:
+
+```
+<vault>/Home.md
+<vault>/youtube/<channel>/<video>.md   # transcript + metadata, one note per video
+<vault>/web/<domain>/<article>.md       # readable article text
+<vault>/sources/<kind>-<source>.md      # one MOC per channel / site
+<vault>/topics/<topic>.md               # shared topic notes (video + article together)
+```
+
+It reuses the Substack topic vocabulary and extends it with software /
+system-design / AI terms (`src/media_toolkit/topics.py`). Personal use only;
+only text the platforms expose is stored — no audio/video is downloaded. The
+capture cache lives in `data/media.json` (gitignored).
+
 ## Where extracted knowledge is stored
 
 ```

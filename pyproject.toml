@@ -18,6 +18,9 @@ dependencies = [
     "markdownify>=0.11",
     "typer>=0.9",
     "rich>=13.0",
+    "yt-dlp>=2024.1",
+    "youtube-transcript-api>=0.6",
+    "trafilatura>=1.6",
 ]
 
 [project.optional-dependencies]
@@ -28,6 +31,7 @@ dev = [
 [project.scripts]
 soic-toolkit = "soic_toolkit.cli:app"
 substack-toolkit = "substack_toolkit.cli:app"
+media-toolkit = "media_toolkit.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
