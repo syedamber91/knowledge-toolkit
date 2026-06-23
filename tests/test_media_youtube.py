@@ -80,3 +80,26 @@ def test_missing_transcript_marks_inaccessible(tmp_path, monkeypatch):
     it = cat.items[0]
     assert it.body_accessible is False
     assert it.body_markdown == ""
+
+
+def test_flatten_entries_handles_nested_shorts_tab():
+    # A channel page whose entries contain a nested "Shorts" tab (yt-dlp shape).
+    info = {"entries": [
+        {"title": "Shorts", "entries": [
+            {"id": "short000001", "title": "Tip 1"},
+            {"id": "short000002", "title": "Tip 2"},
+            None,  # yt-dlp sometimes yields null entries
+        ]},
+    ]}
+    out = yt._flatten_entries(info)
+    assert [e["id"] for e in out] == ["short000001", "short000002"]
+
+
+def test_flatten_entries_single_video_info():
+    # A single video info dict (has an id, no entries) returns itself.
+    assert yt._flatten_entries({"id": "vid00000001"}) == [{"id": "vid00000001"}]
+
+
+def test_flatten_entries_flat_playlist():
+    info = {"entries": [{"id": "a0000000001"}, {"id": "b0000000002"}]}
+    assert [e["id"] for e in yt._flatten_entries(info)] == ["a0000000001", "b0000000002"]

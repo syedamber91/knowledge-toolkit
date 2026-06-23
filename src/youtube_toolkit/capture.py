@@ -44,10 +44,12 @@ def fetch_info(url: str) -> dict:
         return y.extract_info(url, download=False) or {}
 
 
-def enumerate_entries(url: str) -> list[dict]:
-    """Flat list of {id,url,title} entries for a channel or playlist (yt-dlp)."""
-    with _ydl({"extract_flat": "in_playlist"}) as y:
-        info = y.extract_info(url, download=False) or {}
+def _flatten_entries(info: dict) -> list[dict]:
+    """Flatten a yt-dlp info dict into a flat list of video entry dicts.
+
+    Handles nested channel tabs (Videos/Shorts/Live), skips null entries, and
+    treats a bare single-video info dict (has ``id``, no ``entries``) as one item.
+    """
     entries: list[dict] = []
 
     def _walk(node):
@@ -64,6 +66,13 @@ def enumerate_entries(url: str) -> list[dict]:
     elif info.get("id"):
         entries.append(info)
     return entries
+
+
+def enumerate_entries(url: str) -> list[dict]:
+    """Flat list of {id,url,title} entries for a channel or playlist (yt-dlp)."""
+    with _ydl({"extract_flat": "in_playlist"}) as y:
+        info = y.extract_info(url, download=False) or {}
+    return _flatten_entries(info)
 
 
 def fetch_transcript(video_id: str) -> str:
