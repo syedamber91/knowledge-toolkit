@@ -31,7 +31,8 @@ dev = [
 [project.scripts]
 soic-toolkit = "soic_toolkit.cli:app"
 substack-toolkit = "substack_toolkit.cli:app"
-media-toolkit = "media_toolkit.cli:app"
+youtube-toolkit = "youtube_toolkit.cli:app"
+web-toolkit = "web_toolkit.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]
