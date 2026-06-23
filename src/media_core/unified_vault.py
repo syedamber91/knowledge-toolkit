@@ -338,7 +338,15 @@ def build_unified(media, substack, vault_dir=None):
     home = ["---", 'title: "Knowledge Vault"', "tags: [home, moc]", "---", "",
             "# Knowledge Vault", "",
             "Unified topics across Substack, YouTube and web. Open the graph view.",
-            "", "## Topics"]
+            "", "## Sources"]
+    for moc, items in source_items.items():
+        home.append(f"- [[sources/{moc}|{_source_label(items[0])}]] ({len(items)})")
+    if substack is not None:
+        for channel in substack.channels:
+            label = channel.name or channel.handle
+            home.append(f"- [[Substack/channels/{_sub_channel_moc(channel.handle)}"
+                        f"|Substack · {label}]] ({len(channel.posts)})")
+    home += ["", "## Topics"]
     for topic in sorted(topic_index, key=lambda t: (-sum(len(v) for v in topic_index[t].values()), t)):
         total = sum(len(v) for v in topic_index[topic].values())
         home.append(f"- [[{slugify(topic)}|{topic}]] ({total})")
