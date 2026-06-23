@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import re
+import shutil
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -231,3 +232,131 @@ def build_vault_from_disk(vault_dir: Path | str | None = None) -> Path:
         )
     catalog = MediaCatalog.model_validate_json(CONTENT_PATH.read_text(encoding="utf-8"))
     return build_vault(catalog, vault_dir=vault_dir)
+
+
+# --- Substack adaptation -----------------------------------------------------
+
+def _sub_post_basename(post) -> str:
+    return slugify(post.slug or post.title)
+
+def _sub_note_path(handle: str, post) -> str:
+    return f"Substack/posts/{slugify(handle)}/{_sub_post_basename(post)}"
+
+def _sub_channel_moc(handle: str) -> str:
+    return f"{slugify(handle)}-channel"
+
+def _render_sub_post(post, handle: str) -> str:
+    """Substack post note with topic links that resolve to the ROOT topics/."""
+    fm = ["---", f"title: {_yaml_quote(post.title)}", f"channel: {handle}"]
+    if post.author:
+        fm.append(f"author: {_yaml_quote(post.author)}")
+    if post.published_at:
+        fm.append(f"published: {post.published_at.date().isoformat()}")
+    fm += [f"url: {post.url}", f"paid: {str(post.is_paid).lower()}",
+           f"topics: {_yaml_list(_yaml_quote(t) for t in post.topics)}",
+           f"tags: {_yaml_list(post.keywords)}", "---"]
+    body = ["", f"# {post.title}", ""]
+    if post.subtitle:
+        body += [f"*{post.subtitle}*", ""]
+    body.append(f"> Source: [Open post]({post.url})")
+    if post.is_paid and not post.body_accessible:
+        body += ["", "> [!warning] Paid post — body not accessible with the current session."]
+    if post.topics:
+        body += ["", "## Topics", "",
+                 " · ".join(f"[[{slugify(t)}|{t}]]" for t in post.topics)]
+    if post.body_markdown:
+        body += ["", "---", "", post.body_markdown]
+    return "\n".join(fm + body).rstrip() + "\n"
+
+def _render_sub_channel_moc(channel) -> str:
+    posts = sorted(channel.posts, key=lambda p: p.published_at or _EPOCH, reverse=True)
+    name = channel.name or channel.handle
+    lines = ["---", f"title: {_yaml_quote(name + ' (Channel)')}",
+             "tags: [channel, moc]", "---", "", f"# {name}", "",
+             f"> {channel.url}", "", "## Posts"]
+    for post in posts:
+        date = f" — {post.published_at.date().isoformat()}" if post.published_at else ""
+        lines.append(f"- [[{_sub_note_path(channel.handle, post)}|{post.title}]]{date}")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+# --- unified build -----------------------------------------------------------
+
+def build_unified(media, substack, vault_dir=None):
+    """Write the unified vault: media + Substack content notes sharing one topics/."""
+    target = Path(vault_dir).expanduser() if vault_dir else VAULT_DIR
+    target.mkdir(parents=True, exist_ok=True)
+
+    # Migration: drop stale per-source Substack topic notes / Home.
+    shutil.rmtree(target / "Substack" / "topics", ignore_errors=True)
+    (target / "Substack" / "Home.md").unlink(missing_ok=True)
+
+    # topic -> source_label -> [(note_path, title)]
+    topic_index = defaultdict(lambda: defaultdict(list))
+    source_items = defaultdict(list)
+
+    # --- media content notes ---
+    for item in media.items:
+        moc = _source_moc_name(item)
+        source_items[moc].append(item)
+        _write(target / _KIND_FOLDER[item.kind] / _source_slug(item)
+               / f"{_item_basename(item)}.md", _render_item(item, moc))
+        for topic in item.topics:
+            topic_index[topic][_source_label(item)].append((_item_link(item), item.title))
+
+    for moc, items in source_items.items():
+        _write(target / "sources" / f"{moc}.md",
+               _render_source_moc(_source_label(items[0]), items[0].kind, "", items))
+
+    # --- substack content notes ---
+    if substack is not None:
+        for channel in substack.channels:
+            for post in channel.posts:
+                _write(target / "Substack" / "posts" / slugify(channel.handle)
+                       / f"{_sub_post_basename(post)}.md",
+                       _render_sub_post(post, channel.handle))
+                label = f"Substack · {channel.handle}"
+                for topic in post.topics:
+                    topic_index[topic][label].append(
+                        (_sub_note_path(channel.handle, post), post.title))
+            _write(target / "Substack" / "channels" / f"{_sub_channel_moc(channel.handle)}.md",
+                   _render_sub_channel_moc(channel))
+
+    # --- shared root topic notes ---
+    for topic, by_source in topic_index.items():
+        lines = ["---", f"title: {_yaml_quote(topic)}", "tags: [topic]", "---",
+                 "", f"# {topic}", ""]
+        for label in sorted(by_source):
+            lines.append(f"## {label}")
+            for note_path, title in by_source[label]:
+                lines.append(f"- [[{note_path}|{title}]]")
+            lines.append("")
+        _write(target / "topics" / f"{slugify(topic)}.md",
+               "\n".join(lines).rstrip() + "\n")
+
+    # --- root Home ---
+    home = ["---", 'title: "Knowledge Vault"', "tags: [home, moc]", "---", "",
+            "# Knowledge Vault", "",
+            "Unified topics across Substack, YouTube and web. Open the graph view.",
+            "", "## Topics"]
+    for topic in sorted(topic_index, key=lambda t: (-sum(len(v) for v in topic_index[t].values()), t)):
+        total = sum(len(v) for v in topic_index[topic].values())
+        home.append(f"- [[{slugify(topic)}|{topic}]] ({total})")
+    _write(target / "Home.md", "\n".join(home).rstrip() + "\n")
+
+    console.print(f"[green]Unified vault written:[/green] {target} "
+                  f"({len(media.items)} media items, {len(topic_index)} topics)")
+    return target
+
+
+def build_from_disk(vault_dir=None):
+    """Build the unified vault from data/media.json (+ data/substack.json if present)."""
+    from substack_toolkit.config import CONTENT_PATH as SUB_PATH
+    from substack_toolkit.models import SubstackCatalog
+    if not CONTENT_PATH.exists():
+        raise RuntimeError(f"No media at {CONTENT_PATH}. Capture something first.")
+    media = MediaCatalog.model_validate_json(CONTENT_PATH.read_text(encoding="utf-8"))
+    substack = None
+    if SUB_PATH.exists():
+        substack = SubstackCatalog.model_validate_json(SUB_PATH.read_text(encoding="utf-8"))
+    return build_unified(media, substack, vault_dir=vault_dir)
