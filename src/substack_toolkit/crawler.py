@@ -17,7 +17,7 @@ from typing import Callable, Optional
 from rich.console import Console
 
 from .config import CONTENT_PATH, STATE_PATH, channel_url, settings
-from .extract import enrich, post_from_api
+from .extract import enrich, is_free_audience, post_from_api
 from .models import Channel, SubstackCatalog
 
 console = Console()
@@ -69,8 +69,18 @@ def _save_catalog(catalog: SubstackCatalog) -> None:
     CONTENT_PATH.write_text(catalog.model_dump_json(indent=2))
 
 
-def list_post_slugs(fetch: Fetcher, handle: str, limit: Optional[int]) -> list[str]:
-    """Enumerate post slugs newest-first by paging the archive endpoint."""
+def list_post_slugs(
+    fetch: Fetcher,
+    handle: str,
+    limit: Optional[int],
+    free_only: bool = False,
+) -> list[str]:
+    """Enumerate post slugs newest-first by paging the archive endpoint.
+
+    When ``free_only`` is set, paid posts are filtered out using the ``audience``
+    the archive already reports — so we never even fetch their (preview-only)
+    bodies. Useful for publications you follow but do not pay for.
+    """
     base = channel_url(handle)
     slugs: list[str] = []
     offset = 0
@@ -80,8 +90,11 @@ def list_post_slugs(fetch: Fetcher, handle: str, limit: Optional[int]) -> list[s
             break
         for item in items:
             slug = item.get("slug")
-            if slug:
-                slugs.append(slug)
+            if not slug:
+                continue
+            if free_only and not is_free_audience(item.get("audience")):
+                continue
+            slugs.append(slug)
         if limit and len(slugs) >= limit:
             return slugs[:limit]
         offset += _ARCHIVE_PAGE
@@ -92,8 +105,14 @@ def crawl(
     handle: str,
     limit: Optional[int] = None,
     fetch: Optional[Fetcher] = None,
+    free_only: bool = False,
 ) -> SubstackCatalog:
-    """Capture new posts for ``handle`` into the cache (resumable)."""
+    """Capture new posts for ``handle`` into the cache (resumable).
+
+    Set ``free_only`` to skip paid posts entirely (handy for publications you
+    follow but are not a paying subscriber of, where paid posts would only yield
+    truncated previews).
+    """
     if fetch is None:
         fetch = _default_fetcher(_load_cookie_header())
 
@@ -104,7 +123,7 @@ def crawl(
         catalog.channels.append(channel)
     existing = {p.url for p in channel.posts}
 
-    slugs = list_post_slugs(fetch, handle, limit)
+    slugs = list_post_slugs(fetch, handle, limit, free_only=free_only)
     new_count = 0
     for slug in slugs:
         url_guess = f"{channel_url(handle)}/p/{slug}"

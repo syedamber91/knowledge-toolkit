@@ -92,7 +92,28 @@ print("anon:",a,"authed:",b,"-> AUTHENTICATED" if b>a else "-> NOT AUTHENTICATED
 PY
 ```
 
-If `anon == authed`, the session is not authenticated — fix auth before crawling.
+If `anon == authed`, EITHER the session is not authenticated OR you are only a
+**free subscriber** to that publication. Distinguish them: if the authed response
+has reader keys (`is_saved`, `read_progress`, …) the session IS recognized, so
+`anon == authed` means you simply lack a paid subscription to that channel — its
+paid posts will only ever be previews. (Auth is account-wide via `substack.sid`,
+but paid *entitlement* is per-publication.)
+
+### Free subscribers: use `--free-only`
+
+When you only follow a publication for free, crawling its paid posts just yields
+truncated previews. Skip them entirely — they are filtered at the archive-listing
+stage using the `audience` field, so their bodies are never even fetched:
+
+```bash
+substack-toolkit crawl <handle> --free-only
+```
+
+Check the split first so you know what you'll get:
+`/api/v1/archive?sort=new&limit=12&offset=N` reports each post's `audience`
+(`everyone`/`only_free` = free; anything else = paid). Note the archive endpoint
+can cap a large `limit` server-side, so to COUNT the full catalogue, page with a
+modest limit until you get an empty page rather than trusting one big request.
 
 ## Paywall detection (how the code decides `body_accessible`)
 
@@ -113,6 +134,7 @@ If `anon == authed`, the session is not authenticated — fix auth before crawli
 substack-toolkit login --from-chrome
 # 2. VERIFY auth with the anon-vs-authed comparison above. Do not skip this.
 # 3. Crawl (resumable; start small). is_paid posts must come back full-size.
+#    Add --free-only if you are a free subscriber to this publication.
 substack-toolkit crawl <handle> --limit 10
 # 4. Build the Obsidian vault (cross-channel topic notes).
 substack-toolkit build-vault            # or --vault-path <dir>

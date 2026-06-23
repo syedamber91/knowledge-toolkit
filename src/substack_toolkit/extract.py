@@ -22,6 +22,11 @@ from .topics import keywords, match_topics
 _FREE_AUDIENCES = {"", "everyone", "only_free"}
 
 
+def is_free_audience(audience: Optional[str]) -> bool:
+    """True when an ``audience`` value means the post is free for everyone."""
+    return (audience or "") in _FREE_AUDIENCES
+
+
 def _is_truncated_preview(data: dict[str, Any]) -> bool:
     """True when the API returned only the paywalled preview, not the full body.
 

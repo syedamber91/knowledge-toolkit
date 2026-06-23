@@ -57,6 +57,40 @@ def test_crawl_respects_limit(tmp_path, monkeypatch):
     assert len(channel.posts) == 1
 
 
+def test_crawl_free_only_skips_paid_posts(tmp_path, monkeypatch):
+    monkeypatch.setattr(crawler, "CONTENT_PATH", tmp_path / "substack.json")
+    monkeypatch.setattr(crawler.time, "sleep", lambda *a, **k: None)
+
+    archive = [
+        {"slug": "free1", "audience": "everyone"},
+        {"slug": "paid1", "audience": "only_paid"},
+        {"slug": "free2", "audience": "only_free"},
+    ]
+    details = {
+        "free1": {"title": "Free 1", "slug": "free1", "audience": "everyone",
+                  "canonical_url": "https://x.substack.com/p/free1",
+                  "body_html": "<p>free body</p>"},
+        "free2": {"title": "Free 2", "slug": "free2", "audience": "only_free",
+                  "canonical_url": "https://x.substack.com/p/free2",
+                  "body_html": "<p>free body</p>"},
+    }
+
+    fetched_slugs = []
+
+    def fetch(url: str):
+        if "/api/v1/archive" in url:
+            return archive if "offset=0" in url else []
+        slug = url.rsplit("/", 1)[-1]
+        fetched_slugs.append(slug)
+        return details[slug]  # KeyError if a paid slug is ever fetched
+
+    catalog = crawler.crawl("x", fetch=fetch, free_only=True)
+
+    channel = catalog.get_channel("x")
+    assert {p.slug for p in channel.posts} == {"free1", "free2"}
+    assert "paid1" not in fetched_slugs  # paid post never even fetched
+
+
 def test_crawl_continues_when_one_post_fails(tmp_path, monkeypatch):
     monkeypatch.setattr(crawler, "CONTENT_PATH", tmp_path / "substack.json")
     monkeypatch.setattr(crawler.time, "sleep", lambda *a, **k: None)

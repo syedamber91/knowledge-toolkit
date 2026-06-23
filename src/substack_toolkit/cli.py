@@ -57,13 +57,19 @@ def crawl(
     limit: Optional[int] = typer.Option(
         None, help="Stop after capturing this many new posts (useful for a first test)."
     ),
+    free_only: bool = typer.Option(
+        False, "--free-only",
+        help="Skip paid posts entirely (for publications you follow but don't pay "
+             "for, where paid posts would only be truncated previews).",
+    ),
 ) -> None:
     """Capture accessible post text into data/substack.json (resumable)."""
     from . import crawler as crawler_mod
 
-    console.print(f"[bold]Crawling[/bold] {handle} (accessible text only — no media).")
+    scope = "free posts only" if free_only else "accessible text only — no media"
+    console.print(f"[bold]Crawling[/bold] {handle} ({scope}).")
     try:
-        crawler_mod.crawl(handle, limit=limit)
+        crawler_mod.crawl(handle, limit=limit, free_only=free_only)
     except RuntimeError as exc:
         console.print(f"[yellow]{exc}[/yellow]")
         raise typer.Exit(code=1)

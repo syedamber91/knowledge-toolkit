@@ -81,6 +81,7 @@ posts are matched against a shared canonical topic vocabulary so the same topic
 substack-toolkit login --from-chrome     # reuse your existing Chrome session (recommended)
 # or: substack-toolkit login --handle vutr  # open a browser and log in manually
 substack-toolkit crawl vutr --limit 5    # capture a few posts to start (resumable)
+substack-toolkit crawl sdcourse --free-only  # free subscriber? skip paid (preview-only) posts
 substack-toolkit build-vault             # write the Obsidian vault
 substack-toolkit list-topics             # see topic coverage
 ```
@@ -94,6 +95,9 @@ reliable path; the manual browser login is a fallback. Paid posts return only a
 truncated *preview* unless the session is authenticated and entitled: the API
 marks a gated response with `hidden: true`, so `body_accessible` is true only
 when the full body came back (a non-empty body alone does **not** prove access).
+Your `substack.sid` authenticates your account, but paid access is per
+publication — for newsletters you follow for free, pass `--free-only` to `crawl`
+so paid (preview-only) posts are skipped entirely.
 
 The vault is written to `SUBSTACK_VAULT_DIR` (default `~/Documents/Obsidian Vault/Substack`):
 

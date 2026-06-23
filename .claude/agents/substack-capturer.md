@@ -42,6 +42,14 @@ subscribes to, at a polite rate, text only — no media, no DRM.
    absent. `truncated_body_text` is a red herring (present in both). The code sets
    `body_accessible = bool(body_md) and not (is_paid and hidden is True)`.
 
+5. **Per-publication entitlement.** `substack.sid` authenticates the ACCOUNT, but
+   paid access is per-publication. If anon == authed on a paid post yet the authed
+   response has reader keys (`is_saved`, …), the user is a FREE subscriber there —
+   its paid posts are previews only. In that case crawl with `free_only=True`
+   (CLI `--free-only`) so paid posts are skipped at listing and never fetched.
+   Confirm the free/paid split from the archive's `audience` field first; page the
+   archive with a modest limit to count (a large `limit` can be capped server-side).
+
 ## Procedure
 
 1. Resolve and confirm the handle against the archive API.
@@ -49,9 +57,10 @@ subscribes to, at a polite rate, text only — no media, no DRM.
    run `login --from-chrome` and tell the user about the Keychain prompt.
 3. **Verify** with the anon-vs-authed body-length comparison on a paid slug. Do
    not proceed if they match.
-4. Crawl: `substack-toolkit crawl <handle> --limit <n>` (resumable). Confirm paid
-   posts come back full-size (deep-dives ~20k–40k chars; a few-hundred-char paid
-   "body" means you captured a preview — recheck auth).
+4. Crawl: `substack-toolkit crawl <handle> --limit <n>` (resumable; add
+   `--free-only` if the user is a free subscriber to this publication). Confirm
+   paid posts come back full-size (deep-dives ~20k–40k chars; a few-hundred-char
+   paid "body" means you captured a preview — recheck auth/entitlement).
 5. Build the vault: `substack-toolkit build-vault` (or `--vault-path`).
 6. Sanity-check: paid notes are large, and there are 0 broken `[[wikilinks]]`
    (rglob the vault, collect note paths + stems, assert every link target
