@@ -340,8 +340,11 @@ CHAPTERS = [
             "<strong>The universal rule:</strong> Sequential access always beats random access on every storage medium. "
             "This is why databases use <strong>B+ trees</strong> and LSM trees — both are engineered around sequential page access. "
             "(Most databases use B+ trees specifically, not generic B-trees — the distinction is covered in Chapter 6.) "
-            "The SSD's residual 4× penalty over sequential (vs HDD's 100×) comes from flash electronics, not mechanical movement: "
-            "flash cells must be erased and rewritten in blocks, adding a small but real overhead above zero even without a moving arm.",
+            "The SSD's residual 4× penalty over sequential (vs HDD's 100×) comes from electronic overhead in flash access patterns — "
+            "not mechanical movement, and not from erase cycles (erasing before writing is a <em>write</em> concern, not a read one). "
+            "Without a moving arm there is no seek time, but the flash controller still has per-address lookup latency "
+            "and cannot leverage the same sequential parallelism for random reads as it can for a stream. "
+            "The penalty is architectural, not mechanical — and far smaller than HDD's 100×.",
         ],
         "connect": (
             "This chapter is the foundation for everything that follows. "
@@ -475,7 +478,9 @@ CHAPTERS = [
             "(3) Leaf nodes have <strong>neighbour pointers</strong> — a linked list connecting all leaves left-to-right, "
             "enabling efficient range scans by walking the leaves directly rather than re-traversing from the root. "
             "When a leaf node fills up, a <strong>node split</strong> divides its keys down the middle, "
-            "redistributes entries, and preserves balance automatically. "
+            "redistributes entries between the old and new node, "
+            "and promotes the middle key <em>upward to the parent</em> — this is how balance is maintained across all levels of the tree, "
+            "keeping tree depth bounded at O(log n) regardless of how many inserts occur. "
             "This is why Postgres, MySQL, SQLite all use B+ trees as their default index — not generic B-trees.",
         ],
         "connect": (
@@ -489,9 +494,12 @@ CHAPTERS = [
         "tradeoff": (
             "<strong>The universal database trade-off:</strong> "
             "In most web applications, reads outnumber writes 80:20 or even 95:5. "
-            "This is why databases default to read-optimised structures (B-trees with indexes). "
+            "This is why databases default to read-optimised structures (B+ trees with indexes). "
             "Write-heavy workloads (logging, event streams, metrics) flip the equation — "
-            "and use write-optimised structures like LSM trees."
+            "and use write-optimised structures like LSM trees. "
+            "B+ trees achieve O(log n) for both reads <em>and</em> writes because node splits keep the tree depth bounded: "
+            "no matter how many rows are inserted, the tree never grows deeper than O(log n) levels, "
+            "so both reads and writes touch at most O(log n) pages."
         ),
         "recall": [
             "What is the time complexity of a read and write on an unsorted array? A sorted array? Why the difference?",
@@ -617,12 +625,20 @@ CHAPTERS = [
             "Resolution: the database chooses one transaction to kill (rolling it back completely), "
             "releasing its locks and allowing the other to proceed.",
             "<strong>Access Layer:</strong> The internal CRUD interface. A running query doesn't "
-            "need to know whether the storage engine uses a B-tree or an LSM tree — "
-            "it just asks the access layer: 'Give me the row with ID=42.' The access layer handles the details.",
+            "need to know whether the storage engine uses a B+ tree or an LSM tree — "
+            "it just asks the access layer: 'Give me the row with ID=42.' The access layer handles the details. "
+            "The choice of data structure behind it is a trade-off: "
+            "<strong>B+ trees</strong> are read-optimised — in-place updates, O(log n) for both reads and writes, "
+            "ideal when reads dominate. "
+            "<strong>LSM trees</strong> are write-optimised — all writes go to a fast in-memory buffer (memtable) "
+            "and are flushed to disk in sorted batches; reads are slower because they may need to merge multiple files. "
+            "Postgres, MySQL, and SQLite use B+ trees. RocksDB and Cassandra use LSM trees.",
             "<strong>Buffer Manager:</strong> Keeps recently-read pages in RAM. "
             "When a query needs a page, the buffer manager checks RAM first. "
-            "Only if the page isn't cached does it go to disk. "
-            "This is the single biggest performance win in any database.",
+            "Only on a cache miss does it go to disk. "
+            "This is the single biggest performance win in any database — "
+            "because RAM access takes ~100 nanoseconds while disk access takes ~10 milliseconds: "
+            "a 100,000× difference. Serving even a fraction of reads from RAM transforms performance.",
             "<strong>Recovery Manager:</strong> Maintains a Write-Ahead Log (WAL). "
             "Key term: a <strong>dirty page</strong> = a page modified in RAM but not yet flushed to disk. "
             "The WAL principle: log the intended change BEFORE writing it to the data file. "
@@ -630,7 +646,11 @@ CHAPTERS = [
             "Why WAL exists: updating a single row that has three indexes means three separate B+ tree updates — "
             "each potentially a scattered page write to different locations on disk. "
             "WAL captures all three as one atomic log entry first, then applies them. "
-            "One log entry. Multiple data file changes. No partial state ever visible on disk.",
+            "One log entry. Multiple data file changes. No partial state ever visible on disk. "
+            "Performance insight: the WAL write is <em>sequential</em> (one append to the end of a log file — fast). "
+            "The scattered B+ tree page updates are <em>random I/O</em> (expensive). "
+            "WAL defers the expensive random writes until the sequential log is safely committed — "
+            "giving both crash safety and a write performance advantage.",
         ],
         "connect": (
             "This chapter is the map for the entire rest of Ben Dicken's series. "
@@ -644,7 +664,10 @@ CHAPTERS = [
             "<strong>Complexity vs. capability:</strong> Each component adds overhead. "
             "An in-memory database can skip the Buffer Manager and Recovery Manager entirely — "
             "everything lives in RAM, and if the power cuts out, the data is gone (acceptable for caches). "
-            "A read-only analytics database can skip the Lock Manager (no concurrent writes to conflict). "
+            "A read-only analytics database can skip the Lock Manager (no concurrent writes to conflict) — "
+            "but this is a permanent architectural commitment: the moment you add any write path, "
+            "you must retrofit the entire locking machinery. Skipping a component is not free; "
+            "it locks you into the workload you have today. "
             "The 5-component model is the full production-grade design — know which components you actually need."
         ),
         "recall": [
