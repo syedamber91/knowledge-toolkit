@@ -43,8 +43,8 @@ def _ydl(extra: Optional[dict] = None):
 
 
 def fetch_info(url: str) -> dict:
-    """Full metadata for a single video (yt-dlp)."""
-    with _ydl() as y:
+    """Full metadata for a single video (yt-dlp), including caption URLs."""
+    with _ydl({"writeautomaticsub": True, "subtitleslangs": ["en", "en-orig"]}) as y:
         return y.extract_info(url, download=False) or {}
 
 
@@ -79,11 +79,77 @@ def enumerate_entries(url: str) -> list[dict]:
     return _flatten_entries(info)
 
 
-def fetch_transcript(video_id: str) -> str:
-    """Plain-text transcript for a video, or "" if none is available.
+def _vtt_to_text(vtt: str) -> str:
+    """Strip VTT cue headers/tags and deduplicate repeated lines → plain text."""
+    import re as _re
+    lines, seen, prev = [], set(), ""
+    for line in vtt.splitlines():
+        line = line.strip()
+        if not line or line.startswith("WEBVTT") or "-->" in line or line.isdigit():
+            continue
+        # strip inline tags like <00:00:01.000><c>word</c>
+        clean = _re.sub(r"<[^>]+>", "", line).strip()
+        if clean and clean != prev and clean not in seen:
+            lines.append(clean)
+            seen.add(clean)
+            prev = clean
+    return " ".join(lines)
 
-    Handles both the legacy static ``get_transcript`` API and the newer
-    instance ``fetch`` API of youtube-transcript-api.
+
+def fetch_transcript_from_info(info: dict) -> str:
+    """Extract plain-text transcript from a yt-dlp info dict via caption URLs.
+
+    Prefers manual English captions; falls back to auto-generated ones.
+    Downloads the VTT directly — no youtube-transcript-api, no IP issues.
+    """
+    import urllib.request
+    for caption_dict in (info.get("subtitles") or {}, info.get("automatic_captions") or {}):
+        for lang in ("en", "en-orig", "en-US"):
+            formats = caption_dict.get(lang) or []
+            for fmt in formats:
+                if fmt.get("ext") in ("vtt", "srv3", "ttml"):
+                    url = fmt.get("url")
+                    if not url:
+                        continue
+                    try:
+                        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+                        with urllib.request.urlopen(req, timeout=15) as r:
+                            raw = r.read().decode("utf-8", errors="replace")
+                        text = _vtt_to_text(raw)
+                        if text:
+                            return text
+                    except Exception:
+                        continue
+    return ""
+
+
+def fetch_transcript_via_pytubefix(video_id: str) -> str:
+    """Extract transcript via pytubefix captions (second fallback after yt-dlp VTT).
+
+    pytubefix uses a different request path than youtube-transcript-api,
+    avoiding the IP-block issue from bulk requests.
+    """
+    try:
+        from pytubefix import YouTube
+    except Exception:
+        return ""
+    try:
+        yt = YouTube(f"https://www.youtube.com/watch?v={video_id}")
+        caps = yt.captions
+        caption = caps.get("a.en") or caps.get("en") or (next(iter(caps.values())) if caps else None)
+        if not caption:
+            return ""
+        vtt = caption.generate_srt_captions()
+        return _vtt_to_text(vtt) if vtt else ""
+    except Exception as exc:
+        console.print(f"  [yellow]pytubefix failed for {video_id}: {exc}[/yellow]")
+        return ""
+
+
+def fetch_transcript(video_id: str) -> str:
+    """Plain-text transcript via youtube-transcript-api (last resort fallback).
+
+    Prefer fetch_transcript_from_info() then fetch_transcript_via_pytubefix().
     """
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
@@ -199,7 +265,13 @@ def capture(
             console.print(f"  [dim]skipped (short {duration}s): {info.get('title', target)}[/dim]")
             existing.add(target)  # mark seen so resume skips it too
             continue
-        transcript = transcript_fetch(info.get("id") or video_id_of(target))
+        # Try yt-dlp caption URLs first; then pytubefix; finally transcript API
+        vid_id = info.get("id") or video_id_of(target)
+        transcript = fetch_transcript_from_info(info)
+        if not transcript:
+            transcript = fetch_transcript_via_pytubefix(vid_id)
+        if not transcript:
+            transcript = transcript_fetch(vid_id)
         # Guardrail 2: skip videos with no accessible transcript
         if not transcript:
             console.print(f"  [dim]skipped (no transcript): {info.get('title', target)}[/dim]")
