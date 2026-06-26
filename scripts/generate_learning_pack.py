@@ -338,7 +338,10 @@ CHAPTERS = [
             "Random reads are now only ~4× slower than sequential (vs 100× on HDD), but the page abstraction remains. "
             "You still read/write in 4KB pages. Databases still benefit from sequential patterns.",
             "<strong>The universal rule:</strong> Sequential access always beats random access on every storage medium. "
-            "This is why databases use B-trees and LSM trees — both are engineered around sequential page access.",
+            "This is why databases use <strong>B+ trees</strong> and LSM trees — both are engineered around sequential page access. "
+            "(Most databases use B+ trees specifically, not generic B-trees — the distinction is covered in Chapter 6.) "
+            "The SSD's residual 4× penalty over sequential (vs HDD's 100×) comes from flash electronics, not mechanical movement: "
+            "flash cells must be erased and rewritten in blocks, adding a small but real overhead above zero even without a moving arm.",
         ],
         "connect": (
             "This chapter is the foundation for everything that follows. "
@@ -392,10 +395,16 @@ CHAPTERS = [
             "<strong>System Libraries:</strong> Pre-built code your app relies on (libc on Linux, Foundation on macOS). "
             "You don't write these — they're provided by the OS. A slow library is a bottleneck you can't directly fix.",
             "<strong>System Calls:</strong> The guarded crossing from user-space to kernel-space. "
-            "Every file read, network request, and memory allocation crosses this boundary. "
-            "Each crossing has overhead. Batching operations to reduce system call frequency is a real optimisation.",
+            "Why guarded? To prevent user processes from directly corrupting kernel memory or each other's address spaces. "
+            "Every file read, network request, and memory allocation crosses this boundary. Each crossing has overhead: "
+            "the CPU switches privilege levels, saves register state, and switches stacks. "
+            "Batching operations reduces system call frequency — real optimisation, but with a cost: "
+            "each individual request waits longer before being submitted (higher per-request latency, lower frequency of crossings).",
             "<strong>Kernel:</strong> The core of the OS. Manages CPU scheduling, RAM allocation, disk I/O, networking. "
-            "Databases often use kernel-bypass techniques (like io_uring on Linux) to reduce kernel overhead for I/O.",
+            "Databases often use kernel-bypass techniques to reduce overhead. "
+            "<strong>io_uring</strong> (Linux): instead of one system call per I/O request, the application and kernel share a ring buffer in memory — "
+            "a submission queue and a completion queue. The application drops requests into shared memory; the kernel picks them up and returns results, "
+            "eliminating most per-call crossings entirely.",
             "<strong>Hardware:</strong> CPU cores, RAM, NVMe SSD, network card. The absolute floor. "
             "No amount of software optimisation beats choosing faster hardware — but hardware is expensive.",
         ],
@@ -457,8 +466,17 @@ CHAPTERS = [
             "<strong>Binary Search Tree:</strong> Each node has a left subtree (smaller values) and right (larger). "
             "Both read and write = O(log n) on average. But trees become unbalanced over time, "
             "degrading to O(n) in the worst case. Not suitable for disk-based storage (too many random page reads).",
-            "<strong>B-tree (coming in Chapter 6):</strong> Balances automatically. Nodes are sized to match disk pages. "
-            "Both read and write = O(log n) guaranteed. This is why Postgres, MySQL, SQLite all use B-trees as their default index.",
+            "<strong>B+ tree — what databases actually use (Chapter 6):</strong> Balances automatically. "
+            "Node size deliberately equals one disk page — intentional design, not coincidence. "
+            "Both read and write = O(log n) guaranteed. "
+            "Three rules that distinguish B+ trees from generic B-trees: "
+            "(1) Internal nodes store <em>only keys</em> — no values. "
+            "(2) Values live <em>exclusively at leaf nodes</em> — the bottom level of the tree only. "
+            "(3) Leaf nodes have <strong>neighbour pointers</strong> — a linked list connecting all leaves left-to-right, "
+            "enabling efficient range scans by walking the leaves directly rather than re-traversing from the root. "
+            "When a leaf node fills up, a <strong>node split</strong> divides its keys down the middle, "
+            "redistributes entries, and preserves balance automatically. "
+            "This is why Postgres, MySQL, SQLite all use B+ trees as their default index — not generic B-trees.",
         ],
         "connect": (
             "This chapter explains <em>why</em> every data structure in this series exists — "
@@ -478,7 +496,7 @@ CHAPTERS = [
         "recall": [
             "What is the time complexity of a read and write on an unsorted array? A sorted array? Why the difference?",
             "You're building a database that receives 1 million sensor readings per second but is only queried once per hour. Which end of the read-write trade-off do you optimise for?",
-            "Why doesn't a binary search tree work well as a disk-based database index, even though it gives O(log n) performance?",
+            "A BST gives O(log n) read and write — yet databases never use it as a disk index. Why? And what two structural rules make a B+ tree disk-friendly where the BST fails? Finally: what structural feature distinguishes a B+ tree from a generic B-tree, and why does it matter for range queries?",
         ],
         "takeaway": "Organising data for fast reads costs write performance, and vice versa. Every database structure is a deliberate choice on this spectrum.",
         "justin_quote": (
@@ -529,11 +547,17 @@ CHAPTERS = [
             "Periodically compact the page to reclaim fragmented space (called a 'vacuum' in PostgreSQL).",
         ],
         "connect": (
-            "This chapter zooms into a single B-tree node from Chapter 6 and shows what's inside it. "
-            "When you read about B-tree page splits in Chapter 6, you now know exactly what's being split: "
-            "a header, a pointer array, and a set of row values. "
-            "The cell layout also explains how PostgreSQL's VACUUM process works — "
-            "it's cleaning up the fragmentation gaps that accumulate after many deletions."
+            "This chapter zooms into a single B+ tree node and shows what's inside it. "
+            "In a B+ tree: internal nodes contain keys only (no values), while leaf nodes contain the actual row values "
+            "<em>and</em> a neighbour pointer to the next leaf — enabling range scans by walking leaves left-to-right. "
+            "Both node types use this same cell layout: header + pointer array + variable-size content. "
+            "Leaf nodes simply pack their content region with actual data rows instead of child pointers. "
+            "When a B+ tree page splits (Chapter 6), it is exactly this structure that divides: "
+            "the pointer array splits, values migrate, headers update. "
+            "VACUUM in PostgreSQL is also explained here: immediate compaction on every deletion would require "
+            "rewriting and re-sorting all row data on the page for each delete — prohibitively expensive. "
+            "Deferring compaction until VACUUM runs lets the page accumulate many deletions cheaply, "
+            "then reclaim all fragmented space in one pass."
         ),
         "tradeoff": (
             "<strong>Space efficiency vs. simplicity:</strong> The cell layout wastes some space due to fragmentation "
@@ -543,7 +567,9 @@ CHAPTERS = [
         "recall": [
             "Draw from memory: what are the three regions of a database page using the cell layout? Describe what each stores.",
             "Why are the pointers kept in sorted order even when the row values behind them aren't sorted?",
-            "What happens to the page when a row is deleted? Does the space immediately get reused?",
+            "What happens to the page when a row is deleted — and why is immediate compaction not done? "
+            "In a B+ tree, leaf nodes have one structural addition beyond the standard cell layout header + pointers + values. "
+            "What is it, and what operation does it enable?",
         ],
         "takeaway": "A database page separates the index (sorted pointer array) from the data (variable-size rows). This lets you search efficiently without rewriting rows on every change.",
         "justin_quote": (
@@ -585,8 +611,11 @@ CHAPTERS = [
             "From the database's perspective: either ALL of the changes happen, or NONE of them do. "
             "This is the 'A' in ACID — Atomicity.",
             "<strong>Lock Manager:</strong> When two queries try to modify the same rows simultaneously, "
-            "one must wait. The lock manager decides who waits and for how long, "
-            "and detects deadlocks (two transactions waiting on each other forever).",
+            "one must wait. The lock manager decides who waits and for how long. "
+            "It also detects <strong>deadlocks</strong> — when Transaction A holds a lock Transaction B needs, "
+            "while B holds a lock A needs, creating a cycle with no natural exit. "
+            "Resolution: the database chooses one transaction to kill (rolling it back completely), "
+            "releasing its locks and allowing the other to proceed.",
             "<strong>Access Layer:</strong> The internal CRUD interface. A running query doesn't "
             "need to know whether the storage engine uses a B-tree or an LSM tree — "
             "it just asks the access layer: 'Give me the row with ID=42.' The access layer handles the details.",
@@ -594,9 +623,14 @@ CHAPTERS = [
             "When a query needs a page, the buffer manager checks RAM first. "
             "Only if the page isn't cached does it go to disk. "
             "This is the single biggest performance win in any database.",
-            "<strong>Recovery Manager:</strong> Maintains a Write-Ahead Log (WAL) — "
-            "a sequential record of every intended change before it's written to the main data file. "
-            "If the database crashes, the WAL lets it replay and complete any interrupted transactions.",
+            "<strong>Recovery Manager:</strong> Maintains a Write-Ahead Log (WAL). "
+            "Key term: a <strong>dirty page</strong> = a page modified in RAM but not yet flushed to disk. "
+            "The WAL principle: log the intended change BEFORE writing it to the data file. "
+            "On crash, replay the WAL to restore any interrupted transaction. "
+            "Why WAL exists: updating a single row that has three indexes means three separate B+ tree updates — "
+            "each potentially a scattered page write to different locations on disk. "
+            "WAL captures all three as one atomic log entry first, then applies them. "
+            "One log entry. Multiple data file changes. No partial state ever visible on disk.",
         ],
         "connect": (
             "This chapter is the map for the entire rest of Ben Dicken's series. "
