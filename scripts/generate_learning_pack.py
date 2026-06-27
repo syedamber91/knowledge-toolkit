@@ -148,6 +148,16 @@ CH1 = """
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
 <p>You can't pick up a single grain of sand — you scoop a handful. Storage devices work the same way: they can never read or write a single byte in isolation. The device always moves a fixed-size chunk called a <strong>page</strong>. Everything in database design flows from this one physical constraint.</p></div>
 
+<div class="box n"><div class="box-lbl">WHY Storage Devices Use Pages — The Hardware Rationale</div>
+<p>The page (block) abstraction is not a software convenience — it is a physical constraint imposed by three independent hardware realities:</p>
+<ul>
+  <li><strong>Magnetic HDDs: track geometry.</strong> A hard disk stores data in concentric circular tracks. The read head can only read an entire sector at once — typically 512 bytes (legacy) or 4KB (Advanced Format). Reading less than one sector is physically impossible: the magnetic head reads continuously as the platter rotates. The OS groups multiple sectors into a page for efficiency.</li>
+  <li><strong>NAND Flash: wordline architecture.</strong> Flash cells are arranged in arrays sharing wordlines (row select lines). A single wordline activates an entire row of cells simultaneously — typically 4–16KB. You cannot read one cell without reading its entire row. This is a fundamental property of the NAND flash array circuit, not a design choice.</li>
+  <li><strong>Error Detection and Correction (ECC): block granularity.</strong> Every storage device computes ECC codes over each block of data to detect and correct bit errors. Computing ECC per byte would be prohibitively expensive in silicon area and latency. Computing it per 4KB block amortises the ECC overhead (typically 512 bytes of ECC per 4KB of data) to an acceptable ~12% overhead. This ECC block size directly determines the minimum I/O unit.</li>
+</ul>
+<p>These three hardware constraints — track geometry, wordline architecture, ECC block size — all independently converge on the same conclusion: the minimum unit of storage device I/O is a fixed-size block (page). This is why the page abstraction appears identically in every storage technology from magnetic tapes (1950s) to NVMe SSDs (2010s) to future 3D XPoint memory.</p>
+</div>
+
 <p>Storage devices do not operate on individual bytes. They operate on <strong>pages</strong> — fixed-size blocks that are the minimum unit of I/O. This is not a software convention: it is a physical property of every storage medium ever built. Magnetic tapes, hard disks, solid-state drives, and even RAM (via 64-byte cache lines) all operate on fixed-size blocks.</p>
 
 <p>The practical implication is profound. If you want to read a single byte at offset 1000 in a file, the storage device reads the entire page containing that byte — typically 4KB to 16KB of data — and returns it to the CPU. You pay the same I/O cost whether you needed 1 byte or the full page. This is the source of <strong>read amplification</strong>: a 100-byte row in an 8KB page means you paid 8,192 bytes of I/O to retrieve 100 bytes — 81× amplification.</p>
@@ -169,7 +179,7 @@ CH1 = """
   <li><strong>If the node were smaller than a page</strong> (e.g., 512 bytes in an 8KB page), you'd waste 15× the I/O bandwidth — paying for 8KB but only using 512 bytes of tree data.</li>
   <li><strong>If the node were larger than a page</strong> (e.g., 32KB spanning 4 pages), a single node traversal costs 4 I/Os instead of 1 — compounding across every level of the tree.</li>
 </ul>
-<p>This is WHY B+ trees were invented: binary search trees (BSTs) have tiny nodes (one key + two pointers, ~24 bytes) — a random 20-level BST requires 20 separate I/Os. A B+ tree node sized to 8KB holds ~400 keys, giving fanout 400, so only 4 levels cover 25.6 billion rows — at 4 I/Os total. The B+ tree IS the data structure answer to the page-based I/O constraint. Every other design decision about B+ trees follows from this one.</p>
+<p><strong>This is not a coincidence — it is the ORIGINAL DESIGN MOTIVATION.</strong> When Rudolf Bayer and Edward McCreight invented B-trees at Boeing in 1972, the question they were answering was: <em>"Given that disk reads always return a fixed-size page, how do you design a search tree that minimises page I/Os per lookup?"</em> Their answer: make each tree node exactly one page. Every subsequent B-tree property — sorted keys for binary search within a node, high fanout, balanced height, leaf-only values in B+ trees — follows from this single constraint. Binary search trees predated B-trees but were designed for RAM. B-trees were designed FROM SCRATCH for page-based disk I/O. The node = page equivalence is not incidental to B-tree design; it IS B-tree design.</p>
 </div>
 
 <div class="box n"><div class="box-lbl">Page Sizes Across Systems</div>
@@ -342,16 +352,14 @@ graph LR
 <p><strong>The economic reason tape exists despite this</strong>: tape wins on cost and capacity. LTO-9 tape: ~$5–8/TB. Enterprise HDD: $20–30/TB. Enterprise NVMe SSD: $100–150/TB. At petabyte/exabyte scale (Amazon Glacier, Google Coldline, Meta's data archive), the 4–6× cost advantage over HDD and 20–30× over SSD makes tape the only economically viable long-term storage for data accessed at most once per year.</p>
 </div>
 
-<div class="box f"><div class="box-lbl">Why SSD Random Reads Are Slower Than Sequential — Not the Erase Cycle</div>
-<p><strong>Common misconception:</strong> "SSDs have a random read penalty because flash cells must be erased before rewriting." This is <em>wrong</em>. Erase cycles are a <strong>write concern</strong> — they drive write amplification and P/E cycle endurance. They have nothing to do with why random reads are slower than sequential reads.</p>
-<p><strong>The correct reason for the random/sequential read gap on SSDs:</strong></p>
+<div class="box f"><div class="box-lbl">The SSD Residual 4× Penalty — What Causes It</div>
+<p><strong>SSDs have no moving parts — no seek arm, no rotational latency. Yet SSD random reads are still ~4× slower than sequential reads. Why?</strong></p>
+<p>SSDs remain page-based. NAND flash reads one page (4–16KB) at a time regardless of how many bytes you need. The 4× gap comes from two sources:</p>
 <ul>
-  <li><strong>SSDs are still page-based.</strong> Flash reads in 4–16KB pages — the minimum unit. Random access still triggers a full page read even for 1 byte, just as with HDDs.</li>
-  <li><strong>Sequential reads exploit controller prefetch.</strong> When the controller detects a sequential pattern, it begins fetching the next flash page while delivering the current one to the host. Multiple NAND dies operate in parallel, streaming data at 7,000+ MB/s (NVMe). The pipeline is full.</li>
-  <li><strong>Random reads cannot exploit prefetch.</strong> Each random read targets a different logical block — the controller cannot predict what comes next. No pipelining, no parallel-die streaming. Each read waits for its own NAND page read latency (25–130μs depending on cell type) before the next can begin.</li>
-  <li><strong>FTL lookup overhead compounds on random access.</strong> The Flash Translation Layer must perform a logical-to-physical mapping lookup per random read — adding ~1–5μs of controller processing on top of the NAND read latency.</li>
+  <li><strong>Sequential access exploits internal NAND parallelism.</strong> Modern SSDs contain 8–32 NAND dies operating in parallel. Sequential reads pipeline across multiple dies simultaneously — while die 1 delivers page N, dies 2–8 are already fetching pages N+1 through N+7. The result: peak sequential bandwidth saturates all dies in parallel (7,000+ MB/s NVMe). Random reads cannot pipeline — each random address hits one die at one time, waiting for that single NAND read latency (25–130μs per flash cell type) to complete before the next request begins.</li>
+  <li><strong>Flash Translation Layer (FTL) lookup overhead.</strong> Every random read requires the controller to look up the logical-to-physical address mapping in the FTL table (RAM-resident, ~1–5μs per lookup). Sequential reads amortise this across many pages; random reads pay it per operation.</li>
 </ul>
-<p>The result: sequential SSD reads saturate all internal NAND dies simultaneously (7,000 MB/s). Random reads serialize through single-die latency chains (800K IOPS × 4KB = 3,200 MB/s). The 2× gap is small compared to HDD's 375× gap — but at 800K IOPS serving a busy OLTP workload, the ceiling is still real.</p>
+<p>The 4× penalty is much smaller than HDD's 100–375× penalty — which is why SSD random I/O is practical for databases while HDD random I/O is catastrophic. But at 800K random IOPS on NVMe, you're still limited to 100 concurrent queries accessing 10,000 random pages each. At high concurrency, the ceiling is real. This is why LSM trees and WAL remain sequential-write structures even on SSDs.</p>
 </div>
 
 <p>The SSD's smaller gap (1.4–2×) might suggest random I/O optimization matters less on SSDs. It doesn't — here's why:</p>
@@ -360,6 +368,25 @@ graph LR
   <li><strong>IOPS ceilings are hard limits:</strong> 1,000,000 IOPS sounds enormous. At 10,000 random page reads per complex query, you can run 100 concurrent queries maximum — on a single NVMe device. Real OLTP workloads hit this ceiling.</li>
   <li><strong>The buffer pool changes the math:</strong> With a 99% buffer pool hit rate, 99% of page reads never touch disk at all. Optimizing data locality (so related rows share pages) multiplies buffer pool effectiveness.</li>
 </ol>
+
+<div class="box r"><div class="box-lbl">The Sequential Rule Violated: A Concrete Database Example</div>
+<p>Understanding WHY sequential beats random is only useful if you can spot when a query violates the rule. Here is the single most common violation in production databases:</p>
+<p><strong>Non-clustered (secondary) index lookups with heap fetches:</strong></p>
+<p>Scenario: <code>SELECT * FROM orders WHERE customer_id = 12345</code> on a table where <code>customer_id</code> is a secondary index (not the primary key). Execution:</p>
+<ol>
+  <li>B+ tree index lookup: 3–4 sequential page reads from root to leaf → returns a list of heap tuple IDs (ctids)</li>
+  <li>Heap fetches: for each ctid, fetch the corresponding heap page. Customer 12345 has 500 orders distributed across 500 different heap pages (because rows were inserted over time, interleaved with other customers).</li>
+  <li>Result: 500 random heap page reads. At 100 IOPS on HDD → 5 seconds. At 800K IOPS on NVMe → 0.6ms.</li>
+</ol>
+<p>Same query with a clustered index on <code>customer_id</code>: all 500 orders for customer 12345 are stored on 3–4 consecutive pages. Cost: 3–4 sequential I/Os → 0.08ms on HDD (37× faster), 0.002ms on NVMe.</p>
+<p><strong>Other sequential-rule violations:</strong></p>
+<ul>
+  <li><strong>Correlated subqueries:</strong> <code>SELECT * FROM a WHERE id IN (SELECT aid FROM b WHERE b.val = 'x')</code> — each row in the outer query triggers a separate inner query = N random I/Os</li>
+  <li><strong>TOAST dereferences:</strong> a 100KB JSONB column is stored across ~50 TOAST chunks. Fetching the full value = 50 random I/Os per row</li>
+  <li><strong>Non-index-covering queries:</strong> an index scan on col1 that also needs col2 (not in the index) forces a heap fetch per index hit = random I/O</li>
+</ul>
+<p>The sequential-vs-random law is WHY clustered indexes exist, WHY covering indexes matter, and WHY TOAST for large columns has hidden costs.</p>
+</div>
 
 <div class="mermaid">
 graph TD
@@ -1197,6 +1224,25 @@ graph TD
 <p>This is the answer to "why did B+ trees win over binary search trees (BSTs)?" — BST nodes are tiny (key + 2 pointers = ~24 bytes) and randomly placed in memory/on disk. Loading one BST level on a random-access disk means paying for a full 8KB page to get 24 bytes of useful data, then repeating for 20–30 levels. A B+ tree fits 580 entries in that same 8KB page and traverses only 4 levels. The node-page equivalence is the entire advantage.</p>
 </div>
 
+<h3>Fan-out: Why Internal Nodes Must Store Keys Only</h3>
+
+<p><strong>Fan-out</strong> (branching factor) is the number of child pointers an internal B+ tree node holds. Fan-out determines tree depth: depth = ceil(log_fanout(N)) where N is the row count. Higher fan-out = shallower tree = fewer I/Os per lookup.</p>
+
+<div class="box n"><div class="box-lbl">Fan-out Calculation (8KB page)</div>
+<table>
+  <thead><tr><th>Node type</th><th>Entry size</th><th>Entries per 8KB page</th><th>Fan-out</th><th>Depth for 1B rows</th></tr></thead>
+  <tbody>
+    <tr><td>B-tree internal (keys + values)</td><td>8B key + 100B value + 6B pointer = 114B</td><td class="rd">~70</td><td class="rd">70</td><td class="rd">5 levels = 5 I/Os</td></tr>
+    <tr><td>B+ tree internal (keys only)</td><td>8B key + 6B pointer = 14B</td><td class="g">~580</td><td class="g">580</td><td class="g">3 levels = 3 I/Os</td></tr>
+    <tr><td>Binary search tree node</td><td>8B key + 100B value + 16B (2 ptrs) = 124B</td><td class="rd">1 node</td><td class="rd">2</td><td class="rd">30 levels = 30 I/Os</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The 8× difference in fan-out (580 vs 70) is the entire reason B+ trees separate internal nodes (keys only) from leaf nodes (keys + values). Without this separation, the tree would need 2 more levels for the same dataset — adding 2 extra I/Os per lookup, every lookup. At 10,000 queries/second, each saving 2 I/Os at 50μs/I/O saves 1 CPU second per second of throughput.</p>
+
+<p><strong>Internal-only key storage enables binary search within a node too:</strong> The sorted key array in an internal node allows binary search — O(log fanout) comparisons to find the right child pointer. With fanout 580: log₂(580) = ~9 comparisons to find the right child among 580 keys. All in RAM (the page is already loaded). This is why the tree is both wide AND fast to search at each level.</p>
+
 <h3>Tuple Header: MVCC Visibility Information</h3>
 <p>Every row (tuple) in a PostgreSQL heap page has a 23-byte header before the actual column data:</p>
 <ul>
@@ -1268,6 +1314,30 @@ graph TD
   </tbody>
 </table>
 </div>
+
+<h3>What Triggers VACUUM: Autovacuum Thresholds</h3>
+
+<p>Manual <code>VACUUM</code> is rarely run in production — the autovacuum daemon handles it automatically. Autovacuum monitors dead tuple accumulation and triggers when two thresholds are crossed simultaneously:</p>
+
+<div class="box n"><div class="box-lbl">Autovacuum Trigger Formula</div>
+<p><strong>Trigger condition:</strong> <code>dead_tuples > autovacuum_vacuum_threshold + autovacuum_vacuum_scale_factor × table_row_count</code></p>
+<table>
+  <thead><tr><th>Parameter</th><th>Default</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>autovacuum_vacuum_threshold</code></td><td>50 rows</td><td>Minimum dead tuples before autovacuum considers running</td></tr>
+    <tr><td><code>autovacuum_vacuum_scale_factor</code></td><td>0.20</td><td>Fraction of live rows that must be dead before trigger fires</td></tr>
+    <tr><td><code>autovacuum_vacuum_cost_delay</code></td><td>2ms</td><td>Throttle: pause between I/O bursts to avoid starving foreground queries</td></tr>
+    <tr><td><code>autovacuum_max_workers</code></td><td>3</td><td>Max concurrent autovacuum workers across all tables</td></tr>
+  </tbody>
+</table>
+<p><strong>Example:</strong> A 1,000,000-row table. Trigger: 50 + (0.20 × 1,000,000) = 200,050 dead tuples. If the table receives 1,000 updates/second, it accumulates 200,050 dead tuples in ~200 seconds. Autovacuum then runs, cleaning dead tuples at ~10,000 rows/second (limited by <code>autovacuum_vacuum_cost_delay</code>). Duration: ~20 seconds of background I/O.</p>
+</div>
+
+<div class="box f"><div class="box-lbl">XID Wraparound: The Emergency VACUUM Trigger</div>
+<p>PostgreSQL transaction IDs (XIDs) are 32-bit integers — they wrap around at 2³² = 4.3 billion transactions. As a safety net, autovacuum runs an AGGRESSIVE vacuum (ignoring all other thresholds) when a table's oldest unfrozen XID is within 50 million transactions of the wraparound point.</p>
+<p>Configuration: <code>autovacuum_freeze_max_age</code> (default 200M). If any table's <code>age(relfrozenxid)</code> &gt; 200M, aggressive autovacuum begins immediately regardless of dead tuple count. If the table cannot be vacuumed (exclusive lock held, autovacuum disabled), PostgreSQL will eventually shut down ALL write operations at 3M transactions from wraparound — a production emergency.</p>
+<p><strong>Monitoring:</strong> <code>SELECT relname, age(relfrozenxid) FROM pg_class WHERE relkind='r' ORDER BY age DESC LIMIT 10;</code> — alert when any table exceeds 150M.</p>
+</div>
 </div>
 
 <div class="mermaid">
@@ -1317,6 +1387,35 @@ graph LR
     <tr><td>B+ tree index with monotonic inserts</td><td>70–80</td><td>Prevents immediate split on rightmost leaf under sustained inserts</td></tr>
   </tbody>
 </table>
+</div>
+
+<h3>Fill Factor: Leaving Free Space to Enable HOT Updates</h3>
+
+<p><strong>fill_factor</strong> is a PostgreSQL storage parameter (per table, per index) that controls what percentage of each page is used during INSERT operations. The remaining space is reserved for future UPDATE operations.</p>
+
+<div class="box n"><div class="box-lbl">Fill Factor Values and Trade-offs</div>
+<table>
+  <thead><tr><th>fill_factor</th><th>Usage</th><th>Effect</th><th>Best For</th></tr></thead>
+  <tbody>
+    <tr><td>100% (default)</td><td>Pack pages completely on INSERT</td><td>Dense storage, but UPDATE must always find a new page if tuple grows</td><td>Append-only / insert-heavy tables (logs, events)</td></tr>
+    <tr><td>70–80%</td><td>Leave 20–30% free space per page</td><td>UPDATEs can write new version on same page (HOT update path), no index update needed</td><td>Update-heavy OLTP tables (orders, users, inventory)</td></tr>
+    <tr><td>50%</td><td>Leave half the page empty</td><td>Very infrequent page splits, maximum HOT ratio</td><td>Tables with extremely high UPDATE rate and low INSERT rate</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Why this matters for indexes:</strong> Every B+ tree index leaf node is also subject to fill_factor. Index fill_factor default is 90% (not 100% — PostgreSQL already reserves 10% for concurrent inserts to reduce index page splits). Setting index fill_factor to 70–80% on high-write indexes reduces B+ tree node splits, which cascade upward and require parent page rewrites.</p>
+
+<p><strong>Page splits in the B+ tree index:</strong> When a leaf page is full (fill_factor threshold reached) and a new key must be inserted: the leaf node splits into two new leaf nodes. Half the keys go to each. The middle key is promoted as a separator key into the parent internal node. If the parent is also full, the split cascades upward. If the root splits, a new root is created and tree depth increases by 1. Fan-out is so high (400–580 keys per internal node) that root splits are exceedingly rare — a 4-level B+ tree requires ~160 billion rows before the root forces a 5th level.</p>
+
+<div class="box d"><div class="box-lbl">Fill Factor Decision Framework</div>
+<ul>
+  <li><strong>Table is append-only?</strong> fill_factor 100 (default). No space wasted on updates that never come.</li>
+  <li><strong>Table updated frequently, same columns?</strong> fill_factor 70–80. Enables HOT path: UPDATE writes new version in same page, no index touch, VACUUM reclaims old version later.</li>
+  <li><strong>Index on a column with random value distribution?</strong> Index fill_factor 70–80 to reduce cascading splits under concurrent inserts.</li>
+  <li><strong>Table is a reporting / analytics table, rarely updated?</strong> fill_factor 100. Storage density > update performance.</li>
+</ul>
+<p>Check HOT ratio: <code>SELECT n_tup_hot_upd / NULLIF(n_tup_upd,0) FROM pg_stat_user_tables WHERE relname = 'your_table'</code>. If HOT ratio &lt; 0.5 on an update-heavy table, lower fill_factor.</p>
 </div>
 </div>
 
@@ -1434,6 +1533,20 @@ CH5 = """
 <p><strong>Serialization anomaly:</strong> Two transactions each read data and write based on what they read — in a way that could not have happened in any serial execution. Classic example: write skew — T1 reads "no doctors on call" and books a day off; simultaneously T2 reads "no doctors on call" and also books a day off. Both commit. Now zero doctors are on call, violating the invariant that at least one must be. Serializable (SSI in PostgreSQL) detects and prevents this.</p>
 
 <p><strong>PostgreSQL's SSI implementation:</strong> Serializable Snapshot Isolation tracks read-write dependencies between concurrent transactions using predicate locks. If a cycle is detected in the dependency graph, one transaction is aborted. Unlike lock-based serializability, SSI allows high concurrency — only transactions that would actually violate serializability are aborted.</p>
+
+<div class="box n"><div class="box-lbl">Storage Engine Component → ACID Property Mapping</div>
+<p>Each ACID property is enforced by a specific component. Knowing these mappings lets you answer "what breaks if I remove X?" precisely.</p>
+<table>
+  <thead><tr><th>ACID Property</th><th>Enforced By</th><th>Mechanism</th><th>What Breaks Without It</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Atomicity</strong> (all-or-nothing)</td><td>Transaction Manager + Recovery Manager</td><td>WAL records group all changes under one XID; UNDO phase rolls back uncommitted XIDs after crash</td><td>Partial writes survive crashes — half a bank transfer lands, money vanishes</td></tr>
+    <tr><td><strong>Consistency</strong> (valid state → valid state)</td><td>Transaction Manager + Access Layer</td><td>Constraint checks (foreign keys, NOT NULL, CHECK) enforced before commit; constraints can be DEFERRED to end of transaction</td><td>Referential integrity violations, invalid data states</td></tr>
+    <tr><td><strong>Isolation</strong> (concurrent txns don't interfere)</td><td>Lock Manager + MVCC</td><td>Lock modes prevent conflicting concurrent access; MVCC gives each reader a consistent snapshot without blocking writers</td><td>Dirty reads, non-repeatable reads, phantom reads, write skew, lost updates</td></tr>
+    <tr><td><strong>Durability</strong> (committed data survives crashes)</td><td>Recovery Manager (WAL)</td><td>Every commit forces WAL record to disk via fsync before returning success to client; data file writes can be deferred</td><td>Committed transactions disappear after crash — "I got a commit confirmation but my data is gone"</td></tr>
+  </tbody>
+</table>
+<p><strong>The critical insight</strong>: The Lock Manager → Isolation link and the Recovery Manager → Durability link are the two most commonly confused. Students often think the buffer pool ensures durability (it doesn't — the buffer pool is volatile RAM) or that WAL ensures isolation (it doesn't — WAL is for crash recovery; isolation comes from locks and MVCC snapshots).</p>
+</div>
 
 <div class="box xr"><div class="box-lbl">Related Deep Dives — ACID &amp; Transactions</div>
 <ul>
@@ -1570,6 +1683,16 @@ CH5 = """
   <li><strong>GiST (Generalized Search Tree):</strong> Geometric queries (PostGIS), range types, nearest-neighbor searches. Extensible: any user-defined type can define a GiST operator class.</li>
   <li><strong>BRIN (Block Range INdex):</strong> Stores min/max values per range of heap pages. Tiny index (kilobytes for billion-row tables). Useful only when data has strong physical correlation with the index key (e.g., a timestamp column that's always inserted in order — newer rows are on later pages, so BRIN's min/max per block is accurate). Useless for data with no physical ordering.</li>
 </ul>
+
+<div class="box f"><div class="box-lbl">What the Access Layer Abstraction Costs the Query Planner</div>
+<p>The Access Layer provides a uniform CRUD interface regardless of the underlying storage structure. This is elegant — but it hides information from the query planner that it could use for optimization.</p>
+<ul>
+  <li><strong>Planner cannot distinguish B+ tree vs LSM internals.</strong> The Access Layer exposes "index exists on column X" — not "this is an LSM bloom filter vs a B+ tree leaf node." The planner chooses between sequential scan, index scan, and bitmap index scan, but cannot say "use the bloom filter for this point query instead of the B+ tree."</li>
+  <li><strong>Planner cannot request specific prefetch patterns.</strong> If the planner knows it will access 10,000 specific heap pages, it could tell the Buffer Manager to prefetch them. The Access Layer abstraction prevents this — the planner can only request pages one-by-one through the standard interface.</li>
+  <li><strong>Storage-engine-specific hints require breaking the abstraction.</strong> MySQL's <code>USE INDEX</code>, <code>FORCE INDEX</code>, and <code>IGNORE INDEX</code> hints pass storage-engine knowledge through the abstraction boundary. PostgreSQL's <code>enable_indexscan = off</code> is a crude override. Both are escape hatches that exist because the abstraction loses information the planner sometimes needs.</li>
+</ul>
+<p><strong>The architect's trade-off:</strong> The Access Layer abstraction enables storage engine pluggability (MySQL can swap InnoDB for MyISAM; PostgreSQL can add new table access methods via the <code>TABLE ACCESS METHOD</code> API). The cost is one level of query optimization opacity. Systems that need maximum query performance (ClickHouse, DuckDB) often tightly couple the query executor and storage engine — sacrificing pluggability for optimizer visibility.</p>
+</div>
 </div>
 
 <div class="topic">
@@ -1630,6 +1753,18 @@ FROM pg_statio_user_tables;</pre>
 <p><strong>Clock sweep vs LRU — why sequential scans can evict hot pages:</strong> PostgreSQL's clock-sweep eviction is vulnerable to sequential scan pollution. A full table scan of a 100GB cold table walks through millions of pages, each getting a usage_count of 1. The sweep quickly evicts them, but not before they temporarily displace hot index pages from the buffer pool. PostgreSQL mitigates this with a "ring buffer" for sequential scans: large sequential scans use a small fixed-size ring of buffer frames (8MB default), so they cannot evict pages outside the ring. This is why a bulk table scan doesn't blow out your buffer pool hit rate — provided the scan is detected as sequential.</p>
 
 <p><strong>pg_prewarm:</strong> After a PostgreSQL restart, the buffer pool is empty — the working set must be rebuilt from disk page faults. The <code>pg_prewarm</code> extension (included in standard PostgreSQL) can restore the buffer pool contents from a saved list: <code>SELECT pg_prewarm('tablename')</code> or configure <code>pg_prewarm</code> in <code>shared_preload_libraries</code> to automatically save and restore the buffer pool on shutdown/startup. This eliminates the "cold start" performance cliff after planned restarts.</p>
+
+<h3>Buffer Pool Sizing Trade-offs: What You Give Up Going Larger</h3>
+
+<div class="box f"><div class="box-lbl">Why Bigger Buffer Pool Is Not Always Better</div>
+<p>Increasing <code>shared_buffers</code> beyond the optimal point creates three problems:</p>
+<ul>
+  <li><strong>OOM (Out-of-Memory) risk.</strong> PostgreSQL's <code>shared_buffers</code> is allocated at startup as shared memory (POSIX shared memory or System V shared memory). On a 64GB server with shared_buffers=48GB, only 16GB remains for: the OS kernel, 200+ PostgreSQL worker processes (each ~10MB), monitoring agents, log collectors, and OS page cache. Under memory pressure, the Linux OOM killer terminates processes — often choosing large PostgreSQL workers or even the postmaster. Rule: shared_buffers ≤ 40% of total RAM on a dedicated database server.</li>
+  <li><strong>OS page cache starvation.</strong> PostgreSQL does NOT use O_DIRECT by default — it reads data through the OS page cache. The kernel caches pages it reads, giving PostgreSQL a second cache layer for free. Sequential scans (which bypass the shared_buffers and go directly through the OS page cache with kernel read-ahead) benefit heavily from OS page cache. If shared_buffers consumes 75% of RAM, the OS has almost no memory left for its page cache, killing sequential scan performance.</li>
+  <li><strong>Clock sweep eviction overhead.</strong> The buffer pool eviction algorithm (clock sweep) must scan more entries when shared_buffers is larger. At very large shared_buffers, background processes like bgwriter and checkpointer take longer to scan dirty page lists, increasing checkpoint duration and I/O spike risk.</li>
+</ul>
+<p><strong>Tuning targets:</strong> Start at 25% of RAM. Increase toward 40% while monitoring: (1) OS page cache remaining in <code>free -h</code>, (2) buffer pool hit rate in <code>pg_statio_user_tables</code> (target &gt;99%), (3) checkpoint duration in <code>pg_stat_bgwriter</code>. Stop increasing when hit rate plateaus or OS cache drops below 10% of RAM.</p>
+</div>
 
 <p><strong>InnoDB buffer pool — different rules:</strong> MySQL InnoDB uses <code>O_DIRECT</code> for data files, so the full buffer pool can safely be 70–80% of RAM without double-caching waste. Monitor with <code>SHOW STATUS LIKE 'Innodb_buffer_pool%'</code>: key metrics are <code>Innodb_buffer_pool_read_requests</code> (logical reads) vs <code>Innodb_buffer_pool_reads</code> (physical reads from disk) — the hit rate is 1 - (physical/logical). InnoDB also supports multiple buffer pool instances (<code>innodb_buffer_pool_instances</code>) to reduce lock contention on the buffer pool mutex — set to 8 for servers with &gt;8GB buffer pool.</p>
 
@@ -1751,6 +1886,30 @@ graph LR
 <p>WAL provides both durability and write performance advantages. The WAL write for a transaction that updates three B+ tree indexes is one sequential append (fast). The three B+ tree page modifications are random writes to three different file locations (expensive). WAL defers the random writes: commit the WAL first (sequential, fast), then flush the B+ tree pages at checkpoint time (batched, potentially sequential within a checkpoint flush).</p>
 
 <p><strong>Group commit:</strong> When many transactions commit simultaneously, PostgreSQL batches their WAL records into a single fsync call. One fsync that commits 100 transactions costs the same as one fsync for one transaction (the fsync itself is the expensive part, not the data volume). At high concurrency, group commit dramatically improves throughput: instead of 100 × 1ms fsyncs = 100ms, one group fsync = 1ms for all 100 commits.</p>
+
+<h3>WAL Enables Both REDO and UNDO</h3>
+
+<p>WAL is used for two distinct purposes that are easy to conflate:</p>
+
+<p><strong>REDO (crash recovery forward replay):</strong> After a crash, the Recovery Manager reads WAL records in forward order from the last checkpoint. For each record: if the corresponding data page is older than the WAL record's LSN, apply the change again (redo it). This brings the data file up to the state it should have been in at crash time — including all committed AND some uncommitted transactions. Redo first, undo later.</p>
+
+<p><strong>UNDO (transaction rollback):</strong> After crash recovery's REDO phase completes, the UNDO phase identifies transactions that were in-progress at crash time (from the active transaction table rebuilt during Analysis). Each in-progress transaction is rolled back by reading its WAL records in REVERSE order and applying the "before image" (the data as it was before the transaction changed it). This is how ROLLBACK works during normal operation too: the transaction manager reads WAL backward for that XID and reverses each change.</p>
+
+<div class="box n"><div class="box-lbl">WAL Record Structure Enables Both Directions</div>
+<table>
+  <thead><tr><th>Field</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>LSN (Log Sequence Number)</td><td>Monotonic position in WAL — enables ordering and "already applied" check during REDO</td></tr>
+    <tr><td>Transaction ID (XID)</td><td>Groups records by transaction — enables finding all records for a given XID during UNDO</td></tr>
+    <tr><td>After image (REDO data)</td><td>The new value of the changed data — applied during forward REDO</td></tr>
+    <tr><td>Before image (UNDO data)</td><td>The original value before the change — applied during backward UNDO rollback</td></tr>
+    <tr><td>Previous LSN (prev_lsn)</td><td>Pointer to the previous record from the same transaction — enables backward traversal for UNDO</td></tr>
+    <tr><td>Compensation Log Record (CLR)</td><td>Written during UNDO to record that a change was undone — makes UNDO idempotent if a crash occurs during undo</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>PostgreSQL's MVCC changes the picture:</strong> In PostgreSQL, UPDATE and DELETE do not modify in-place — they create new tuple versions (for UPDATE) or mark tuples dead (for DELETE). ROLLBACK in PostgreSQL largely just marks the transaction's tuples as aborted via the transaction status bits in pg_clog (now pg_xact) — no physical undo needed. The "before image" is still available (the old tuple was never deleted, just marked with xmax). This is why PostgreSQL ROLLBACK is fast: it just commits the abort, not physically undo rows.</p>
 
 <div class="box l"><div class="box-lbl">How All 5 Components Interact: The Life of a Transaction</div>
 <p><strong>BEGIN:</strong> Transaction Manager assigns a new XID; acquires snapshot for isolation level.</p>
