@@ -205,6 +205,10 @@ CH1 = """
 
 <p><strong>3. Transfer time</strong> — the time to read the actual data once the head is positioned. Sequential data flows past the head at 100–200 MB/s. For a 4KB page: 4096 / 150,000,000 = 0.027ms. Negligible compared to seek and rotational latency.</p>
 
+<div class="box s"><div class="box-lbl">Why HDD Sequential Reads Are Fast — The Positive Mechanism</div>
+<p>Random reads are slow because the arm must seek. Sequential reads are fast for the opposite reason: <strong>the arm does not move at all</strong>. Once positioned at the first sector, the platter continues rotating at 7,200 RPM. Each subsequent sector arrives at the stationary head automatically — driven by rotation. The arm simply reads the magnetic field as sectors stream past at ~150 MB/s, requiring no additional mechanical movement. This is the positive physical mechanism: <em>rotation delivers the data to the head</em>. The database gets to exploit this by storing related pages on adjacent tracks (clustered indexes, heap storage) so a single seek pays for thousands of sequential page reads.</p>
+</div>
+
 <div class="box n"><div class="box-lbl">HDD Latency Breakdown (7,200 RPM)</div>
 <table>
   <thead><tr><th>Component</th><th>Best Case</th><th>Average</th><th>Worst Case</th></tr></thead>
@@ -338,6 +342,18 @@ graph LR
 <p><strong>The economic reason tape exists despite this</strong>: tape wins on cost and capacity. LTO-9 tape: ~$5–8/TB. Enterprise HDD: $20–30/TB. Enterprise NVMe SSD: $100–150/TB. At petabyte/exabyte scale (Amazon Glacier, Google Coldline, Meta's data archive), the 4–6× cost advantage over HDD and 20–30× over SSD makes tape the only economically viable long-term storage for data accessed at most once per year.</p>
 </div>
 
+<div class="box f"><div class="box-lbl">Why SSD Random Reads Are Slower Than Sequential — Not the Erase Cycle</div>
+<p><strong>Common misconception:</strong> "SSDs have a random read penalty because flash cells must be erased before rewriting." This is <em>wrong</em>. Erase cycles are a <strong>write concern</strong> — they drive write amplification and P/E cycle endurance. They have nothing to do with why random reads are slower than sequential reads.</p>
+<p><strong>The correct reason for the random/sequential read gap on SSDs:</strong></p>
+<ul>
+  <li><strong>SSDs are still page-based.</strong> Flash reads in 4–16KB pages — the minimum unit. Random access still triggers a full page read even for 1 byte, just as with HDDs.</li>
+  <li><strong>Sequential reads exploit controller prefetch.</strong> When the controller detects a sequential pattern, it begins fetching the next flash page while delivering the current one to the host. Multiple NAND dies operate in parallel, streaming data at 7,000+ MB/s (NVMe). The pipeline is full.</li>
+  <li><strong>Random reads cannot exploit prefetch.</strong> Each random read targets a different logical block — the controller cannot predict what comes next. No pipelining, no parallel-die streaming. Each read waits for its own NAND page read latency (25–130μs depending on cell type) before the next can begin.</li>
+  <li><strong>FTL lookup overhead compounds on random access.</strong> The Flash Translation Layer must perform a logical-to-physical mapping lookup per random read — adding ~1–5μs of controller processing on top of the NAND read latency.</li>
+</ul>
+<p>The result: sequential SSD reads saturate all internal NAND dies simultaneously (7,000 MB/s). Random reads serialize through single-die latency chains (800K IOPS × 4KB = 3,200 MB/s). The 2× gap is small compared to HDD's 375× gap — but at 800K IOPS serving a busy OLTP workload, the ceiling is still real.</p>
+</div>
+
 <p>The SSD's smaller gap (1.4–2×) might suggest random I/O optimization matters less on SSDs. It doesn't — here's why:</p>
 <ol>
   <li><strong>Absolute latency compounds:</strong> At 20μs NVMe latency, reading 10,000 random pages takes 200ms minimum. The same 40MB sequentially at 7,000 MB/s takes 5.7ms. Still 35× slower for the same data.</li>
@@ -372,6 +388,18 @@ graph TD
     <tr><td>Cold data / archival (&gt;1 year old)</td><td class="y">HDD or tape</td><td>Access frequency too low to justify SSD cost</td></tr>
   </tbody>
 </table>
+</div>
+
+<div class="box n"><div class="box-lbl">Bridge: How the Page Abstraction Birthed B+ Trees — Structural Properties</div>
+<p>The page-based I/O constraint does not just influence index design — it <em>determines</em> the structure of B+ trees. Every structural property follows directly from minimising page touches per operation.</p>
+<p><strong>The three structural properties of a B+ tree:</strong></p>
+<ul>
+  <li><strong>Internal nodes hold only keys + child pointers — never values.</strong> Removing values from internal nodes makes them compact: an 8KB page fits ~580 (key + pointer) pairs. This gives fanout 580 — each internal node has 580 children. A 4-level tree covers 580⁴ = 113 billion rows. Without this, with values stored in internal nodes, fanout drops to ~60 (8KB / (key + value + pointer)), requiring 5+ levels for the same dataset — 5+ I/Os per lookup instead of 4.</li>
+  <li><strong>Leaf nodes hold keys + values + sibling pointers.</strong> All actual row data (or primary key pointers in secondary indexes) lives exclusively at the bottom level. Leaf nodes also carry a doubly-linked list pointer to their left and right neighbour leaves, forming a sorted linked list of all data across the entire tree.</li>
+  <li><strong>Range scans use the leaf linked list — sequential I/O.</strong> To answer <code>WHERE id BETWEEN 1000 AND 2000</code>: traverse from root to the first matching leaf (log N I/Os, ~4), then follow sibling pointers rightward until the range ends. Each pointer hop reads the adjacent page — sequential I/O at 150 MB/s instead of random I/O at 100 IOPS. The leaf linked list converts range scans from O(k × log N) random I/Os to O(log N + k) sequential I/Os, where k is the number of result pages.</li>
+</ul>
+<p><strong>Node splits</strong>: When a leaf node fills to capacity, B+ trees split it in half. The middle key is promoted upward to the parent internal node as a separator. If the parent also overflows, the split propagates upward — recursively — until either a parent has space or the root splits, creating a new root and increasing tree depth by 1. This is how B+ trees maintain their balance while keeping every node at exactly one page.</p>
+<p><strong>Why not binary search trees?</strong> A BST node holds one key + two child pointers = ~24 bytes. An 8KB page holds ~340 BST nodes, but they are stored at arbitrary addresses — each node access is a random I/O. A 20-level BST costs 20 random I/Os = 200ms on HDD. A 4-level B+ tree with 580 fanout = 4 I/Os = 40ms. The B+ tree wins by 5× not through algorithmic cleverness but through page alignment.</p>
 </div>
 
 <div class="box l"><div class="box-lbl">Cross-Connections from This Chapter</div>
@@ -601,6 +629,17 @@ graph LR
     CQ -->|userspace reads, no syscall| U
 </div>
 <p class="diagram-cap">Figure 2.1 — io_uring: userspace and kernel share two ring buffers. No syscall per I/O operation — the kernel polls the SQ directly.</p>
+
+<div class="box d"><div class="box-lbl">io_uring Trade-offs — What You Give Up</div>
+<p>io_uring is not a free upgrade. The trade-offs explain why PostgreSQL took until v16 to adopt it and why most applications still use standard pread/pwrite:</p>
+<ul>
+  <li><strong>Linux-only.</strong> io_uring is a Linux kernel interface. It does not exist on macOS, Windows, or BSD. Any database or application using io_uring cannot be compiled or run on non-Linux systems. PostgreSQL, MySQL, SQLite, and most cross-platform databases therefore cannot make io_uring their primary I/O path — they use it as an optional Linux-specific backend.</li>
+  <li><strong>Kernel version requirement: Linux 5.1+ (May 2019).</strong> Older enterprise distributions (RHEL 7, Ubuntu 18.04 LTS) running kernels 3.x–4.x cannot use io_uring at all. Many production database servers run on LTS OS releases with 3–5 year old kernels. Security patches do not backport io_uring. You cannot use io_uring until you upgrade both OS and kernel.</li>
+  <li><strong>API complexity.</strong> The io_uring API requires setting up ring buffers, registering file descriptors, managing SQ/CQ indices, and handling partial completions — significantly more code than a synchronous <code>pread()</code> call. The <code>liburing</code> helper library reduces this, but the async programming model (submit now, poll for completion later) requires restructuring application I/O code.</li>
+  <li><strong>Security vulnerabilities.</strong> io_uring's shared kernel/userspace memory has been a source of privilege escalation vulnerabilities (CVE-2023-2598, CVE-2022-29582 among others). Google disabled io_uring in Android and ChromeOS production environments in 2023. Some hardened cloud environments restrict it.</li>
+</ul>
+<p><strong>The architect's rule</strong>: Use io_uring for Linux-only write-heavy workloads (WAL, bulk ingest, log-structured storage) where the syscall overhead is measurable (>100K I/Os/sec). For cross-platform code or kernels &lt;5.1, use <code>pread</code>/<code>pwrite</code> with <code>O_DIRECT</code>. Profile before committing to the async programming model — io_uring's benefit only materialises when syscall overhead is your actual bottleneck, not disk or CPU.</p>
+</div>
 
 <div class="box s"><div class="box-lbl">Why io_uring Eliminates Syscalls — The Shared Memory Trick</div>
 <p>The SQ (Submission Queue) and CQ (Completion Queue) are not separate memory regions for userspace and kernel — they are the <strong>same physical memory</strong>, mapped into both address spaces simultaneously via <code>mmap()</code>.</p>
