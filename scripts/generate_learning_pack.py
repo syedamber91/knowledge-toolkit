@@ -161,6 +161,17 @@ CH1 = """
   <li><strong>Clustered indexes store related rows on the same page</strong> — so one I/O fetches multiple needed rows</li>
 </ul>
 
+<div class="box n"><div class="box-lbl">Why B+ Tree Nodes Are Exactly One Page — The Core Insight</div>
+<p>This is not a coincidence. It is the foundational design decision that makes B+ trees viable on disk.</p>
+<p>A disk read always transfers exactly one page — no more, no less. So if a B+ tree node fits exactly one page:</p>
+<ul>
+  <li><strong>One node traversal = one I/O operation.</strong> Reading a node costs exactly what you already paid to access any byte on that page.</li>
+  <li><strong>If the node were smaller than a page</strong> (e.g., 512 bytes in an 8KB page), you'd waste 15× the I/O bandwidth — paying for 8KB but only using 512 bytes of tree data.</li>
+  <li><strong>If the node were larger than a page</strong> (e.g., 32KB spanning 4 pages), a single node traversal costs 4 I/Os instead of 1 — compounding across every level of the tree.</li>
+</ul>
+<p>This is WHY B+ trees were invented: binary search trees (BSTs) have tiny nodes (one key + two pointers, ~24 bytes) — a random 20-level BST requires 20 separate I/Os. A B+ tree node sized to 8KB holds ~400 keys, giving fanout 400, so only 4 levels cover 25.6 billion rows — at 4 I/Os total. The B+ tree IS the data structure answer to the page-based I/O constraint. Every other design decision about B+ trees follows from this one.</p>
+</div>
+
 <div class="box n"><div class="box-lbl">Page Sizes Across Systems</div>
 <table>
   <thead><tr><th>System</th><th>Page Size</th><th>Why This Size</th></tr></thead>
@@ -316,6 +327,17 @@ graph LR
 </table>
 </div>
 
+<div class="box f"><div class="box-lbl">Why 5× Sounds Fine But Tape Random Access Is Still Catastrophic</div>
+<p>A 5× sequential-vs-random penalty sounds modest compared to HDD (100×) or SSD (4×). Here is why the number is misleading at scale:</p>
+<ul>
+  <li><strong>The 5× figure is a best-case benchmark</strong> on warm, nearby data at the start of a tape reel. The benchmark reads blocks that are physically close — minimal winding required.</li>
+  <li><strong>At petabyte/exabyte scale</strong>, the average distance between random positions on a tape is meters of tape, not millimeters. Physical winding at 3–4 m/s means minutes of latency per random seek, not milliseconds.</li>
+  <li><strong>Tape jukebox mechanics</strong>: large archives use tape libraries (robot arms selecting reels). A cache miss means waiting 30–60 seconds for a tape to be physically loaded into a drive — before the first byte can be read.</li>
+  <li><strong>The correct mental model</strong>: Tape random latency at archive scale = 30–300 seconds per access. HDDs are 10ms. SSDs are 50μs. Tape is 10,000–100,000× slower than HDD on random workloads at scale — the 5× figure applies only to adjacent sequential blocks.</li>
+</ul>
+<p><strong>The economic reason tape exists despite this</strong>: tape wins on cost and capacity. LTO-9 tape: ~$5–8/TB. Enterprise HDD: $20–30/TB. Enterprise NVMe SSD: $100–150/TB. At petabyte/exabyte scale (Amazon Glacier, Google Coldline, Meta's data archive), the 4–6× cost advantage over HDD and 20–30× over SSD makes tape the only economically viable long-term storage for data accessed at most once per year.</p>
+</div>
+
 <p>The SSD's smaller gap (1.4–2×) might suggest random I/O optimization matters less on SSDs. It doesn't — here's why:</p>
 <ol>
   <li><strong>Absolute latency compounds:</strong> At 20μs NVMe latency, reading 10,000 random pages takes 200ms minimum. The same 40MB sequentially at 7,000 MB/s takes 5.7ms. Still 35× slower for the same data.</li>
@@ -358,6 +380,7 @@ graph TD
   <li><strong>→ Ch3 (LSM Tree):</strong> LSM memtable flushes and SSTable compaction are deliberately sequential writes — exploiting the sequential-over-random law even on SSDs.</li>
   <li><strong>→ Ch5 (Buffer Manager):</strong> The entire buffer pool exists to absorb random I/O costs. Every page served from RAM eliminates one ~10ms HDD read or one ~50μs NVMe read. At 10,000 queries/sec, 99% buffer pool hit rate saves 9,900 disk reads per second.</li>
   <li><strong>→ Ch5 (WAL):</strong> WAL is append-only sequential to exploit sequential write speed. The WAL write is fast; the B+ tree random updates are deferred. This is the core WAL performance insight.</li>
+  <li><strong>B+ tree leaf node sibling pointers (Chapter 3)</strong>: Leaf nodes form a doubly-linked list across pages. Range scans exploit this by reading leaves sequentially — paying the sequential I/O rate (~150 MB/s) instead of the random I/O rate (~100 IOPS). The entire motivation for this design traces back to the sequential-vs-random gap established in this chapter.</li>
 </ul>
 </div>
 
@@ -450,6 +473,29 @@ CH2 = """
 <h3>Layer 2: System Libraries</h3>
 <p>Pre-built code the application links against: <code>libc</code>, <code>libpthread</code>, <code>libssl</code>. The OS ships these; the application calls them. A slow library version is a bottleneck you cannot directly fix without an OS upgrade. PostgreSQL, for example, links <code>libz</code> for WAL compression and <code>libssl</code> for TLS connections — library performance affects database performance.</p>
 
+<h3>System Libraries: Concrete Examples That Matter for Databases</h3>
+
+<p>The System Libraries layer is where databases make key performance decisions — most choose to bypass it entirely or replace it with custom implementations.</p>
+
+<p><strong>1. Buffered I/O via libc (stdio.h)</strong>: The C standard library wraps raw syscalls with a userspace buffer. <code>fwrite()</code> accumulates bytes in a 4KB buffer and issues a <code>write()</code> syscall only when the buffer fills. This reduces syscall frequency but introduces double-buffering: the libc buffer in userspace + the OS page cache in kernel. Databases disable this by using <code>O_DIRECT</code> flag on <code>open()</code>, bypassing the OS page cache entirely and issuing aligned 4KB/8KB writes directly to disk. PostgreSQL does NOT use <code>O_DIRECT</code> by default — it manages its own buffer pool and lets the OS cache on top (double caching, a known inefficiency). MySQL InnoDB supports <code>innodb_flush_method=O_DIRECT</code>.</p>
+
+<p><strong>2. Memory Allocators</strong>: glibc's <code>malloc()</code> uses a general-purpose allocator that performs poorly under database workloads (many small allocations of varying size with high thread contention). Production databases replace it:</p>
+<ul>
+  <li><code>jemalloc</code> — used by Redis, RocksDB, CockroachDB: arena-based allocation reduces lock contention in multi-threaded code, better memory fragmentation behaviour</li>
+  <li><code>tcmalloc</code> (Google) — used by MySQL, Abseil: thread-local caches for common sizes, avoids cross-thread contention entirely</li>
+  <li>PostgreSQL uses <code>palloc()</code> — its own slab allocator for query-scoped memory, tied to memory contexts that free entire slabs at once (avoiding per-object <code>free()</code>)</li>
+</ul>
+
+<p><strong>3. SSL/TLS Libraries</strong>: OpenSSL or BoringSSL (Google's fork) encrypt the database wire protocol. This adds ~0.5–2% CPU overhead for database connections — negligible for typical OLTP but measurable at 100K+ connections/second. PostgreSQL, MySQL, and Redis all optionally wrap their socket layer in OpenSSL.</p>
+
+<div class="box d"><div class="box-lbl">When to Investigate System Libraries</div>
+<ul>
+  <li><strong>Memory fragmentation under load</strong> → replace malloc with jemalloc or tcmalloc</li>
+  <li><strong>High CPU on crypto operations</strong> → check SSL library + consider hardware acceleration (AES-NI, CPU affinity)</li>
+  <li><strong>Unexpected double caching / memory usage</strong> → check whether O_DIRECT is configured; consider whether the buffer pool + OS page cache are both caching the same pages</li>
+</ul>
+</div>
+
 <h3>Layer 3: System Calls — The Guarded Boundary</h3>
 <p>Every file read, write, network operation, and memory allocation crosses from user-space into kernel-space via a <strong>system call</strong> (syscall). This boundary is guarded to prevent user processes from directly accessing kernel memory, hardware registers, or each other's address spaces — the fundamental OS isolation guarantee.</p>
 
@@ -462,6 +508,25 @@ CH2 = """
 
 <div class="box n"><div class="box-lbl">Meltdown/Spectre Impact on Syscall Cost</div>
 <p>After the Meltdown vulnerability (2018), OS kernels enabled Page Table Isolation (PTI / KPTI) on x86-64 CPUs. This flushes TLB entries on every user↔kernel transition, adding 100–500ns per syscall on non-mitigated hardware. Workloads doing millions of syscalls/sec saw 10–30% throughput degradation. This is why io_uring (which eliminates most syscalls) became critical for high-performance databases post-2018.</p>
+</div>
+
+<h3>The Core I/O System Calls a Database Uses</h3>
+
+<p>Every database I/O operation ultimately reduces to one of these kernel calls:</p>
+
+<div class="box n"><div class="box-lbl">Core I/O Syscalls</div>
+<table>
+  <thead><tr><th>Syscall</th><th>Signature</th><th>Why Databases Use It</th></tr></thead>
+  <tbody>
+    <tr><td><code>pread()</code></td><td><code>pread(fd, buf, count, offset)</code></td><td>Thread-safe positioned read — no shared seek pointer, safe for concurrent threads</td></tr>
+    <tr><td><code>pwrite()</code></td><td><code>pwrite(fd, buf, count, offset)</code></td><td>Thread-safe positioned write — same benefit as pread</td></tr>
+    <tr><td><code>fsync()</code></td><td><code>fsync(fd)</code></td><td>Flush OS page cache to disk + sync file metadata. Required for durable commit. ~1–5ms on NVMe.</td></tr>
+    <tr><td><code>fdatasync()</code></td><td><code>fdatasync(fd)</code></td><td>Like fsync but skips metadata (mtime, size) unless changed. ~10–20% faster than fsync.</td></tr>
+    <tr><td><code>open(O_DIRECT)</code></td><td><code>open(path, O_DIRECT|O_RDWR)</code></td><td>Bypass OS page cache. Requires 512-byte aligned buffers. InnoDB uses this.</td></tr>
+    <tr><td><code>mmap()</code></td><td><code>mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0)</code></td><td>Map file into virtual address space. SQLite, LMDB use this instead of pread/pwrite.</td></tr>
+  </tbody>
+</table>
+<p>io_uring submits these same operations asynchronously to the kernel's Submission Queue ring — eliminating the per-operation syscall by batching. The kernel polls the SQ directly via a shared memory mapping between userspace and kernelspace.</p>
 </div>
 
 <h3>Layer 4: Kernel</h3>
@@ -537,6 +602,12 @@ graph LR
 </div>
 <p class="diagram-cap">Figure 2.1 — io_uring: userspace and kernel share two ring buffers. No syscall per I/O operation — the kernel polls the SQ directly.</p>
 
+<div class="box s"><div class="box-lbl">Why io_uring Eliminates Syscalls — The Shared Memory Trick</div>
+<p>The SQ (Submission Queue) and CQ (Completion Queue) are not separate memory regions for userspace and kernel — they are the <strong>same physical memory</strong>, mapped into both address spaces simultaneously via <code>mmap()</code>.</p>
+<p>When you call <code>io_uring_setup()</code>, the kernel allocates ring buffers in physical memory, then returns file descriptors that let you <code>mmap()</code> those same pages into your process's virtual address space. Both the kernel and your process see the same bytes at the same physical addresses — no copying, no context switch needed to pass the data.</p>
+<p>With <code>IORING_SETUP_SQPOLL</code>: a dedicated kernel thread polls the SQ tail pointer in a tight loop. When your process pushes a new entry (incrementing the tail), the kernel thread sees it immediately and begins processing — <strong>zero syscalls</strong> from submission to completion. The only syscall is <code>io_uring_enter()</code> to wake the kernel thread if it has gone idle (typically after 1ms of no new submissions).</p>
+</div>
+
 <div class="box n"><div class="box-lbl">I/O Method Comparison</div>
 <table>
   <thead><tr><th>Method</th><th>Syscalls per I/O</th><th>Double Cache</th><th>Async?</th><th>Control</th><th>Best For</th></tr></thead>
@@ -550,6 +621,27 @@ graph LR
 </div>
 
 <p><strong>Real adoption:</strong> RocksDB added io_uring support in 2021. ScyllaDB was built on io_uring from the start. PostgreSQL 16+ added io_uring for WAL writes. The speedup for sequential write-heavy workloads (WAL, bulk ingest) is typically 30–60%; for random read-heavy OLTP it varies more based on buffer pool hit rate.</p>
+
+<h3>Diagnosing Layer-Specific Bottlenecks</h3>
+
+<p>When a database is slow, the software stack is the investigation target. Here is the diagnostic toolkit by layer:</p>
+
+<div class="box n"><div class="box-lbl">Layer Diagnostic Toolkit</div>
+<table>
+  <thead><tr><th>Layer</th><th>Tool</th><th>What It Shows</th></tr></thead>
+  <tbody>
+    <tr><td>Application</td><td><code>pg_stat_statements</code>, slow query log</td><td>Which queries are slow; N+1 query patterns; index misses</td></tr>
+    <tr><td>System Libraries</td><td><code>valgrind --tool=massif</code>, <code>heaptrack</code></td><td>Memory allocation patterns; fragmentation; allocator contention</td></tr>
+    <tr><td>System Calls</td><td><code>strace -p PID -e trace=read,write,pread64,fsync -T</code></td><td>Every I/O syscall with duration; reveals fsync frequency</td></tr>
+    <tr><td>System Calls</td><td><code>perf stat -e syscalls:sys_enter_read,syscalls:sys_enter_write</code></td><td>Syscall count per second; quantifies syscall overhead</td></tr>
+    <tr><td>Kernel</td><td><code>bpftrace -e 'tracepoint:block:block_rq_complete { @lat = hist(args->nr_sector * 512); }'</code></td><td>Block I/O completion latency histogram</td></tr>
+    <tr><td>Kernel</td><td><code>iostat -x 1</code>, <code>iotop</code></td><td>Device utilization; IOPS; await (I/O queue depth)</td></tr>
+    <tr><td>Hardware</td><td><code>nvme smart-log /dev/nvme0</code></td><td>SSD wear level, temperature, write amplification factor</td></tr>
+    <tr><td>Hardware</td><td><code>fio --randread --ioengine=io_uring --iodepth=32</code></td><td>Raw device IOPS/latency — baseline before blaming software</td></tr>
+  </tbody>
+</table>
+<p><strong>Investigation order</strong>: always start at the Application Layer (slow queries, bad indexes) before descending — 80% of database performance problems are solved at layer 1. Only descend to System Call or Hardware layers when query-level fixes are exhausted and the problem persists under single-row, indexed queries.</p>
+</div>
 
 <div class="box l"><div class="box-lbl">Cross-Connections from This Chapter</div>
 <ul>
@@ -985,6 +1077,36 @@ CH4 = """
 </div>
 
 <div class="topic">
+<h2>B-Tree vs B+ Tree: Where Values Live</h2>
+
+<h3>B-Tree vs B+ Tree: Where Values Live (A Critical Distinction)</h3>
+
+<div class="box s"><div class="box-lbl">In Simple Terms</div>
+<p>In a regular B-tree, every node can hold both the key and the actual data value — so a search can stop the moment it finds a key, even in the middle of the tree. In a B+ tree, only the bottom row (leaf nodes) holds values. All other nodes hold only keys used for navigation. This changes everything about how the structure performs.</p>
+</div>
+
+<p><strong>B-tree (Bayer 1970 original)</strong>: Internal nodes store <code>(key, value, left_child, right_child)</code> tuples. A search that matches a key in an internal node returns the value immediately — no need to reach a leaf. This seems efficient, but the cost is high: internal nodes are large (key + value + two child pointers), reducing the fanout (how many children per node). A B-tree with 100-byte values and 8-byte keys in an 8KB page holds roughly 60 entries per node, giving ~5 tree levels for 1 billion rows.</p>
+
+<p><strong>B+ tree (the universal database choice)</strong>: Internal nodes store ONLY <code>(key, child_pointer)</code> pairs — no values. Values live exclusively in leaf nodes. This makes internal nodes extremely compact: an 8KB page with 8-byte keys and 6-byte pointers holds ~580 entries. With fanout 580, only 3 tree levels reach 195 million rows; 4 levels reach 113 billion rows. <strong>The fanout advantage of removing values from internal nodes is the entire reason databases use B+ trees instead of B-trees.</strong></p>
+
+<div class="box n"><div class="box-lbl">B-tree vs B+ Tree Internal Node Comparison (8KB page)</div>
+<table>
+  <thead><tr><th>Property</th><th>B-tree</th><th>B+ tree</th></tr></thead>
+  <tbody>
+    <tr><td>Internal node stores</td><td>Key + Value + 2 child pointers</td><td>Key + 1 child pointer only</td></tr>
+    <tr><td>Entries per 8KB internal node</td><td>~60 (with 100-byte values)</td><td>~580 (keys + pointers only)</td></tr>
+    <tr><td>Tree levels for 1B rows</td><td>~5 levels → 5 I/Os</td><td>~3 levels → 3 I/Os</td></tr>
+    <tr><td>Range scan support</td><td>Complex (values in all nodes)</td><td>Trivial (leaf sibling pointers)</td></tr>
+    <tr><td>Early termination</td><td>Yes (value found in internal node)</td><td>No (must always reach leaf)</td></tr>
+    <tr><td>Database usage</td><td>Rare (some file systems)</td><td>Universal (PostgreSQL, MySQL, Oracle, SQL Server)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The trade-off: B+ trees never terminate early in an internal node — every lookup must reach a leaf. But the dramatically higher fanout (580 vs 60) means the tree is 2 levels shallower on average, saving more I/Os than early termination would have recovered. At one billion rows, B+ tree requires 3 I/Os (3 levels); B-tree requires 5 (5 levels). The B+ tree wins despite never short-circuiting.</p>
+</div>
+
+<div class="topic">
 <h2>The Slotted Page Architecture</h2>
 
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
@@ -1024,6 +1146,17 @@ graph TD
     FS --> TU
 </div>
 <p class="diagram-cap">Figure 4.1 — Slotted page layout. Item array grows from top; tuples from bottom. Free space is between pd_lower and pd_upper.</p>
+
+<div class="box d"><div class="box-lbl">The Node-Page Equivalence: Why B+ Tree Nodes Are Exactly One Page</div>
+<p>The 8KB PostgreSQL page and the 8KB B+ tree node size are not independent choices — they are the same thing. A B+ tree node <em>is</em> a page. Here is why this alignment is the core design decision:</p>
+<ul>
+  <li><strong>One node traversal = one I/O</strong>: When you read any byte on a page, you pay for the full 8KB transfer. A node sized to exactly one page means reading one tree level costs exactly one I/O — no more, no less.</li>
+  <li><strong>Node smaller than one page</strong>: If a node were 512 bytes in an 8KB page, you'd transfer 8KB but use only 512 bytes of tree data — 16× wasted I/O bandwidth. Worse, the OS and buffer pool cache the full 8KB page whether you needed it or not.</li>
+  <li><strong>Node larger than one page</strong>: A 32KB node spanning 4 pages requires 4 sequential I/Os to load one tree node. In a 4-level tree, reading a leaf would cost 4 levels × 4 I/Os = 16 I/Os instead of 4. The entire depth advantage of B+ trees evaporates.</li>
+  <li><strong>The practical implication</strong>: PostgreSQL's <code>BLCKSZ</code> compile-time constant (8KB) is the B+ tree node size. Changing BLCKSZ rebuilds the entire storage format — it is not a configuration file parameter. MySQL InnoDB uses 16KB pages (and 16KB B+ tree nodes), configurable at initialization time only.</li>
+</ul>
+<p>This is the answer to "why did B+ trees win over binary search trees (BSTs)?" — BST nodes are tiny (key + 2 pointers = ~24 bytes) and randomly placed in memory/on disk. Loading one BST level on a random-access disk means paying for a full 8KB page to get 24 bytes of useful data, then repeating for 20–30 levels. A B+ tree fits 580 entries in that same 8KB page and traverses only 4 levels. The node-page equivalence is the entire advantage.</p>
+</div>
 
 <h3>Tuple Header: MVCC Visibility Information</h3>
 <p>Every row (tuple) in a PostgreSQL heap page has a 23-byte header before the actual column data:</p>
