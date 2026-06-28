@@ -1327,7 +1327,7 @@ CH5 = """
 </div>
 
 <div class="box f"><div class="box-lbl">Why One-Time Trigger Was Deprecated — The Single-Batch OOM Risk</div>
-<p>The <code>Trigger.Once()</code> trigger processes <em>all</em> currently available data in a <strong>single micro-batch</strong> before stopping. If the stream has been offline for hours or days and a large backlog has accumulated — say, 500 GB of unprocessed data — the single-batch approach forces Spark to process the entire 500 GB in one query execution. This creates OOM risk: the entire backlog's shuffle data must be held in executor memory within a single batch, with no opportunity to release resources between batches.</p>
+<p>The <code>Trigger.Once()</code> trigger processes <em>all</em> currently available data in a <strong>single micro-batch</strong> before stopping. If the stream has been offline for hours or days and a large backlog has accumulated — say, 500 GB of unprocessed data — the single-batch approach forces Spark to process the entire 500 GB in one query execution. This creates OOM (Out of Memory — when a program tries to use more memory than the computer has available, it crashes) risk: the entire backlog's shuffle data must be held in executor memory within a single batch, with no opportunity to release resources between batches.</p>
 <p><strong>Available-now</strong> (<code>Trigger.AvailableNow()</code>, Spark 3.3+) solves this by spreading the backlog across <em>multiple</em> micro-batches (bounded by <code>maxFilesPerTrigger</code> per batch), still stopping when all available data is consumed. Each micro-batch processes a manageable chunk of data, releases its resources, and begins the next batch. The result: large backlogs are processed safely and incrementally without OOM risk, while still completing automatically when caught up — giving the best of batch and streaming behavior. This is why available-now is the correct replacement for the deprecated one-time trigger.</p>
 </div>
 </div>
@@ -1397,7 +1397,7 @@ CH5 = """
 
 <p>Apache Spark 3.0 (released 2020) introduced Adaptive Query Execution (AQE) as a way to extend Catalyst optimization into runtime. The key insight: shuffle stages create a natural pause point. Every exchange (shuffle) operator forces all tasks in the current stage to complete before the next stage can begin. During this pause, the actual shuffle output statistics are available: how many bytes in each partition, how many rows, how the data distributes across partitions. AQE collects these statistics and re-runs the physical planner for the next stage.</p>
 
-<p>The unit of AQE re-optimization is the <strong>query stage</strong>. Each Exchange operator (Spark's internal name for a shuffle node in the physical plan — the point where data is redistributed across partitions, forcing all upstream tasks to finish before downstream tasks begin; a query stage corresponds exactly to one DAG stage between two Exchange boundaries) creates a query stage boundary. AQE collects statistics after each query stage completes, then re-optimizes the next query stage's plan before it begins executing.</p>
+<p>The unit of AQE re-optimization is the <strong>query stage</strong>. Each Exchange operator (Spark's internal name for a shuffle node in the physical plan — the point where data is redistributed across partitions, forcing all upstream tasks to finish before downstream tasks begin; a query stage corresponds exactly to one stage in the DAG (Directed Acyclic Graph — a diagram of the steps in a computation where arrows show dependencies and nothing loops back) between two Exchange boundaries) creates a query stage boundary. AQE collects statistics after each query stage completes, then re-optimizes the next query stage's plan before it begins executing.</p>
 
 <h3>AQE Feature 1 — Coalescing Shuffle Partitions</h3>
 <p><strong>Problem:</strong> <code>spark.sql.shuffle.partitions = 200</code> by default. For a query producing 10MB of shuffle output, 200 partitions means each partition averages 50KB — hundreds of tiny tasks that spend more time on task scheduling overhead than actual computation.</p>
@@ -1431,7 +1431,7 @@ CH5 = """
   <tbody>
     <tr><td>Coalesce shuffle partitions</td><td>200 tiny partitions for small data</td><td>After shuffle: merge adjacent small partitions</td><td>Tune spark.sql.shuffle.partitions manually</td></tr>
     <tr><td>Dynamic join switching</td><td>Wrong join strategy from stale estimates</td><td>After stage 1: check actual size, switch to BHJ if small</td><td>Manually broadcast hint; requires knowing sizes in advance</td></tr>
-    <tr><td>Skew join handling</td><td>One task processes 80% of data</td><td>After shuffle: split skewed partitions; replicate other side</td><td>Salting (manual key prefix + non-skewed side replication)</td></tr>
+    <tr><td>Skew join handling</td><td>One task processes 80% of data</td><td>After shuffle: split skewed partitions; replicate other side</td><td>Salting — a manual workaround where you add a random prefix to skewed keys to spread them across more partitions, then remove the prefix after joining; requires explicit code changes (manual key prefix + non-skewed side replication)</td></tr>
   </tbody>
 </table>
 </div>
