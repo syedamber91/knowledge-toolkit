@@ -108,6 +108,13 @@ After editing the script, regenerate and re-run the workflow from the same `scri
 | 1    | 8.2 / 7.8   | 8.6 / 8.2   | 8.8 / 6.6   | 8.4 / 6.0   | 8.4 / 8.0   |
 | 2    | 9.0 / 8.8   | 9.2 / 9.0   | 9.4 / 8.6   | 9.6 / 9.4   | 9.2 / 8.8   |
 | 3    | 9.4 / 9.2 ✓ | 9.4 / 9.4 ✓ | 10 / 10 ✓   | 9.8 / 9.8 ✓ | 9.8 / 9.2 ✓ |
+| 4    | 8.8 / 8.2 ✗ | 9.2 / 7.0 ✗ | 9.8 / 9.8 ✓ | 9.4 / 9.4 ✓ | 10 / 9.4 ✓  |
+| 5    | 9.0 / 8.0 ✗ | 9.6 / 9.6 ✓ | 9.8 / 9.8 ✓ | 9.4 / 9.4 ✓ | 10 / 9.4 ✓  |
+| 6    | 8.8 / 8.2 ✗ | 9.6 / 9.6 ✓ | 9.8 / 9.8 ✓ | 9.8 / 7.8 ✗ | 9.8 / 8.8 ✗ |
+| 7    | 8.8 / 7.8 ✗ | 9.6 / 9.6 ✓ | 9.8 / 9.8 ✓ | 9.8 / 9.8 ✓ | 8.8 / 7.4 ✗ |
+| **8** | **10 / 9.6 ✓** | **10 / 10 ✓** | **10 / 10 ✓** | **10 / 10 ✓** | **10 / 9.6 ✓** |
+
+**allPassed = true at Pass 8.**
 
 Key fixes driven by the loop:
 - **Pass 1→2**: Added B+ tree vs B-tree distinction across all chapters (leaf nodes, neighbour pointers, node split)
@@ -115,7 +122,14 @@ Key fixes driven by the loop:
 - **Pass 2→3**: Node split key promotion to parent (how O(log n) depth is maintained)
 - **Pass 2→3**: RAM (~100ns) vs disk (~10ms) = 100,000× latency numbers
 - **Pass 2→3**: WAL sequential vs random I/O distinction
-- **Pass 3 (post)**: Corrected SSD 4× read penalty — was wrongly citing flash erase cycles (a write concern); corrected to flash controller per-address lookup latency
+- **Pass 3→4**: Added Substack cross-references, Mermaid diagrams (ByteByteGo style), callout CSS variants (xr/teach/gap/why)
+- **Pass 4→5**: Ch2 System Libraries concrete examples (O_DIRECT, jemalloc/tcmalloc/palloc, SSL/TLS), named syscalls table, io_uring shared-memory trick + trade-offs
+- **Pass 5→6**: Ch1 HDD sequential positive mechanism (arm stays stationary; platter delivers sectors), SSD 4× penalty root cause
+- **Pass 6→8 (root fix)**: Discovered that the verification workflow's Justin Sung student reads from hardcoded `CHAPTERS[n].content` strings — NOT the generated PDF. All PDF improvements since pass 3 were never tested because the student content was stale. Fix: rewrote all 5 `CHAPTERS[n].content` strings AND `BEN_KNOWLEDGE_BY_CHAPTER` to match current PDF content, including:
+  - Ch1: correct SSD 4× explanation (NAND die parallelism + FTL lookup, NOT erase cycles), WHY pages exist (HDD track geometry + NAND wordline + ECC block granularity), Bayer & McCreight 1972 founding motivation, concrete sequential-rule violation (non-clustered index heap fetches), B+ tree structural preview (fanout 580, node splits, sibling pointers)
+  - Ch2: io_uring corrected from "kernel-bypass" (wrong term — that's DPDK/SPDK) to "eliminates per-I/O syscall crossings via shared memory ring buffers", io_uring trade-offs (Linux-only, kernel 5.1+, CVEs, Google/Android 2023 disable), named syscalls table, diagnostic toolkit (strace/perf/bpftrace/iostat/fio)
+  - Ch4: ACID mapping table (Lock Manager → Isolation, Recovery Manager → Durability, Buffer Manager → Performance NOT Durability), WAL REDO vs UNDO distinction with record fields (LSN, XID, after-image, before-image, prev_lsn, CLR), ARIES 3 phases, buffer pool OOM risk + OS page cache starvation trade-offs
+  - Ch5: Lock Manager → Isolation ('I' in ACID) explicit, LSM tree description, WAL REDO+UNDO, ACID mapping
 
 ---
 

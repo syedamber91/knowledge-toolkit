@@ -379,6 +379,17 @@ graph LR
   <li>Result: 500 random heap page reads. At 100 IOPS on HDD → 5 seconds. At 800K IOPS on NVMe → 0.6ms.</li>
 </ol>
 <p>Same query with a clustered index on <code>customer_id</code>: all 500 orders for customer 12345 are stored on 3–4 consecutive pages. Cost: 3–4 sequential I/Os → 0.08ms on HDD (37× faster), 0.002ms on NVMe.</p>
+
+<div class="box why"><div class="box-lbl">When is a non-clustered index still the right choice?</div>
+<p>The heap-fetch example might suggest non-clustered indexes are always bad. They are not — the decision depends on selectivity:</p>
+<ul>
+  <li><strong>High selectivity + few rows returned:</strong> <code>SELECT * FROM users WHERE email = 'alice@example.com'</code> — returns 1 row. The non-clustered index navigates directly to that one heap page (2 I/Os total). A full table scan on a 10M-row table would read 10,000+ pages. Here the non-clustered index wins overwhelmingly.</li>
+  <li><strong>Covering indexes eliminate the heap fetch entirely:</strong> <code>SELECT customer_id, order_date FROM orders WHERE customer_id = 12345</code> — if the index includes <code>order_date</code> as a second column, the query is answered from the index leaf page alone. No heap fetch. The 500-random-I/O penalty vanishes.</li>
+  <li><strong>Write-heavy tables:</strong> a clustered index forces all inserts/updates to maintain physical key order — expensive re-ordering on page splits. A non-clustered index allows heap insertions anywhere (append to any page) and maintains only the index's sort order. For tables with 90%+ writes and rare selective reads, the clustered index maintenance cost may exceed the read benefit.</li>
+</ul>
+<p><strong>The rule:</strong> non-clustered indexes win on high-selectivity point lookups; clustered indexes win on range scans over many rows. The 500-row heap-fetch scenario is the worst case for non-clustered — low selectivity (500 matching rows) with no covering index. Recognising which scenario you are in is the practitioner's decision.</p>
+</div>
+
 <p><strong>Other sequential-rule violations:</strong></p>
 <ul>
   <li><strong>Correlated subqueries:</strong> <code>SELECT * FROM a WHERE id IN (SELECT aid FROM b WHERE b.val = 'x')</code> — each row in the outer query triggers a separate inner query = N random I/Os</li>
@@ -1643,7 +1654,7 @@ CH5 = """
 
 <p><strong>Detection:</strong> PostgreSQL runs a deadlock detector after a configurable wait timeout (<code>deadlock_timeout</code>, default 1 second). When a transaction has been waiting 1 second, the detector checks the wait-for graph for cycles. If a cycle is found, one transaction is chosen as the victim — typically the youngest transaction (lowest cost to abort). The victim receives an error: <code>ERROR: deadlock detected</code>.</p>
 
-<p><strong>Resolution:</strong> The victim transaction is rolled back completely, releasing all its locks. The other transaction(s) in the cycle can now proceed.</p>
+<p><strong>Resolution:</strong> The victim transaction is rolled back <em>completely</em> — not just the contested lock, but every lock the transaction holds. Why complete rollback rather than releasing only the deadlocked lock? A transaction's locks form an interdependent set: they represent a consistent, partially-applied unit of work. Releasing only the contested lock would leave the transaction in a half-committed state — some row modifications applied and locked, others not — which is an inconsistent database state by definition. Worse, the remaining locks held by the half-killed transaction would now block other transactions that need those rows, potentially creating new deadlocks from the same victim. Complete rollback atomically releases all locks at once, returns all modified rows to their pre-transaction state, and leaves no orphaned locks. The other transaction(s) in the cycle then see a clean state and can proceed safely.</p>
 
 <div class="box f"><div class="box-lbl">Deadlock Prevention Patterns</div>
 <ul>
