@@ -141,24 +141,43 @@ internals (render to PDF via headless Chrome `--print-to-pdf`, output under
 | `scripts/generate_vutr_spark.py` | Vu Trinh Spark-internals pack (5 chapters) | `output/vutr_spark.pdf` |
 | `scripts/gdrive_upload.py` | OAuth Google Drive uploader | uploads `output/*.pdf` to Drive |
 
-**Verification loop.** Each pack's quality is validated in a Q&A loop: examiner
-personas generate questions → a Justin Sung "student" answers using only the PDF
-→ the examiner scores accuracy + coverage. Iterate until every chapter scores
-≥9.0/9.0. **Critical invariant:** when a generator script changes, keep the
+**Verification loop.** Each pack's quality is validated through a multi-agent
+pipeline that runs until every chapter scores ≥9.0/9.0 on both dimensions, then
+requires a final tri-agent sign-off before the PDF is considered complete.
+
+```
+Per pass (pipeline over chapters):
+  Stage 1 — Examiner generates 5 questions (≥2 trade-off, ≥1 WHY, ≥1 precise term)
+  Stage 2 — Justin (student) answers from chapter text
+          + Alex audits chapter for clarity gaps   ← parallel
+  Stage 3 — Examiner scores accuracy + coverage; Alex audit attached to result
+
+Fix round (if any chapter < 9.0):
+  Fix agent applies BOTH examiner gaps AND Alex high/medium improvements → regenerate
+
+Final sign-off (after allPassed = true):
+  vutr   — technical accuracy ≥9.0 and coverage ≥9.0 confirmed
+  Justin — 6/7 pedagogical criteria met (WHY hooks, recall questions, emotional framing)
+  Alex   — no remaining BLOCKERS for a 15-year-old reader
+  If any reject → one sign-off fix round → final PDF
+```
+
+**Critical invariant:** when a generator script changes, keep the
 `CHAPTERS[n].content` strings in the verification workflow in sync — otherwise
 scores won't improve even though the PDF did.
 
 Personas/examiners (skills + agents):
 - **`justin-sung`** — learning coach; reviews pedagogy (retrieval practice,
   emotional hooks, higher-order thinking, WHY→WHAT→HOW) and plays the student
-  who knows only the PDF.
+  who knows only the PDF. Also signs off on pedagogical quality in the final gate.
 - **`ben-dicken`** — database-internals examiner; scores accuracy + coverage.
 - **`vutr`, `lucsystemdesign`, `sdcourse`** — additional examiners for
   Spark/Kafka/OLAP, system-design decisions, and distributed log processing.
+  Each signs off on technical accuracy in the final gate.
 - **`alex`** — 15-year-old clarity auditor; reads chapters and produces a confusion
   log + specific additive improvement requests (DEFINE / ANALOGY / BRIDGE / DIAGRAM /
   EXAMPLE / SEQUENCE). Never asks to remove content. Runs in parallel with Justin in
-  the verification loop to catch scaffolding gaps the accuracy pass misses.
+  every verification pass, and signs off on accessibility in the final gate.
 
 **Google Drive upload** — final PDFs go to *My Drive → Learning Packs → Spark &
 Ben Dicken PDFs* (folder ID `1G0h8cBj9ZXDlXXv97LAj9P0esFwyk5KH`) via
