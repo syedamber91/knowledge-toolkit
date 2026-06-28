@@ -133,36 +133,58 @@ doing source-specific work.
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
 internals (render to PDF via headless Chrome `--print-to-pdf`, output under
-`output/`). A sibling Spark-internals pack ships alongside it; a Google Drive
-uploader (`scripts/gdrive_upload.py`) currently lives on the
-`claude/eager-gates-UqFZF` branch (noted below).
+`output/`).
 
 | Script | Purpose | Output |
 |--------|---------|--------|
 | `scripts/generate_learning_pack.py` | Ben Dicken database-internals pack | `output/ben_dicken_phase1.pdf` |
 | `scripts/generate_vutr_spark.py` | Vu Trinh Spark-internals pack (5 chapters) | `output/vutr_spark.pdf` |
-| `scripts/gdrive_upload.py` *(eager-gates branch)* | OAuth Google Drive uploader | uploads `output/*.pdf` |
+| `scripts/gdrive_upload.py` | OAuth Google Drive uploader | uploads `output/*.pdf` to Drive |
 
-**Verification loop.** Each pack's quality is validated in a Q&A loop: examiner
-personas generate questions → a Justin Sung "student" answers using only the PDF
-→ the examiner scores accuracy + coverage. Iterate until every chapter scores
-≥9.0/9.0. **Critical invariant:** when a generator script changes, keep the
+**Verification loop.** Each pack's quality is validated through a multi-agent
+pipeline that runs until every chapter scores ≥9.0/9.0 on both dimensions, then
+requires a final tri-agent sign-off before the PDF is considered complete.
+
+```
+Per pass (pipeline over chapters):
+  Stage 1 — Examiner generates 5 questions (≥2 trade-off, ≥1 WHY, ≥1 precise term)
+  Stage 2 — Justin (student) answers from chapter text
+          + Alex audits chapter for clarity gaps   ← parallel
+  Stage 3 — Examiner scores accuracy + coverage; Alex audit attached to result
+
+Fix round (if any chapter < 9.0):
+  Fix agent applies BOTH examiner gaps AND Alex high/medium improvements → regenerate
+
+Final sign-off (after allPassed = true):
+  vutr   — technical accuracy ≥9.0 and coverage ≥9.0 confirmed
+  Justin — 6/7 pedagogical criteria met (WHY hooks, recall questions, emotional framing)
+  Alex   — no remaining BLOCKERS for a 15-year-old reader
+  If any reject → one sign-off fix round → final PDF
+```
+
+**Critical invariant:** when a generator script changes, keep the
 `CHAPTERS[n].content` strings in the verification workflow in sync — otherwise
 scores won't improve even though the PDF did.
 
 Personas/examiners (skills + agents):
 - **`justin-sung`** — learning coach; reviews pedagogy (retrieval practice,
   emotional hooks, higher-order thinking, WHY→WHAT→HOW) and plays the student
-  who knows only the PDF.
+  who knows only the PDF. Also signs off on pedagogical quality in the final gate.
 - **`ben-dicken`** — database-internals examiner; scores accuracy + coverage.
 - **`vutr`, `lucsystemdesign`, `sdcourse`** — additional examiners for
   Spark/Kafka/OLAP, system-design decisions, and distributed log processing.
+  Each signs off on technical accuracy in the final gate.
+- **`alex`** — 15-year-old clarity auditor; reads chapters and produces a confusion
+  log + specific additive improvement requests (DEFINE / ANALOGY / BRIDGE / DIAGRAM /
+  EXAMPLE / SEQUENCE). Never asks to remove content. Runs in parallel with Justin in
+  every verification pass, and signs off on accessibility in the final gate.
 
-**Google Drive upload** *(eager-gates branch)* — final PDFs go to *My Drive →
-Learning Packs* (folder ID `1G0h8cBj9ZXDlXXv97LAj9P0esFwyk5KH`) via
+**Google Drive upload** — final PDFs go to *My Drive → Learning Packs → Spark &
+Ben Dicken PDFs* (folder ID `1G0h8cBj9ZXDlXXv97LAj9P0esFwyk5KH`) via
 `scripts/gdrive_upload.py`. OAuth token lives at `~/.config/gdrive_token.json`
 (scope `drive.file`); one-time auth:
 `python3 scripts/gdrive_upload.py --auth <client_secrets.json>`.
+Upload: `python3 scripts/gdrive_upload.py output/vutr_spark.pdf output/ben_dicken_phase1.pdf`.
 
 See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md).
 
@@ -172,10 +194,11 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 - `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture` —
   source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
+- `alex-persona` — the 15-year-old clarity auditor persona (`/alex` trigger).
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`, `vutr`,
-`lucsystemdesign`, `sdcourse` (verification/examiner personas). Note: agent files
+`lucsystemdesign`, `sdcourse`, `alex` (verification/examiner personas). Note: agent files
 reference an absolute project root from the author's machine — paths there are
 illustrative, not this repo's path.
 
