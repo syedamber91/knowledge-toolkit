@@ -155,6 +155,10 @@ Personas/examiners (skills + agents):
 - **`ben-dicken`** — database-internals examiner; scores accuracy + coverage.
 - **`vutr`, `lucsystemdesign`, `sdcourse`** — additional examiners for
   Spark/Kafka/OLAP, system-design decisions, and distributed log processing.
+- **`alex`** — 15-year-old clarity auditor; reads chapters and produces a confusion
+  log + specific additive improvement requests (DEFINE / ANALOGY / BRIDGE / DIAGRAM /
+  EXAMPLE / SEQUENCE). Never asks to remove content. Runs in parallel with Justin in
+  the verification loop to catch scaffolding gaps the accuracy pass misses.
 
 **Google Drive upload** — final PDFs go to *My Drive → Learning Packs → Spark &
 Ben Dicken PDFs* (folder ID `1G0h8cBj9ZXDlXXv97LAj9P0esFwyk5KH`) via
@@ -171,10 +175,11 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 - `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture` —
   source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
+- `alex-persona` — the 15-year-old clarity auditor persona (`/alex` trigger).
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`, `vutr`,
-`lucsystemdesign`, `sdcourse` (verification/examiner personas). Note: agent files
+`lucsystemdesign`, `sdcourse`, `alex` (verification/examiner personas). Note: agent files
 reference an absolute project root from the author's machine — paths there are
 illustrative, not this repo's path.
 
