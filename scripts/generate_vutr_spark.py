@@ -148,7 +148,7 @@ CH1 = """
 
 <p>Google introduced MapReduce in 2004 as a paradigm for distributing data processing across hundreds of machines. The model is clean: a <strong>Map</strong> function processes records and emits key-value pairs; a <strong>Shuffle</strong> redistributes all pairs by key across the network; a <strong>Reduce</strong> function aggregates pairs sharing the same key. Disk writes buffer every phase boundary.</p>
 
-<p>For a single-pass ETL job this is fine. For iterative workloads — any machine learning algorithm that makes multiple passes over data — it is catastrophic. Gradient descent on a neural network requires 10–100 passes. With MapReduce, each pass must be written as a separate job and launched individually on the cluster. The output of pass N is written to HDFS; pass N+1 reads it back from HDFS. This means 100 full disk round-trips for 100 gradient descent iterations.</p>
+<p>For a single-pass ETL job (Extract, Transform, Load — a single sweep through data that reads it once, transforms it, and writes the result) this is fine. For iterative workloads — any machine learning algorithm that makes multiple passes over data — it is catastrophic. Gradient descent (an algorithm that repeatedly adjusts model parameters to minimise prediction error, requiring many passes over the same data) on a neural network requires 10–100 passes. With MapReduce, each pass must be written as a separate job and launched individually on the cluster. The output of pass N is written to HDFS (Hadoop Distributed File System — a fault-tolerant storage layer that spreads large files across many machines' disks); pass N+1 reads it back from HDFS. This means 100 full disk round-trips for 100 gradient descent iterations.</p>
 
 <p>UC Berkeley's AMPLab saw this problem in 2009 and built Spark. The solution: a functional programming-based API that keeps intermediate results in memory across computation steps via a new abstraction called the <strong>Resilient Distributed Dataset (RDD)</strong>.</p>
 
@@ -176,9 +176,9 @@ CH1 = """
 
 <p>An RDD has exactly <strong>five internal properties</strong>:</p>
 <ol>
-  <li><strong>List of Partitions:</strong> The RDD is divided into partitions — the primary unit of parallelism. Each partition is a logical chunk of data processed by one task on one executor. More partitions = more parallelism (up to available cores).</li>
+  <li><strong>List of Partitions:</strong> The RDD is divided into partitions — the primary unit of parallelism. Each partition is a logical chunk of data processed by one task on one executor (an executor is a JVM process Spark launches on a worker node to run tasks and store cached data). More partitions = more parallelism (up to available cores).</li>
   <li><strong>Compute Function per Partition:</strong> A function that, given a partition of the parent RDD and an iterator over its records, produces the output records for the corresponding partition of this RDD.</li>
-  <li><strong>List of Dependencies:</strong> Each RDD records which parent RDDs it depends on and whether those dependencies are narrow or wide. This is the lineage graph.</li>
+  <li><strong>List of Dependencies:</strong> Each RDD records which parent RDDs it depends on and whether those dependencies are narrow or wide. This is the lineage graph — a chain of parent-to-child RDD relationships, like a family tree where each RDD knows exactly which parent it came from and how it was produced.</li>
   <li><strong>Optional Partitioner (key-value RDDs only):</strong> For RDDs holding key-value pairs, an optional <code>Partitioner</code> specifies how keys are hashed to partitions. For example, <code>HashPartitioner(200)</code> means key.hashCode() % 200 determines the partition. This matters for avoiding reshuffles on chained operations.</li>
   <li><strong>Optional Preferred Locations:</strong> For data-locality scheduling. An HDFS-backed RDD knows which HDFS block replicas are on which nodes; Spark's scheduler tries to assign the task to a node holding the data (PROCESS_LOCAL or NODE_LOCAL).</li>
 </ol>
@@ -198,7 +198,7 @@ CH1 = """
 
 <h3>RDD Immutability: A Distributed Systems Necessity</h3>
 
-<p>RDDs are immutable. This is not a design preference borrowed from functional programming aesthetics — it is a distributed systems necessity driven by four concrete requirements:</p>
+<p>RDDs are immutable. This is not a design preference borrowed from functional programming aesthetics — it is a structural guarantee that makes lineage-based fault recovery possible. A distributed systems necessity driven by four concrete requirements:</p>
 
 <p><strong>1. Lineage and fault tolerance (the primary reason).</strong> If a partition is lost due to node failure, Spark recomputes it by replaying the sequence of transformations from the parent partitions — the lineage graph. This requires that parent RDDs be stable (immutable) at the time of recomputation. If parent RDDs were mutable, they might have changed since the child RDD was computed, making deterministic recomputation impossible. Immutability guarantees that <em>reapplying the same transformation to the same parent always yields the same child</em>.</p>
 
@@ -231,7 +231,7 @@ CH1 = """
 
 <p>Every Spark operation is either a <strong>transformation</strong> or an <strong>action</strong>.</p>
 
-<p><strong>Transformations</strong> define how data should be transformed but do not execute immediately. They are lazy — calling <code>map()</code>, <code>filter()</code>, or <code>groupByKey()</code> on an RDD does not compute anything. Instead, Spark records the operation as a node in the DAG (Directed Acyclic Graph) and returns a new RDD object representing the future result. The original RDD is not modified (immutability).</p>
+<p><strong>Transformations</strong> define how data should be transformed but do not execute immediately. They are lazy — calling <code>map()</code>, <code>filter()</code>, or <code>groupByKey()</code> on an RDD does not compute anything. Instead, Spark records the operation as a node in the DAG (Directed Acyclic Graph — a one-way chain of computation steps where data flows forward only; no step can loop back to an earlier step) and returns a new RDD object representing the future result. The original RDD is not modified (immutability).</p>
 
 <p>Common transformations: <code>map</code>, <code>filter</code>, <code>flatMap</code>, <code>groupByKey</code>, <code>reduceByKey</code>, <code>join</code>, <code>repartition</code>, <code>coalesce</code>, <code>sortBy</code>.</p>
 
@@ -239,7 +239,7 @@ CH1 = """
 
 <p>Common actions: <code>collect()</code>, <code>count()</code>, <code>take(n)</code>, <code>first()</code>, <code>saveAsTextFile()</code>, <code>write()</code>, <code>show()</code>.</p>
 
-<p><strong>Why laziness matters for optimization:</strong> By accumulating the full transformation pipeline before executing, Spark's optimizer can inspect the entire DAG and apply optimizations impossible in eager execution. Predicate pushdown (push filters early), projection pruning (drop unused columns), and stage fusion (combine narrow transformations into one pass) all require visibility into the full pipeline.</p>
+<p><strong>Why laziness matters for optimization:</strong> By accumulating the full transformation pipeline before executing, Spark's optimizer can inspect the entire DAG and apply optimizations impossible in eager execution. Predicate pushdown (skipping rows before loading all data — explained in the Catalyst section below), projection pruning (reading only needed columns), and stage fusion (combining narrow transformations into one pass) all require visibility into the full pipeline.</p>
 
 <h3>reduceByKey vs groupByKey — The Most Important Performance Choice</h3>
 
@@ -256,7 +256,7 @@ CH1 = """
 
 <p>The most important structural property of an RDD DAG is the distinction between narrow and wide dependencies, because this distinction determines where Spark inserts stage boundaries and therefore shuffles.</p>
 
-<p><strong>Narrow dependency:</strong> Each partition in the child RDD depends on at most one partition in the parent RDD. The compute function for a child partition needs data from exactly one parent partition — no data from other partitions is required. Examples: <code>map</code>, <code>filter</code>, <code>flatMap</code>, <code>coalesce</code> (reducing partition count). Narrow transformations can be <em>pipelined</em> — Spark chains them into a single stage, processing records through all narrow transformations in one pass without writing intermediate results to disk.</p>
+<p><strong>Narrow dependency:</strong> Each partition in the child RDD depends on at most one partition in the parent RDD. The compute function for a child partition needs data from exactly one parent partition — no data from other partitions is required. Examples: <code>map</code>, <code>filter</code>, <code>flatMap</code>, <code>coalesce</code> (merging partitions down to a smaller count without shuffling). Narrow transformations can be <em>pipelined</em> — Spark chains them into a single stage, processing records through all narrow transformations in one pass without writing intermediate results to disk.</p>
 
 <p><strong>Wide dependency:</strong> A single partition of a parent RDD contributes to multiple partitions of the child RDD. The compute function for a child partition requires data from <em>multiple</em> parent partitions. Examples: <code>groupByKey</code>, <code>reduceByKey</code>, <code>join</code>, <code>repartition</code>, <code>sort</code>. Wide dependencies create stage boundaries — Spark must complete the parent stage entirely (writing shuffle files to disk) before the child stage can begin reading them.</p>
 
@@ -294,7 +294,7 @@ CH1 = """
 <h3>Data Locality: Nearest to Farthest</h3>
 <p>Spark's scheduler attempts to assign each task to an executor with the best data locality, waiting briefly before settling for a worse tier:</p>
 <ol>
-  <li><strong>PROCESS_LOCAL</strong> — data in the same JVM as the executor (ideal; RDD in same executor's cache)</li>
+  <li><strong>PROCESS_LOCAL</strong> — data in the same JVM (Java Virtual Machine — the runtime process Spark executes inside) as the executor (ideal; RDD in same executor's cache)</li>
   <li><strong>NODE_LOCAL</strong> — data on the same machine, different JVM (e.g., HDFS block on same node)</li>
   <li><strong>NO_PREF</strong> — data has no locality preference (e.g., data from a database over JDBC)</li>
   <li><strong>RACK_LOCAL</strong> — data on a different node in the same rack (network hop within rack switch)</li>
@@ -325,17 +325,28 @@ CH1 = """
 </table>
 </div>
 
-<p><strong>Phase 1 — Analysis:</strong> Resolves the query against the Catalog. Column names are validated against the schema, ambiguous references are resolved, types are checked for compatibility. If you reference a column that doesn't exist, the error surfaces here.</p>
+<p><strong>Phase 1 — Analysis:</strong> Resolves the query against the Catalog (Spark's internal metadata registry that stores table names, column names, data types, and statistics for all registered datasets). Column names are validated against the schema, ambiguous references are resolved, types are checked for compatibility. If you reference a column that doesn't exist, the error surfaces here.</p>
 
 <p><strong>Phase 2 — Logical Optimization:</strong> Rule-based transformations applied to the logical plan. No physical decisions yet — pure logical equivalence transformations:</p>
 <ul>
-  <li><strong>Predicate pushdown:</strong> Move filter operations as close to the data source as possible. A <code>WHERE year = 2024</code> filter pushed all the way to the Parquet file scan means Spark reads only the matching row groups from disk, rather than reading all data and filtering afterward.</li>
+  <li><strong>Predicate pushdown:</strong> Move filter operations as close to the data source as possible. A <code>WHERE year = 2024</code> filter pushed to the Parquet file scan means the data source skips non-matching rows at read time — fewer bytes ever enter Spark's memory. Without pushdown, Spark would read all 500M rows into memory and then filter; with pushdown, only matching rows are loaded.</li>
   <li><strong>Projection pruning:</strong> Drop unused columns as early as possible. If your query only needs 3 of 50 columns, Catalyst eliminates the other 47 from the scan — reducing I/O and memory consumption significantly.</li>
   <li><strong>Constant folding:</strong> Pre-compute constant expressions at planning time. <code>WHERE amount > 10 * 100</code> becomes <code>WHERE amount > 1000</code>.</li>
   <li><strong>Null propagation:</strong> Eliminate branches that cannot produce non-null results.</li>
 </ul>
 
-<p><strong>Phase 3 — Physical Planning:</strong> Generates <em>multiple</em> candidate physical plans and selects the best via a cost-based model. The cost model uses statistics collected by <code>ANALYZE TABLE</code> or inferred at runtime: estimated row counts, column cardinality, and min/max values. Catalyst scores each candidate plan using these statistics — for example, it computes the estimated cost of shuffling table A vs broadcasting table B, and chooses the lower-cost option. The most important physical planning decision is <strong>join strategy selection</strong> — Catalyst chooses between Broadcast Hash Join (BHJ), Sort Merge Join (SMJ), and Shuffle Hash Join (SHJ) based on estimated table sizes and the cost model. When statistics are absent or stale, the cost model may select a suboptimal plan; AQE (Ch5) corrects these mistakes at runtime with actual statistics.</p>
+<p><strong>Phase 3 — Physical Planning:</strong> Generates <em>multiple</em> candidate physical plans and selects the best via a cost-based model.
+
+<div class="box n"><div class="box-lbl">Join Strategy Quick Reference — BHJ / SMJ / SHJ</div>
+<table>
+  <thead><tr><th>Strategy</th><th>Use When</th><th>Key Risk</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Broadcast Hash Join (BHJ)</strong></td><td>Either table &lt; 10 MB (autoBroadcastJoinThreshold)</td><td>OOM if broadcast table × num executors exceeds cluster Storage memory</td></tr>
+    <tr><td><strong>Sort Merge Join (SMJ)</strong></td><td>Default for large-large joins — both tables exceed broadcast threshold</td><td>Slower (two full shuffles + sort) but always safe — can spill to disk</td></tr>
+    <tr><td><strong>Shuffle Hash Join (SHJ)</strong></td><td>Build side confirmed to fit in executor Execution memory per partition</td><td>OOM if build partition is skewed — cannot spill, no recovery path</td></tr>
+  </tbody>
+</table>
+</div> The cost model uses statistics collected by <code>ANALYZE TABLE</code> or inferred at runtime: estimated row counts, column cardinality, and min/max values. Catalyst scores each candidate plan using these statistics — for example, it computes the estimated cost of shuffling table A vs broadcasting table B, and chooses the lower-cost option. The most important physical planning decision is <strong>join strategy selection</strong> — Catalyst chooses between Broadcast Hash Join (BHJ), Sort Merge Join (SMJ), and Shuffle Hash Join (SHJ) based on estimated table sizes and the cost model. When statistics are absent or stale, the cost model may select a suboptimal plan; AQE (Ch5) corrects these mistakes at runtime with actual statistics.</p>
 
 <p><strong>Phase 4 — Code Generation:</strong> Spark uses Scala's quasiquotes to generate JVM bytecode at runtime via the Janino compiler. Rather than interpreting a query plan row by row through a generic execution engine, Catalyst generates specific, inlined JVM bytecode for the exact query — eliminating virtual dispatch overhead and enabling JIT optimization of the hot loop.</p>
 
@@ -352,7 +363,7 @@ CH1 = """
 <div class="box f"><div class="box-lbl">Why Python UDFs Break Catalyst — and the Fix</div>
 <p>DataFrames give Catalyst full visibility into the computation. A Python UDF (<code>@udf</code>) is a <strong>semantic black box</strong> — Catalyst cannot see inside it, cannot optimize it, cannot inline it into the code generation pipeline, and cannot apply Tungsten binary encoding to its inputs/outputs.</p>
 <p><strong>The opacity mechanism:</strong> During Phase 2 (Logical Optimization), Catalyst applies predicate pushdown by inspecting each operator's expression tree. For built-in functions, the expression tree is transparent — Catalyst can determine exactly which input columns each expression reads and what it returns. A Python UDF is registered as an opaque node with no inspectable expression tree. Catalyst cannot determine whether the UDF output depends on a given input column, whether the UDF is deterministic, or whether a filter placed before the UDF would return identical results to a filter placed after it. Because Catalyst cannot determine predicate-pushdown safety through an opaque UDF node, it must conservatively block pushdown at the UDF boundary. Similarly, projection pruning cannot eliminate columns that <em>might</em> be read by the UDF, because Catalyst has no way to inspect which columns the Python function actually accesses.</p>
-<p><strong>The three costs of UDF opacity:</strong> (1) No predicate pushdown past the UDF — filters after the UDF cannot be moved before it, so more data is processed; (2) No projection pruning through the UDF — all columns must be available even if the UDF only reads two of them; (3) No Tungsten binary encoding — data must be deserialized from UnsafeRow to Python objects before the UDF executes, then re-serialized back. Every row crosses the JVM/Python process boundary with Pickle serialization.</p>
+<p><strong>The three costs of UDF opacity:</strong> (1) No predicate pushdown past the UDF — filters after the UDF cannot be moved before it, so more data is processed; (2) No projection pruning through the UDF — all columns must be available even if the UDF only reads two of them; (3) No Tungsten binary encoding (Tungsten is Spark's off-heap binary memory format that stores data without JVM object overhead — covered in Ch4) — data must be deserialized from UnsafeRow to Python objects before the UDF executes, then re-serialized back. Every row crosses the JVM/Python process boundary with Pickle serialization.</p>
 <p><strong>The fix: rewrite UDF logic using native <code>pyspark.sql.functions</code>.</strong> Every built-in function in <code>pyspark.sql.functions</code> — <code>when()</code>, <code>coalesce()</code>, <code>regexp_replace()</code>, <code>to_date()</code>, <code>substring()</code>, <code>concat()</code>, etc. — is a first-class Catalyst expression node. Replacing a Python UDF with equivalent built-in function combinations makes the logic fully transparent to Catalyst: predicate pushdown works, projection pruning works, Tungsten encoding works, and no JVM/Python process boundary is crossed. For complex logic not expressible with built-ins, use a Pandas UDF (vectorized, Arrow-based batch transfer) as the next-best option — it still lacks Catalyst transparency but eliminates the per-row serialization cost.</p>
 </div>
 
@@ -411,7 +422,7 @@ CH2 = """
 <h2>The Unified Memory Model (Spark 1.6+)</h2>
 
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
-<p>Each executor's heap is divided into three zones: a small locked zone Spark keeps for itself (300MB), a zone for your application's own data structures, and a large shared zone that Spark splits between "working memory for computations" and "cache storage." The key insight: the working memory can borrow from cache storage, but cache storage cannot borrow back from working memory once it's been taken.</p>
+<p>Each executor's JVM heap (the total pool of RAM that the Java-based Spark executor is allowed to use) is divided into three zones: a small locked zone Spark keeps for itself (300MB), a zone for your application's own data structures, and a large shared zone that Spark splits between "working memory for computations" and "cache storage." The key insight: the working memory can borrow from cache storage, but cache storage cannot borrow back from working memory once it's been taken.</p>
 </div>
 
 <p>Before Spark 1.6, memory was partitioned statically — a fixed fraction went to execution, a fixed fraction to storage, and the two could never share. If execution needed more space during a large sort, it could not borrow from an underutilized storage region, and it would spill to disk. This rigidity wasted memory on every workload that didn't perfectly match the static split.</p>
@@ -477,7 +488,7 @@ CH2 = """
 <p>The reason Execution memory is protected from eviction is mechanistic, not arbitrary: <strong>in-progress tasks cannot be rolled back mid-execution</strong>. Spark's execution model does not support transactional undo of partial computations. If Spark attempted to evict memory holding a half-built sort buffer or a partially constructed hash table to free space for a storage cache, the task would be left in an inconsistent, unrecoverable state. The task would have to be killed and restarted from scratch — at which point it would immediately re-request the same execution memory, creating an infinite eviction loop. Therefore the design rule is absolute: once execution memory is claimed by a running task, it cannot be reclaimed until the task completes or fails. Storage memory, by contrast, holds already-computed results (cached RDD partitions, broadcast variables) that are fully reproducible — evicting a cached partition does not destroy partial computation, it only means the data must be re-read or recomputed on the next access.</p>
 </div>
 
-<p><strong>Storage memory</strong> is used for: cached RDD partitions (<code>cache()</code> and <code>persist()</code>), broadcast variables (the small table in a Broadcast Hash Join lives here), and accumulator values. Storage memory <strong>can be evicted</strong> using a Least Recently Used (LRU) policy when execution needs more space.</p>
+<p><strong>Storage memory</strong> is used for: cached RDD partitions (<code>cache()</code> and <code>persist()</code>), broadcast variables (read-only lookup tables that Spark copies to every executor so tasks don't have to fetch them repeatedly), and accumulator values. Storage memory <strong>can be evicted</strong> using a Least Recently Used (LRU) policy (LRU evicts whichever cached partition was accessed furthest in the past) when execution needs more space.</p>
 
 <div class="box f"><div class="box-lbl">The Eviction Asymmetry — The Most Important Rule in Spark Memory</div>
 <p><strong>Execution can borrow from storage freely.</strong> When execution needs more space and storage has free room, execution takes it without restriction. There is no limit on how much execution can consume from storage's initial allocation.</p>
@@ -488,8 +499,8 @@ CH2 = """
 <h3>Storage Cache Levels</h3>
 <p>When you call <code>cache()</code>, Spark always uses <code>MEMORY_AND_DISK</code>. When you call <code>persist(storageLevel)</code>, you choose explicitly:</p>
 <ul>
-  <li><code>MEMORY_ONLY</code> — deserialized Java objects in heap. Fastest reads; most memory usage; if evicted, recomputed (not spilled)</li>
-  <li><code>MEMORY_AND_DISK</code> — deserialized in memory; if evicted, serialized to disk. What <code>cache()</code> uses.</li>
+  <li><code>MEMORY_ONLY</code> — deserialized Java objects in heap. Fastest reads; most memory usage; if evicted, the data is <em>recomputed</em> from lineage (not spilled to disk). Use when recomputation is cheap and you want maximum read speed.</li>
+  <li><code>MEMORY_AND_DISK</code> — deserialized in memory; if evicted by execution memory, serialized to disk instead of dropped. Use when recomputation is expensive and you want a safety net. What <code>cache()</code> uses.</li>
   <li><code>DISK_ONLY</code> — serialized to disk only; no heap storage</li>
   <li><code>OFF_HEAP</code> — Tungsten binary format in off-heap memory</li>
   <li><code>_SER</code> suffix — serialized format (saves space, adds deserialization overhead on read)</li>
@@ -509,20 +520,20 @@ CH2 = """
 <p>Here is the chain of causation:</p>
 <ol>
   <li><strong>Data skew creates unequal partitions.</strong> After a shuffle, key distribution is never perfectly uniform. A skewed key might cause one shuffle partition to hold 800MB while the median partition holds 40MB.</li>
-  <li><strong>Executor load is nondeterministic at the moment of task assignment.</strong> At any given instant, different executors have different amounts of free memory — some are processing other task waves, some have more cached data, some ran GC recently. The TaskScheduler assigns tasks to available slots based on current load and data locality, not on partition size. There is no mechanism to "match a big partition to a big-memory executor."</li>
+  <li><strong>Executor load is nondeterministic at the moment of task assignment.</strong> At any given instant, different executors have different amounts of free memory — some are processing other task waves, some have more cached data, some ran GC recently. The TaskScheduler assigns tasks to available slots based on current load and data locality (data locality means the scheduler prefers to assign a task to an executor that already has the data stored nearby, to avoid network transfer), not on partition size. There is no mechanism to "match a big partition to a big-memory executor."</li>
   <li><strong>The skewed partition may or may not hit a constrained executor.</strong> On Monday, the oversized partition was assigned to executor E4, which happened to have 3GB free — it processed without OOM. On Thursday, executor E4 was processing another large partition from a concurrent job, leaving only 900MB free — the same oversized partition arrives, and OOM occurs.</li>
 </ol>
 
 <div class="box f"><div class="box-lbl">Why "Same Job, Different Day" Is a Scheduling Problem, Not a Data Problem</div>
 <p>The data distribution (the skew) is the <em>structural cause</em>, but the scheduling assignment determines whether a given run <em>experiences</em> the OOM. If the skewed partition always lands on the same executor, the job is deterministically succeeding or failing. Because it sometimes passes: the skewed partition is finding enough memory on the randomly-assigned executor. Because it sometimes fails: the executor happens to be under pressure from other concurrent tasks on that run.</p>
-<p>This is why the "Monday passes, Thursday fails" pattern points to <strong>data skew</strong> as the root cause — not a transient infrastructure problem. The fix must eliminate the unequal partition sizes (repartition, salting, AQE skew handling), not just add more memory. Adding memory raises the threshold but does not change the scheduling nondeterminism: the skewed partition still lands on a random executor, and on a bad day, that executor is still under pressure.</p>
+<p>This is why the "Monday passes, Thursday fails" pattern points to <strong>data skew</strong> as the root cause — not a transient infrastructure problem. The fix must eliminate the unequal partition sizes — the specific options (repartition, salting, AQE skew handling) are covered in the OOM Root Cause section below. Adding memory raises the threshold but does not change the scheduling nondeterminism: the skewed partition still lands on a random executor, and on a bad day, that executor is still under pressure.</p>
 </div>
 </div>
 
 <div class="topic">
 <h2>Off-Heap Memory and Project Tungsten</h2>
 
-<p>The JVM's garbage collector is the core performance problem for large-scale Spark jobs. The GC must periodically pause all threads to reclaim heap memory. On heaps larger than 64GB, GC pauses become severe — Databricks engineers observed this directly when building Photon.</p>
+<p>The JVM's garbage collector (GC) is the core performance problem for large-scale Spark jobs. The GC periodically stops all application threads to scan the heap and free memory no longer in use — during this pause, all Spark tasks on that executor are frozen. On heaps larger than 64GB, GC pauses become severe — Databricks engineers observed this directly when building Photon.</p>
 
 <p>The deeper problem is JVM object overhead. A Java integer stored as a heap object is not 4 bytes:</p>
 
@@ -552,9 +563,9 @@ CH2 = """
 
 <p>Project Tungsten is Spark's initiative to bypass JVM object overhead entirely. Tungsten's memory manager operates directly against binary data (the <code>UnsafeRow</code> format) in off-heap memory, bypassing the JVM garbage collector. The key insight: a 4-character string that occupies 48–64 bytes as a JVM heap object is stored as exactly <strong>4 bytes</strong> in Tungsten's binary UnsafeRow format — compact binary without object headers, without the char[] wrapper object, without alignment padding. More importantly, the JVM GC does not scan off-heap memory at all — those 4 bytes are invisible to the GC regardless of how many billions of such strings exist in the executor's Tungsten memory. GC pause time is determined by the number of live objects on the JVM heap; Tungsten removes the entire data plane from the heap, keeping GC overhead low even as data volume grows to hundreds of gigabytes. Three components:</p>
 <ol>
-  <li><strong>Off-heap memory management via <code>sun.misc.Unsafe</code>:</strong> Data stored in compact binary format at raw physical memory addresses, outside the JVM heap entirely. The JVM GC never scans this memory — it is invisible to the garbage collector. This eliminates GC pause pressure for the data plane, which matters most when heaps exceed 32–64 GB where GC pauses become multi-second events. Data is accessed via <code>sun.misc.Unsafe</code> pointer arithmetic — essentially C-style memory management inside the JVM.</li>
-  <li><strong>Cache-aware computation:</strong> Data structures are designed around CPU cache line sizes (64 bytes), so sequential access patterns remain in cache and avoid cache misses.</li>
-  <li><strong>Code generation (Janino compiler):</strong> Catalyst Phase 4 uses Scala quasiquotes to generate a custom Java class at runtime and compiles it to JVM bytecode using the <strong>Janino</strong> compiler (a lightweight Java compiler embedded in Spark). For each query, this produces a single tight loop that inlines all filter conditions, projections, and hash computations — no virtual dispatch between operators, no generic interpreter overhead. The JIT compiler can optimize this hot method as a single unit.</li>
+  <li><strong>Off-heap memory management via <code>sun.misc.Unsafe</code>:</strong> <code>sun.misc.Unsafe</code> is a special, non-public Java class that allows programs to read and write arbitrary memory addresses directly — bypassing Java's normal safety checks, similar to how C code uses raw pointers. Data stored in compact binary format at raw physical memory addresses, outside the JVM heap entirely. The JVM GC never scans this memory — it is invisible to the garbage collector. This eliminates GC pause pressure for the data plane, which matters most when heaps exceed 32–64 GB where GC pauses become multi-second events. Data is accessed via <code>sun.misc.Unsafe</code> pointer arithmetic — essentially C-style memory management inside the JVM.</li>
+  <li><strong>Cache-aware computation:</strong> Data structures are designed around CPU cache line sizes (64 bytes). A CPU cache line is the chunk of memory the CPU loads in one operation — if your data is arranged sequentially, the CPU loads one 64-byte chunk and processes all of it. If data is scattered, the CPU must fetch a new chunk for every read. It's like reading a book straight through vs. finding each sentence on a random page. Spark's columnar layout keeps all values of column A contiguous so the CPU can prefetch and process them efficiently.</li>
+  <li><strong>Code generation (Janino compiler):</strong> Catalyst Phase 4 uses Scala quasiquotes to generate a custom Java class at runtime and compiles it to JVM bytecode using the <strong>Janino</strong> compiler. Janino is a lightweight Java compiler embedded inside Spark — unlike <code>javac</code> (the standard Java compiler you'd install on your machine), Janino can compile new code at runtime without requiring a full Java Development Kit on every worker node. For each query, this produces a single tight loop that inlines all filter conditions, projections, and hash computations — no virtual dispatch between operators, no generic interpreter overhead. The JIT compiler can optimize this hot method as a single unit.</li>
 </ol>
 
 <div class="box n"><div class="box-lbl">RDD String vs DataFrame Tungsten Binary — Concrete Memory Comparison</div>
@@ -583,7 +594,13 @@ CH2 = """
 <p>SMJ works in three phases: shuffle both sides, sort within each partition, then merge the sorted iterators. Critically, the <strong>sort step can spill to disk</strong>. Spark's external sort algorithm writes sorted runs to local disk when the sort buffer exceeds a threshold, then performs a multi-way merge over those runs. This means an SMJ partition can be larger than executor memory — the operation slows down due to disk I/O, but it completes successfully. SMJ is the correct choice for large-large joins precisely because it degrades gracefully under memory pressure.</p>
 
 <h3>Shuffle Hash Join (SHJ) — No Spill Path for the Build Phase</h3>
-<p>SHJ's build phase loads the entire build-side partition into an in-memory hash table. A hash table cannot spill — a partially-resident hash table cannot serve lookups correctly because the lookup key might map to a row that was spilled. Spark has no mechanism to bring spilled hash table entries back on demand. Therefore: <strong>if the build-side partition exceeds available Execution memory, SHJ throws OOM with no recourse</strong>. Unlike SMJ, there is no "SHJ with spill" mode. The only options are: reduce the build-side partition size (more shuffle partitions), add executor memory, or switch to SMJ.</p>
+<p>In a hash join, the <em>build side</em> is the smaller table loaded entirely into a hash table in memory; the <em>probe side</em> is the larger table whose rows are streamed through and looked up in that hash table. SHJ's build phase loads the entire build-side partition into an in-memory hash table. SHJ works in two explicit steps:
+<ol>
+  <li><strong>Build phase:</strong> Each executor reads its partition of the build (smaller) table and loads all rows into an in-memory hash table — one hash table per executor partition.</li>
+  <li><strong>Probe phase:</strong> Rows from the probe (larger) table stream through partition by partition; each row's join key is hashed and looked up in the hash table in O(1).</li>
+</ol>
+A hash table cannot spill — a partially-resident hash table cannot serve lookups correctly because the lookup key might map to a row that was spilled. If that slot doesn't exist in memory, the lookup either fails or returns a wrong answer.
+Spark has no mechanism to bring spilled hash table entries back on demand. Therefore: <strong>if the build-side partition exceeds available Execution memory, SHJ throws OOM with no recourse</strong>. Unlike SMJ, there is no "SHJ with spill" mode. The only options are: reduce the build-side partition size (more shuffle partitions), add executor memory, or switch to SMJ.</p>
 
 <div class="box f"><div class="box-lbl">SHJ OOM: Why Skewed Data Makes It Catastrophic</div>
 <p>Data skew amplifies SHJ's no-spill constraint. Suppose the build side has 10 partitions averaging 100MB each — well within executor memory. But one hot key concentrates 40% of build-side data into a single partition: 400MB in one SHJ build phase. If the executor's available Execution memory is 300MB, this single partition throws OOM. The other 9 partitions succeed; only the skewed one fails — making it look like an intermittent failure rather than a structural problem. The root cause: SHJ build phase has no spill path, so any partition exceeding available Execution memory causes failure. SMJ on the same data would slow down (sort spills to disk) but complete successfully.</p>
@@ -632,7 +649,7 @@ CH2 = """
 <div class="box f"><div class="box-lbl">The Fundamental OOM Insight — Adding Memory Does Not Fix Skew</div>
 <p>The most common and most expensive mistake when debugging Spark OOMs: increasing executor memory. This works only when OOM is caused by insufficient total memory. It <strong>does not work</strong> when OOM is caused by data skew.</p>
 <p><strong>The arithmetic:</strong> Suppose partition 1 has 80% of the data after a shuffle. The task processing partition 1 needs 80% of its executor's unified memory pool. If the executor has 8GB heap (unified pool ≈ 4.5GB), that task needs ~3.6GB. It fails. You double the executor to 16GB (unified pool ≈ 9.4GB). The task still receives the same 80% skewed partition — it still needs 80% of the unified pool ≈ 7.5GB. Still OOM, just at a higher absolute threshold. <strong>Adding memory scales the allocation but not the imbalance.</strong> The skewed task's share of total data — 80% — is unchanged by executor sizing. Whatever memory you provide, the task consumes 80% of it, because the partition holds 80% of the data.</p>
-<p><strong>The correct fix requires breaking the partition.</strong> Options: (1) <strong>Repartition / increase shuffle.partitions</strong> — more partitions means smaller absolute partition sizes, but a single dominant skewed key still concentrates in one partition; (2) <strong>Salting</strong> — artificially split the hot key into N sub-keys so data distributes across N partitions; (3) <strong>AQE skew join handling</strong> — detects oversized shuffle partitions at runtime and automatically splits them into sub-partitions without code changes. All three fix the partition size directly. Adding executor memory fixes nothing.</p>
+<p><strong>The correct fix requires breaking the partition.</strong> Options: (1) <strong>Repartition / increase shuffle.partitions</strong> — more partitions means smaller absolute partition sizes, but a single dominant skewed key still concentrates in one partition; (2) <strong>Salting</strong> — artificially split the hot key into N sub-keys so data distributes across N partitions. For example, if 70% of rows have <code>user_id = 'anonymous'</code>, salting adds a random suffix so 'anonymous' becomes 'anonymous_1', 'anonymous_2', ..., 'anonymous_5' — spreading one giant partition into five roughly equal ones; (3) <strong>AQE skew join handling</strong> — detects oversized shuffle partitions at runtime and automatically splits them into sub-partitions without code changes. All three fix the partition size directly. Adding executor memory fixes nothing.</p>
 </div>
 
 <p><strong>spark.sql.shuffle.partitions defaults to 200 — hardcoded, not derived from data size or cluster size.</strong> This value is a static default in Spark's configuration. It does not adapt to the amount of data in the job, the number of executors, or the executor memory. Whether you're processing 10 MB or 500 GB of data, Spark creates exactly 200 shuffle partitions by default.</p>
@@ -690,7 +707,7 @@ CH2 = """
 <p>Suppose a join between table A and table B produces 5 shuffle partitions. The partition sizes after the shuffle stage are: P0=50MB, P1=55MB, P2=48MB, P3=600MB (skewed), P4=52MB. Median = 52MB. <code>skewedPartitionFactor = 5</code> → threshold = 52 × 5 = 260 MB. P3 at 600 MB exceeds both the factor threshold (260 MB) and the absolute threshold (256 MB). AQE flags P3 as skewed.</p>
 <ol>
   <li><strong>AQE splits the skewed partition P3 into sub-partitions.</strong> Spark divides the 600MB partition into multiple sub-partitions, each targeting approximately <code>spark.sql.adaptive.advisoryPartitionSizeInBytes</code> (default 64 MB). A 600 MB skewed partition is split into ~10 sub-partitions of ~60 MB each.</li>
-  <li><strong>AQE replicates the matching portion of the other join side.</strong> For P3 from table A, AQE identifies the corresponding P3 partition of table B (the portion co-located by join key). It creates a copy of this B partition for each of the 10 sub-partitions of A's P3. The B partition is now read 10 times rather than once — but each read is small, and the 10 resulting joins execute in parallel.</li>
+  <li><strong>AQE replicates the matching portion of the other join side.</strong> For P3 from table A, AQE identifies the corresponding P3 partition of table B (the portion co-located by join key). Because each of the 10 sub-partitions of A's P3 still needs to join against the same matching rows from table B, Spark creates 10 copies of those B rows — one for each sub-task. The B partition is now read 10 times rather than once — but each read is small, and the 10 resulting joins execute in parallel.</li>
   <li><strong>The 10 sub-join tasks run in parallel</strong> instead of one giant task processing 600 MB. Each task processes ~60 MB — well within executor memory. The straggler disappears. The other four partitions (P0–P2, P4) are processed normally as single tasks.</li>
   <li><strong>Results are unioned.</strong> AQE inserts a Union operator to combine the results of the 10 sub-joins back into a single logical partition. The join result is semantically identical to the non-AQE version.</li>
 </ol>
@@ -773,7 +790,7 @@ CH3 = """
 <ol>
   <li>Partitions its output records by <code>key.hashCode() % numPartitions</code></li>
   <li>Writes the partitioned records to local disk as <strong>shuffle map output files</strong> (one file per output partition)</li>
-  <li>Registers the file locations with the BlockManager</li>
+  <li>Registers the file locations with the BlockManager (a per-executor service that tracks the location of all data blocks — cached partitions and shuffle files — and serves them to other executors on request)</li>
 </ol>
 <p>Stage N+1 cannot begin until all tasks in stage N have completed and registered their shuffle files. Then each task in stage N+1 fetches its assigned partition's files from the disk of all stage N executors over the network, reads them from disk, and processes them.</p>
 
@@ -787,7 +804,7 @@ CH3 = """
 <p>Google's Dremel paper (cited by Vu) identified that traditional MapReduce shuffle has quadratic scaling: as the number of mappers (M) and reducers (R) both grow, the number of network connections is M × R. With 1,000 mappers and 1,000 reducers: 1,000,000 network connections. The coupling of compute and temporary storage cannot scale independently — this was a major bottleneck. Google's solution: a separate distributed transient shuffle storage system where shuffle data is written once and consumed by reducers independently of the producing executor's lifecycle. Industry parallels: Uber's "Shuffle as a Service," Meta's Riffle (EuroSys 2018).</p>
 
 <h3>Data Locality in Shuffle Reads</h3>
-<p>Spark's <code>ExternalShuffleService</code> decouples shuffle file serving from executor lifecycle. When enabled, shuffle files are served from the external service rather than from executor processes. If an executor dies, its shuffle output files are still available for the next stage — without this, executor failure in stage N would require re-running all of stage N.</p>
+<p>Spark's <code>ExternalShuffleService</code> (a separate long-running daemon process on each worker node, outside the executor JVM, that serves shuffle files independently) decouples shuffle file serving from executor lifecycle. When enabled, shuffle files are served from the external service rather than from executor processes. If an executor dies, its shuffle output files are still available for the next stage — without this, executor failure in stage N would require re-running all of stage N.</p>
 </div>
 
 <div class="topic">
@@ -851,7 +868,7 @@ CH3 = """
 <p>BHJ has one requirement: one side must fit in memory on every executor simultaneously. Spark's automatic broadcast threshold: if Catalyst estimates a table is smaller than <code>spark.sql.autoBroadcastJoinThreshold</code> (default <strong>10MB</strong>), it automatically selects BHJ. The broadcast table is serialized on the driver, sent to all executors via the BlockManager's broadcast channel, and each executor deserializes and stores it in Storage memory.</p>
 
 <div class="box f"><div class="box-lbl">BHJ: Shuffle Eliminated, Not Reduced</div>
-<p>The critical distinction between BHJ and the other join strategies is that BHJ <strong>eliminates</strong> the shuffle — it does not merely reduce it. SMJ and SHJ both require a full shuffle of both tables to co-locate matching keys. BHJ requires zero shuffle of either table: the large table is read directly from its source partitions without repartitioning, and the small table is broadcast as a complete copy to every executor. In an execution plan, a BHJ appears with <strong>no <code>Exchange</code> operator</strong> on either side — the exchange step literally does not exist in the physical plan. This is why BHJ is so dramatically faster than SMJ for small-large joins: the dominant cost (two full shuffles) is entirely absent, not merely reduced. The trade-off is that the broadcast table must fit in executor Storage memory on every executor simultaneously — if any executor runs low on storage memory, the broadcast variable can be evicted, triggering OOM or re-broadcast.</p>
+<p>The critical distinction between BHJ and the other join strategies is that BHJ <strong>eliminates</strong> the shuffle — it does not merely reduce it. SMJ and SHJ both require a full shuffle of both tables to co-locate matching keys. BHJ requires zero shuffle of either table: the large table is read directly from its source partitions without repartitioning, and the small table is broadcast as a complete copy to every executor. In an execution plan, an Exchange operator is Spark's internal name for a shuffle node — the point where data is redistributed across partitions. A BHJ appears with <strong>no <code>Exchange</code> operator</strong> on either side — the exchange step literally does not exist in the physical plan. This is why BHJ is so dramatically faster than SMJ for small-large joins: the dominant cost (two full shuffles) is entirely absent, not merely reduced. The trade-off is that the broadcast table must fit in executor Storage memory on every executor simultaneously — if any executor runs low on storage memory, the broadcast variable can be evicted, triggering OOM or re-broadcast.</p>
 </div>
 
 <p>The key advantage: <strong>BHJ eliminates shuffle entirely</strong>. In the execution plan, you will see no <code>Exchange</code> nodes before a BHJ — the typical shuffle step simply doesn't exist. The large table can be read directly from its source (no repartitioning needed) because the small table comes to every partition of the large table, not the other way around.</p>
@@ -877,7 +894,7 @@ CH3 = """
 
 <p>When two tables are bucketed on the same column with the same number of buckets (using <code>bucketBy(n, column).saveAsTable()</code>), the data is pre-shuffled at write time. All rows with join key K from both tables land in the same bucket file. At join time, Spark reads bucket N of table A and bucket N of table B — they are already co-partitioned. <strong>No shuffle is needed.</strong></p>
 
-<p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata (which column, how many buckets) must be stored in the Hive metastore so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, the co-partitioning property breaks and Spark must shuffle anyway.</p>
+<p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata must be stored in the Hive metastore (a relational database, typically embedded or external like MySQL, that stores table schemas, partition layouts, and bucketing information so Spark and other engines can discover and use it at query time) so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, key K hashes to bucket K%50 in table A but bucket K%100 in table B, so bucket 3 of A contains different keys than bucket 3 of B. The co-partitioning property breaks and Spark must shuffle anyway.</p>
 
 <h3>Join Strategy Hint Priority</h3>
 <p>Spark 3.0+ allows query hints to suggest a join strategy. When multiple hints conflict, Spark enforces this priority order:</p>
@@ -885,7 +902,7 @@ CH3 = """
   <li><strong>BROADCAST</strong> — highest priority; triggers BHJ</li>
   <li><strong>MERGE</strong> — triggers SMJ</li>
   <li><strong>SHUFFLE_HASH</strong> — triggers SHJ</li>
-  <li><strong>SHUFFLE_REPLICATE_NL</strong> — nested loop join (no index; expensive)</li>
+  <li><strong>SHUFFLE_REPLICATE_NL</strong> — nested loop join: for each row in the left table, scan every row in the right table looking for a match. O(n × m) complexity — extremely slow, used only when no equi-join condition exists.</li>
 </ol>
 <p>Important caveat: hints are suggestions, not mandates. The optimizer can reject a hint if the selected strategy is incompatible with the logical join type or if required conditions (like a build side fitting in memory for SHJ) are not met.</p>
 </div>
@@ -912,7 +929,7 @@ CH3 = """
 <p>The standard Spark shuffle model is <strong>executor-local</strong>: each executor writes its shuffle output to local disk, and downstream executors pull from those locations. This design made sense when Spark was born. At Uber's scale, it created three compounding problems:</p>
 
 <ul>
-<li><strong>SSD wear-out</strong>: shuffle writes were burning through SSDs in approximately <strong>3 months</strong>. Hardware replacement cost was enormous.</li>
+<li><strong>SSD wear-out</strong>: shuffle writes were burning through SSDs in approximately <strong>3 months</strong>. SSDs have a finite number of write cycles per cell; Spark's shuffle model continuously writes every partition's output to local SSD at every stage boundary, and at thousands of concurrent jobs this constant random-write load exhausts the SSD's rated write endurance far faster than expected. Hardware replacement cost was enormous.</li>
 <li><strong>Shuffle failure cascades</strong>: if an executor died mid-job, its shuffle data was gone. The entire stage had to restart from scratch.</li>
 <li><strong>Node coupling</strong>: compute and shuffle storage were tied to the same machines, making independent scaling impossible.</li>
 </ul>
@@ -929,7 +946,7 @@ CH3 = """
 </ul>
 
 <div class="box n"><div class="box-lbl">The Trade-off</div>
-<p>RSS adds network hops. Every shuffle write now crosses the network twice: executor → RSS node on write, RSS node → executor on read. For small-to-medium jobs this overhead is not worth it. RSS is a solution to a <em>scale</em> problem — not a general replacement for local shuffle. <strong>Every decision has a trade-off.</strong></p>
+<p>RSS adds network hops. In the standard model, shuffle writes go to local disk (zero network cost on write) and the read pulls over the network (one network hop). With RSS, both write and read cross the network — two hops. For small-to-medium jobs this overhead is not worth it. RSS is a solution to a <em>scale</em> problem — not a general replacement for local shuffle. <strong>Every decision has a trade-off.</strong></p>
 </div>
 
 <div class="box gap"><div class="box-lbl">Cross-Chapter Connection</div>
@@ -958,14 +975,14 @@ CH3 = """
 <p>Before a task is assigned to an executor, Spark's TaskScheduler ranks candidate executors by data locality — how close the executor is to the data the task needs to read. Spark defines five locality levels in strict preference order:</p>
 <ol>
   <li><strong>PROCESS_LOCAL</strong> — Data is in the same JVM process as the executor. The ideal case: an RDD partition is already cached in this executor's memory. No serialization, no network, no disk.</li>
-  <li><strong>NODE_LOCAL</strong> — Data is on the same physical node but a different JVM process. Common when an HDFS data block replica is stored on the same machine as the executor but served from the DataNode process, not executor memory. One IPC call; no network transfer.</li>
+  <li><strong>NODE_LOCAL</strong> — Data is on the same physical node but a different JVM process. Common when an HDFS data block replica is stored on the same machine as the executor but served from the DataNode process, not executor memory. One IPC (Inter-Process Communication) call — a local call between two processes on the same machine, faster than a network call but slower than in-memory access; no network transfer.</li>
   <li><strong>NO_PREF</strong> — The data has no locality preference. This level applies to data sources that are uniformly accessible from any node — for example, data read from a JDBC database over a network connection, or data in object storage (S3/GCS) where every executor is equally distant. Spark assigns these tasks to any available executor immediately without waiting.</li>
   <li><strong>RACK_LOCAL</strong> — Data is on a different node but within the same network rack. One network hop through the top-of-rack switch. Better than ANY but worse than NODE_LOCAL.</li>
   <li><strong>ANY</strong> — Data is anywhere in the cluster. Cross-rack network transfer; highest latency.</li>
 </ol>
 
 <div class="box n"><div class="box-lbl">spark.locality.wait — Scheduling Trade-off</div>
-<p>Spark does not immediately fall back to worse locality levels when better ones are unavailable. It waits up to <code>spark.locality.wait</code> (default: <strong>3 seconds</strong>) for a PROCESS_LOCAL slot to open before trying NODE_LOCAL, then another 3 seconds before RACK_LOCAL, then another 3 seconds before ANY. This waiting can improve performance when a task's preferred executor is momentarily busy — but it introduces latency when preferred executors are persistently overloaded. For shuffle-heavy jobs where data locality is less relevant (shuffle data can be fetched from any executor), setting <code>spark.locality.wait = 0</code> eliminates this wait and lets tasks start immediately. For cache-heavy jobs (e.g., iterative ML reading the same RDD 100 times), keeping locality wait high ensures tasks land near cached partitions.</p>
+<p>Spark does not immediately fall back to worse locality levels when better ones are unavailable. It waits up to <code>spark.locality.wait</code> (default: <strong>3 seconds</strong>) for a PROCESS_LOCAL slot to open before trying NODE_LOCAL, then another 3 seconds before RACK_LOCAL, then another 3 seconds before ANY. This waiting can improve performance when a task's preferred executor is momentarily busy — but it introduces latency when preferred executors are persistently overloaded. For shuffle-heavy jobs, setting <code>spark.locality.wait = 0</code> eliminates this wait and lets tasks start immediately. The reason locality matters less for shuffles: shuffle files are spread across all executors by design — there is no preferred local copy for a given task, so waiting for locality gains nothing and only delays task start. For cache-heavy jobs (e.g., iterative ML reading the same RDD 100 times), keeping locality wait high ensures tasks land near cached partitions.</p>
 </div>
 </div>
 
@@ -980,7 +997,7 @@ CH3 = """
 
 <p><strong>groupByKey shuffle mechanics:</strong> Every raw value for every key is written to shuffle map files and transferred to the reducer over the network. The reducer receives a complete iterator over all values for its keys — only then can it begin aggregating. No work is done on the mapper side to reduce data volume. For a key with 10M values spread across 200 partitions: all 10M values cross the shuffle boundary.</p>
 
-<p><strong>reduceByKey local partial reduction (combiner):</strong> On each mapper partition, reduceByKey applies a local partial reduction: all values with the same key within that partition are combined into a single per-partition aggregate using the provided associative and commutative function. Only this single combined value per key per partition is written to the shuffle file. For 10M values across 200 partitions: at most 200 aggregated values per key cross the network — a potential 50,000× reduction in shuffle data for a highly repeated key.</p>
+<p><strong>reduceByKey local partial reduction (combiner):</strong> On each mapper partition, reduceByKey applies a local partial reduction: all values with the same key within that partition are combined into a single per-partition aggregate using the provided associative and commutative function (associative and commutative means combining values in any order gives the same result — addition or set union qualify, but subtraction does not). Only this single combined value per key per partition is written to the shuffle file. For 10M values across 200 partitions: at most 200 aggregated values per key cross the network — a potential 50,000× reduction in shuffle data for a highly repeated key.</p>
 
 <div class="box n"><div class="box-lbl">groupByKey vs reduceByKey — Shuffle Data Volume Comparison</div>
 <table>
@@ -1010,7 +1027,7 @@ CH3 = """
 <p>When enabled (<code>spark.speculation = true</code>), Spark monitors task progress and detects slow tasks whose completion time is more than a configurable multiple of the stage median (default threshold: <code>spark.speculation.multiplier = 1.5</code>). For each such task, Spark launches a <strong>speculative copy</strong> on a different executor. The <em>first copy to complete</em> wins — its output is used for the next stage. The slower copy is killed.</p>
 
 <div class="box f"><div class="box-lbl">Speculative Execution Trade-offs and Risks</div>
-<p><strong>Risk — duplicate processing:</strong> Two copies of the same task run simultaneously and may produce side effects twice (e.g., writing duplicate rows to an external database, double-counting an accumulator). Speculative execution is only safe with idempotent operations or when using exactly-once output semantics (Delta Lake, transactional sinks).</p>
+<p><strong>Risk — duplicate processing:</strong> Two copies of the same task run simultaneously and may produce side effects twice (e.g., writing duplicate rows to an external database, double-counting an accumulator). Speculative execution is only safe with idempotent operations (idempotent means running the same operation twice produces the same result as running it once — writing the same row to Delta Lake using MERGE is idempotent; inserting a raw row twice without deduplication is not) or when using exactly-once output semantics (Delta Lake, transactional sinks).</p>
 <p><strong>Risk — false positive on data skew:</strong> A task is slow because its partition genuinely has more data (skew), not because the executor is bad. The speculative copy runs on a different executor but gets the same skewed partition data — it will also run slowly. You've now doubled the resource consumption without helping. AQE's skew join handling is the correct solution for skew-induced stragglers; speculative execution is the correct solution for executor-induced stragglers.</p>
 <p><strong>When to enable:</strong> Speculative execution is off by default. Enable it when jobs have occasional stragglers traced to executor hardware issues, and when output operations are idempotent. Disable when output operations have side effects or when stragglers are consistently the same partition (indicating skew, not hardware).</p>
 </div>
@@ -1056,9 +1073,9 @@ CH4 = """
   <li><strong>JVM process (port 25333 by default):</strong> The actual Spark driver running on the JVM — DAGScheduler, TaskScheduler, BlockManager, shuffle management. This is where Spark actually runs.</li>
 </ul>
 
-<p>Communication between these two processes uses the <strong>Py4J</strong> library via an Inter-Process Communication (IPC) socket. When your Python code calls <code>df.read.load('data.parquet')</code>, Py4J serializes this call, sends it to the JVM process over the socket, the JVM executes it, and any result is serialized back.</p>
+<p>Communication between these two processes uses the <strong>Py4J</strong> library. Py4J runs as a small gateway server inside the JVM process; the matching Python-side library sends Python method calls to that gateway over a local IPC socket (IPC — Inter-Process Communication — a channel that lets two processes on the same machine exchange bytes, similar to a private network connection that never leaves the machine). When your Python code calls <code>df.read.load('data.parquet')</code>, Py4J serializes this call, sends it to the JVM process over the socket, the JVM executes it, and any result is serialized back.</p>
 
-<p>For most DataFrame operations — reading files, applying built-in SQL functions, writing output — the IPC overhead is negligible. You're sending a file path string or a plan description, not data. The JVM handles the actual data processing. The Python code just drives.</p>
+<p>For most DataFrame operations — reading files, applying built-in SQL functions, writing output — the IPC overhead is negligible. You're sending a file path string or a plan description, not data. The JVM handles the actual data processing. Built-in SQL functions are already implemented inside the JVM, so Spark processes rows there without ever leaving the JVM. The Python code just drives.</p>
 
 <h3>Where the Cost Appears: Python UDFs</h3>
 
@@ -1076,7 +1093,7 @@ CH4 = """
 
 <p>Python UDFs also lose two Spark performance features:</p>
 <ul>
-  <li><strong>No Catalyst optimization:</strong> Catalyst cannot see inside a Python function. No predicate pushdown, no projection pruning, no plan rewriting around the UDF.</li>
+  <li><strong>No Catalyst optimization:</strong> Catalyst cannot see inside a Python function. No predicate pushdown (skipping rows before reading all data), no projection pruning (reading only the columns the query needs), no plan rewriting around the UDF.</li>
   <li><strong>No Tungsten binary encoding:</strong> Tungsten's UnsafeRow format cannot be used — the data must be deserialized to Python objects before the UDF can process it.</li>
 </ul>
 </div>
@@ -1086,7 +1103,7 @@ CH4 = """
 
 <p>Spark 2.3 introduced <strong>Pandas UDFs</strong> (also called vectorized UDFs) as a high-performance alternative to Python UDFs. The key difference: instead of sending one row at a time through the IPC bridge, Pandas UDFs send entire batches of rows using <strong>Apache Arrow</strong>'s columnar format.</p>
 
-<p>Apache Arrow organizes memory in columnar format — all values of column A are stored contiguously, then all values of column B, etc. This is the same layout used by Parquet on disk. The critical property: Arrow is a <strong>zero-copy</strong> serialization format — the JVM and Python processes can share the same Arrow buffer via shared memory without copying, eliminating the most expensive part of the IPC overhead.</p>
+<p>Apache Arrow organizes memory in columnar format — all values of column A are stored contiguously, then all values of column B, etc. Think of it like sorting a deck of cards by suit: all hearts together, all spades together (columnar) rather than in the order they were dealt (row-oriented). This columnar layout lets the CPU scan one column efficiently without touching others. The critical property: Arrow is a <strong>zero-copy</strong> serialization format. Normally, sending data between two processes means the OS copies bytes from one process's memory into the other's. Zero-copy means both processes map the same physical block of RAM — no copying happens. The JVM and Python processes share the same Arrow buffer via shared memory, eliminating the most expensive part of the IPC overhead.</p>
 
 <p>The Pandas UDF flow:</p>
 <ol>
@@ -1116,14 +1133,14 @@ CH4 = """
 
 <p>Spark Connect restructures the PySpark architecture at the protocol level. Instead of Py4J (JVM-to-JVM RPC), Spark Connect uses:</p>
 <ul>
-  <li><strong>gRPC</strong> as the transport protocol between client and server</li>
-  <li><strong>Protocol Buffers</strong> for encoding query plans (language-agnostic, compact binary)</li>
+  <li><strong>gRPC</strong> (a modern framework from Google for making structured remote procedure calls over HTTP/2 — think of it as a fast, typed, binary alternative to REST) as the transport protocol between client and server</li>
+  <li><strong>Protocol Buffers</strong> (Google's binary serialization format — compact, fast, language-agnostic) for encoding query plans</li>
   <li><strong>Apache Arrow record batches</strong> for returning results</li>
 </ul>
 
 <p>The Python Spark Connect client requires only Python — no JVM, no Py4J, no local Spark installation. The client converts a DataFrame query to an unresolved logical plan, encodes it in Protobuf, and sends it to the remote Spark Connect Server via gRPC. The server hosts a long-running Spark application, analyzes the plan, optimizes it with Catalyst, executes it on the cluster, and streams results back as Arrow record batches.</p>
 
-<p>Practical benefits: OOM errors in one client session don't affect other clients (isolated sessions); the Spark driver can be upgraded independently of client applications; thin clients (IoT devices, CI/CD jobs, notebooks) can submit Spark jobs without a local JVM.</p>
+<p>Practical benefits: because each Spark Connect client sends self-contained plans over gRPC rather than sharing a single JVM driver's in-memory state, the server can give each client a fully isolated session — OOM errors in one client session don't affect other clients (isolated sessions); the Spark driver can be upgraded independently of client applications; thin clients (IoT devices, CI/CD jobs, notebooks) can submit Spark jobs without a local JVM.</p>
 
 <p>Limitations: Spark Connect supports only the DataFrame API — RDD API and SparkContext API are not available through the Connect interface. Resource configuration (executor count, memory) is set at server startup, not per-client.</p>
 </div>
@@ -1137,7 +1154,7 @@ CH4 = """
 
 <h3>The JVM Object Header Problem — Why a 4-byte String Costs 48+ Bytes</h3>
 
-<p>Every Java heap object carries a mandatory <strong>object header</strong> of 16 bytes on a 64-bit JVM:</p>
+<p>Think of it like mailing a sticky note (4 bytes of actual data) but the postal service requires a padded shipping box with a mandatory 16-byte customs label on the outside — you always pay for the box, no matter how small the contents. Every Java heap object carries a mandatory <strong>object header</strong> of 16 bytes on a 64-bit JVM:</p>
 <ul>
   <li><strong>Mark word (8 bytes):</strong> Encodes the object's identity hash code, GC age, GC mark bits, and lock state. This information is needed for GC tracing, synchronized() locking, and identity comparison. Present on every object regardless of what data it holds.</li>
   <li><strong>Class pointer (8 bytes):</strong> A reference to the object's class metadata (the "klass" word in HotSpot JVM internals) so the JVM knows the object's type. Present on every object.</li>
@@ -1165,7 +1182,7 @@ CH4 = """
 <p>Data structures are designed around CPU cache line sizes (64 bytes). Sort algorithms that access memory sequentially rather than randomly benefit from hardware prefetching. Hash tables are laid out so that the probe sequence stays within a cache line, reducing cache misses. Columnar layout (all values of column A contiguous, then column B) is fundamentally more cache-friendly than row layout when aggregating a single column — the CPU can prefetch a full cache line of column A values and process 16 integers at once.</p>
 
 <h3>Component 3: Whole-Stage Code Generation via Janino</h3>
-<p>Catalyst Phase 4 generates query-specific JVM bytecode at runtime using Scala quasiquotes to construct the AST of a Java class, then compiles it using <strong>Janino</strong> — a lightweight Java compiler embedded in Spark (not the full <code>javac</code>). For a specific query, Catalyst generates a single Java class with a tight <code>processNext()</code> loop that inlines all operators — filter conditions, projection expressions, hash key computation, and aggregation — into a single method body. The JIT compiler receives one large hot method rather than a chain of polymorphic virtual dispatch calls, and can optimize the loop as a unit (loop unrolling, register allocation, constant folding). There is no interpreter overhead: no switch statements routing rows through operator interfaces, no virtual dispatch between filter → project → aggregate. Everything is one inlined loop.</p>
+<p>Catalyst Phase 4 generates query-specific JVM bytecode at runtime using Scala quasiquotes to construct the AST of a Java class, then compiles it using <strong>Janino</strong> — a lightweight Java compiler embedded in Spark (not the full <code>javac</code>, the standard Java compiler you'd install on your machine; Janino compiles code at runtime without needing a full JDK on every worker). For a specific query, Catalyst generates a single Java class with a tight <code>processNext()</code> loop that inlines all operators — filter conditions, projection expressions, hash key computation, and aggregation — into a single method body. The JIT compiler (Just-In-Time compiler — the JVM subsystem that identifies frequently-run bytecode and compiles it to native machine code at runtime) receives one large hot method rather than a chain of polymorphic virtual dispatch calls (virtual dispatch is what happens when the JVM must decide at runtime which version of a method to call because multiple operators share the same interface — this decision overhead accumulates across millions of rows), and can optimize the loop as a unit (loop unrolling, register allocation, constant folding). There is no interpreter overhead: no switch statements routing rows through operator interfaces, no virtual dispatch between filter → project → aggregate. Everything is one inlined loop.</p>
 
 <div class="box n"><div class="box-lbl">HashAggregate Operator: Tungsten in Practice</div>
 <p>When Spark executes a <code>GROUP BY</code> with numeric aggregations (SUM, COUNT, AVG on integers/longs), it uses the <code>HashAggregate</code> operator backed by Tungsten's off-heap hash table (UnsafeFixedWidthAggregationMap). Keys and values are stored as UnsafeRow binary data — tight packing, no GC pressure.</p>
@@ -1177,11 +1194,11 @@ CH4 = """
 <h2>Photon: C++ Vectorized Execution for the Lakehouse</h2>
 
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
-<p>Photon is a C++ query engine that Databricks built inside Databricks Runtime (DBR). It replaces specific JVM physical operators with C++ operators that process data in columnar batches with SIMD-style vectorized operations. It's not a replacement for Spark — it's an enhancement that activates for supported operations and falls back to standard JVM Spark for unsupported ones.</p>
+<p>Photon is a C++ query engine that Databricks built inside Databricks Runtime (DBR) for Lakehouse workloads (Lakehouse combines the low-cost open-format storage of a data lake — files on object storage like S3 — with the query performance and ACID transaction guarantees of a data warehouse; Delta Lake is Databricks' implementation). It replaces specific JVM physical operators with C++ operators that process data in columnar batches with SIMD-style vectorized operations (SIMD — Single Instruction, Multiple Data — a CPU feature that processes multiple values with one instruction; for example, adding eight integers in a single CPU cycle instead of eight separate cycles). It's not a replacement for Spark — it's an enhancement that activates for supported operations and falls back to standard JVM Spark for unsupported ones.</p>
 </div>
 
 <h3>Why Databricks Needed Native C++</h3>
-<p>Databricks identified five JVM performance ceilings they could not overcome in the existing engine:</p>
+<p>Even with Tungsten's off-heap storage and code generation, the JVM has fundamental ceilings that only a fully native engine can break past. Databricks identified five JVM performance ceilings they could not overcome in the existing engine:</p>
 <ol>
   <li>Lakehouse workloads stress JVM in-memory performance in ways traditional Spark was not designed for</li>
   <li>Improving JVM performance requires deep JVM internals knowledge to ensure the JIT compiler generates optimal machine code — fragile and unpredictable</li>
@@ -1202,7 +1219,7 @@ CH4 = """
 <h3>Photon's Data Model: Column Vectors and Position Lists</h3>
 <p>The fundamental data unit in Photon is a <strong>column vector</strong>: all values of one column for a batch of rows, stored contiguously. A <strong>column batch</strong> is a set of column vectors representing a set of rows. Each column vector also carries a byte vector for NULL information.</p>
 
-<p>Photon's filter implementation is elegant: instead of removing filtered rows from the batch (expensive memory movement), Photon maintains a <strong>position list</strong> — an array of indices of the "active" rows (those not yet filtered out). The filter expression marks positions as inactive in the position list. Downstream operators check the position list and skip inactive rows. No data movement; no copying.</p>
+<p>Photon's filter implementation is elegant: instead of removing filtered rows from the batch (expensive memory movement), Photon maintains a <strong>position list</strong>. Think of it like a bouncer's guest list — instead of physically removing people from a room who fail the filter, the bouncer marks them off the active list. Everyone stays in place; only the list changes. Photon maintains an array of indices of the "active" rows (those not yet filtered out). The filter expression marks positions as inactive in the position list. Downstream operators check the position list and skip inactive rows. No data movement; no copying.</p>
 
 <h3>Photon Benchmarks (from the SIGMOD 2022 paper)</h3>
 <div class="box n"><div class="box-lbl">Photon vs Standard DBR Performance</div>
@@ -1230,10 +1247,10 @@ CH4 = """
   <thead><tr><th>Boundary</th><th>Mechanism</th><th>Overhead Source</th><th>Measured Cost</th></tr></thead>
   <tbody>
     <tr><td>Python UDF → JVM Spark</td><td class="rd">Inter-process: Python process ↔ JVM process via IPC socket (Pickle serialization per row)</td><td class="rd">Process context switch + Pickle serialization + socket transfer — per row</td><td class="rd">50–200× slower than built-in functions; dominant bottleneck</td></tr>
-    <tr><td>JVM Spark ↔ Photon (C++)</td><td class="g">Intra-process: JNI call within the same JVM process; passing a pointer to a column batch buffer</td><td class="g">One JNI call per column batch (thousands of rows); pointer arithmetic, no data copying</td><td class="g">0.06% of execution time — negligible</td></tr>
+    <tr><td>JVM Spark ↔ Photon (C++)</td><td class="g">Intra-process: JNI (Java Native Interface — a standard mechanism that lets JVM code call functions written in C or C++ within the same process) call within the same JVM process; passing a pointer to a column batch buffer</td><td class="g">One JNI call per column batch (thousands of rows); pointer arithmetic, no data copying</td><td class="g">0.06% of execution time — negligible</td></tr>
   </tbody>
 </table>
-<p>The key insight: Python UDF overhead is a <strong>process boundary problem</strong> — two separate OS processes communicating over a socket, with data serialized and deserialized row by row. JNI overhead is an <strong>intra-process function call</strong> — the JVM and C++ code share the same memory space; JNI passes a pointer to a column vector buffer, not a copy of the data. When data is passed as batched column vector pointers rather than row-by-row, the JNI call overhead is amortized over thousands of rows and becomes immeasurably small.</p>
+<p>The key insight: Python UDF overhead is a <strong>process boundary problem</strong> — two separate OS processes communicating over a socket, with data serialized and deserialized row by row. Crossing a process boundary requires the OS kernel to mediate every data transfer, adding copy overhead and scheduling latency. JNI overhead is an <strong>intra-process function call</strong> — the JVM and C++ code share the same memory space; no kernel involvement, no copying. JNI passes a pointer to a column vector buffer, not a copy of the data. When data is passed as batched column vector pointers rather than row-by-row, the JNI call overhead is amortized over thousands of rows and becomes immeasurably small.</p>
 </div>
 
 <p>Photon participates in AQE: its operators implement the required interfaces to export shuffle statistics (e.g., shuffle file sizes) for AQE's runtime re-optimization decisions.</p>
@@ -1284,7 +1301,7 @@ CH5 = """
 <h2>Structured Streaming: Treating Streams as Bounded Data</h2>
 
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
-<p>Instead of thinking about a stream as an infinite river of events, Structured Streaming treats it as a very large table that keeps getting new rows appended to it. Every N seconds, Spark takes the new rows that arrived since last time, processes them as a batch (a "micro-batch"), and writes results. You write the same DataFrame query you'd write for batch data — Spark handles the continuous execution loop.</p>
+<p>Instead of thinking about a stream as an infinite river of events, Structured Streaming treats it as a very large table that keeps getting new rows appended to it. Every N seconds, Spark takes the new rows that arrived since last time, processes them as a micro-batch (a small, time-bounded slice of the incoming stream processed as a regular batch job), and writes results. You write the same DataFrame query you'd write for batch data — Spark handles the continuous execution loop.</p>
 </div>
 
 <p>Vu Trinh's verbatim definition of Structured Streaming's core design principle: <em>"Structured Streaming is a stream processing engine built on the Spark SQL engine. Its core design principle is to treat a continuous stream as a subset of bounded data."</em></p>
@@ -1301,7 +1318,7 @@ CH5 = """
   <thead><tr><th>Trigger Type</th><th>Behavior</th><th>Use Case</th></tr></thead>
   <tbody>
     <tr><td>Default (unspecified)</td><td>Process as fast as possible — next batch starts immediately after previous completes</td><td>Maximum throughput, latency = processing time</td></tr>
-    <tr><td>Fixed interval (e.g., 1 minute)</td><td>Process every N minutes regardless of data availability; skips if previous batch still running</td><td>Time-aligned reporting; predictable schedules</td></tr>
+    <tr><td>Fixed interval (e.g., 1 minute)</td><td>Process every N minutes regardless of data availability; skips if previous batch still running (for example, if the 1-minute batch takes 90 seconds, the trigger at minute 2 is skipped entirely — the next batch fires at minute 3)</td><td>Time-aligned reporting; predictable schedules</td></tr>
     <tr><td>One-time (deprecated, Spark 3.3)</td><td>Process all available data in a single micro-batch, then stop</td><td>Replaced by available-now; see note below</td></tr>
     <tr><td>Available-now (Spark 3.3+)</td><td>Process all currently available data in <em>multiple</em> batches (up to maxFilesPerTrigger at a time), then stop</td><td>Replaces one-time; safe for large backlogs; incremental batch processing</td></tr>
     <tr><td>Continuous processing (Spark 2.3+)</td><td>Sub-millisecond latency; limited operations; at-least-once semantics</td><td>Ultra-low latency with reduced guarantees</td></tr>
@@ -1318,7 +1335,7 @@ CH5 = """
 <div class="topic">
 <h2>Output Modes: Append, Complete, and Update</h2>
 
-<p>Structured Streaming's output modes define what data is written to the sink on each trigger:</p>
+<p>Structured Streaming's output modes define what data is written to the sink (the destination system where Spark writes streaming results — for example, a Kafka topic, a Delta table, or a database) on each trigger:</p>
 
 <p><strong>Append mode:</strong> Only newly added rows (rows not present in the previous output) are written. Requires that rows, once output, never change. Works for: simple transformations without aggregations, aggregations with watermarks where the window is closed. Cannot be used for aggregations without watermarks (the aggregation result changes as new data arrives, violating the "never change" constraint).</p>
 
@@ -1337,6 +1354,10 @@ CH5 = """
   </tbody>
 </table>
 </div>
+
+<div class="box n"><div class="box-lbl">Why Complete Mode Is Not Allowed for Simple Transformations</div>
+<p>Complete mode writes the entire result table on every trigger — but "entire result table" only has a well-defined meaning when there is an aggregation. For a simple transformation like <code>filter()</code>, there is no aggregation result to rewrite; Spark has no mechanism to determine which prior rows belong in the complete output. Complete mode requires an aggregation to be meaningful, which is why it is forbidden for non-aggregated queries.</p>
+</div>
 </div>
 
 <div class="topic">
@@ -1346,9 +1367,9 @@ CH5 = """
 <p>Real-world events don't arrive in order. A mobile app event recorded at 10:00 AM might not reach Kafka until 10:15 AM due to network delays or offline buffering. A watermark tells Spark: "Events can arrive up to N minutes late. Wait that long before closing a time window. Events that arrive more than N minutes late will be dropped." Watermarks let Spark bound how much state it must keep in memory.</p>
 </div>
 
-<p>Without watermarks, Spark must keep all intermediate state (aggregation results, window data) in memory forever — because a late event from an hour ago could theoretically arrive at any time and change an old window's result. This is unbounded state growth, which eventually causes OOM.</p>
+<p>Without watermarks, Spark must keep all intermediate state in memory forever. State here refers to the partial aggregation result for each open time window — for example, the running count of events for the [10:00, 11:00) window. Because a late event from an hour ago could theoretically arrive at any time and change an old window's result, Spark cannot discard any window's state. This is unbounded state growth, which eventually causes OOM.</p>
 
-<p>A watermark of 10 minutes means: the current watermark is <code>max(event_time_seen) - 10 minutes</code>. Events with event_time &lt; watermark are considered late and dropped. Windows whose end time is before the watermark are considered complete and their state can be freed from memory.</p>
+<p>A watermark of 10 minutes means: Spark tracks the highest event_time it has ever processed across all prior micro-batches — that value is <code>max(event_time_seen)</code>. The current watermark is <code>max(event_time_seen) - 10 minutes</code>. Events with event_time &lt; watermark are considered late and dropped. Windows whose end time is before the watermark are considered complete and their state can be freed from memory.</p>
 
 <p><strong>Watermarks enable Append output mode for aggregations:</strong> Once a window is closed (its end time &lt; watermark), its result can never change (no more late events will be accepted). It's safe to append this result to the output. Without a watermark, Spark cannot guarantee a window's result is final, so Append mode is disallowed for aggregations.</p>
 
@@ -1363,7 +1384,7 @@ CH5 = """
 <ul>
   <li><strong>Tumbling windows:</strong> Fixed-size, non-overlapping. <code>window("event_time", "1 hour")</code> — events belong to exactly one window: [0:00–1:00), [1:00–2:00), etc.</li>
   <li><strong>Sliding windows:</strong> Fixed-size, overlapping. <code>window("event_time", "1 hour", "15 minutes")</code> — 1-hour windows starting every 15 minutes. Each event belongs to multiple overlapping windows.</li>
-  <li><strong>Session windows (Spark 3.2+):</strong> Variable-length, defined by inactivity gap. A session groups events with gaps smaller than the timeout; a new session starts after the timeout expires.</li>
+  <li><strong>Session windows (Spark 3.2+):</strong> Variable-length, defined by inactivity gap. A session groups events with gaps smaller than the timeout; a new session starts after the timeout expires. For example, a 5-minute session window would group together clicks at 10:01, 10:03, and 10:06 into one session, then start a new session when the next click arrives at 10:15 — because the 9-minute gap exceeds the timeout.</li>
 </ul>
 </div>
 
@@ -1376,11 +1397,11 @@ CH5 = """
 
 <p>Apache Spark 3.0 (released 2020) introduced Adaptive Query Execution (AQE) as a way to extend Catalyst optimization into runtime. The key insight: shuffle stages create a natural pause point. Every exchange (shuffle) operator forces all tasks in the current stage to complete before the next stage can begin. During this pause, the actual shuffle output statistics are available: how many bytes in each partition, how many rows, how the data distributes across partitions. AQE collects these statistics and re-runs the physical planner for the next stage.</p>
 
-<p>The unit of AQE re-optimization is the <strong>query stage</strong>. Each Exchange (shuffle) operator creates a query stage boundary. AQE collects statistics after each query stage completes, then re-optimizes the next query stage's plan before it begins executing.</p>
+<p>The unit of AQE re-optimization is the <strong>query stage</strong>. Each Exchange operator (Spark's internal name for a shuffle node in the physical plan — the point where data is redistributed across partitions, forcing all upstream tasks to finish before downstream tasks begin; a query stage corresponds exactly to one DAG stage between two Exchange boundaries) creates a query stage boundary. AQE collects statistics after each query stage completes, then re-optimizes the next query stage's plan before it begins executing.</p>
 
 <h3>AQE Feature 1 — Coalescing Shuffle Partitions</h3>
 <p><strong>Problem:</strong> <code>spark.sql.shuffle.partitions = 200</code> by default. For a query producing 10MB of shuffle output, 200 partitions means each partition averages 50KB — hundreds of tiny tasks that spend more time on task scheduling overhead than actual computation.</p>
-<p><strong>AQE solution:</strong> After the shuffle stage completes, AQE inspects the actual partition sizes. If most partitions are tiny, AQE coalesces adjacent small partitions into fewer, larger ones before the next stage reads them. A 200-partition shuffle producing 10MB of data might be coalesced by AQE into 5 partitions of 2MB each — 40× fewer tasks, each with meaningful work.</p>
+<p><strong>AQE solution:</strong> After the shuffle stage completes, AQE inspects the actual partition sizes. If most partitions are tiny, AQE coalesces adjacent small partitions (adjacent here means consecutive by partition number — AQE merges partition 3 + 4 + 5 if all three are undersized, not arbitrary small partitions from across the range) into fewer, larger ones before the next stage reads them. A 200-partition shuffle producing 10MB of data might be coalesced by AQE into 5 partitions of 2MB each — 40× fewer tasks, each with meaningful work.</p>
 <p><strong>Configuration:</strong> <code>spark.sql.adaptive.coalescePartitions.enabled = true</code> (default in Spark 3.0+). Target partition size: <code>spark.sql.adaptive.advisoryPartitionSizeInBytes</code> (default 64MB).</p>
 
 <h3>AQE Feature 2 — Dynamic Join Strategy Switching</h3>
@@ -1392,15 +1413,15 @@ CH5 = """
 <p><strong>Problem:</strong> One shuffle partition is 100× larger than others due to data skew. One task processes 80% of the data; all other tasks finish in 5 seconds; this one task runs for 15 minutes. The stage waits for it.</p>
 <p><strong>AQE solution:</strong> AQE detects skewed partitions by comparing each partition's size against the stage's median partition size (with configurable thresholds). For each skewed partition, AQE:</p>
 <ol>
-  <li>Splits the skewed partition into N sub-partitions (each reads a range of the shuffle files)</li>
-  <li>Replicates the corresponding partition from the other join side N times</li>
-  <li>Runs N parallel join tasks instead of 1 massive task</li>
+  <li>Splits the skewed partition into N sub-partitions. For example, if partition 7 is 2GB and the target is 64MB, AQE splits it into ~32 sub-partitions of ~64MB each (each sub-partition reads a range of the original shuffle files).</li>
+  <li>Replicates the corresponding partition from the other join side N times — because each of the 32 sub-partitions of table A's partition 7 still needs to join against the same matching rows from table B, Spark creates 32 copies of those B rows, one per sub-task.</li>
+  <li>Runs N parallel join tasks instead of 1 massive task — 32 × 64MB tasks instead of 1 × 2GB task.</li>
 </ol>
 <p>This is automatic — no salting, no code changes required. <code>spark.sql.adaptive.skewJoin.enabled = true</code> (default in Spark 3.0+). Threshold: <code>spark.sql.adaptive.skewJoin.skewedPartitionFactor</code> (default 5) and <code>spark.sql.adaptive.skewJoin.skewedPartitionThresholdInBytes</code> (default 256MB).</p>
 
 <div class="box f"><div class="box-lbl">Why BHJ on a Skewed Probe Side Creates a CPU/Memory Hotspot — and Why SMJ with AQE Is Safer</div>
 <p>AQE Feature 2 can dynamically switch a join from SMJ to BHJ when the build side is small. This switch is almost always beneficial for uniformly-distributed data — but it can backfire when the <strong>probe side is skewed</strong>.</p>
-<p><strong>How BHJ handles skew:</strong> In BHJ, the build table is broadcast as a complete copy to <em>every</em> executor. Then each executor processes its partition of the probe (large) table, looking up each probe row in the local hash table. If the probe side has a skewed key — say, key <code>"category_X"</code> appears in 40% of probe rows — then the executor holding that skewed probe partition must process 40% of all rows. Every matching probe row still triggers a lookup in the broadcast hash table, consuming CPU proportional to the number of hits. The result: one executor is overwhelmed with CPU and memory pressure from the disproportionate probe workload while all other executors finish quickly. This is a <strong>CPU/memory hotspot</strong> caused by probe-side skew, not by the broadcast table itself.</p>
+<p><strong>How BHJ handles skew:</strong> Recall from Ch3: in a hash join, the <em>build side</em> is the smaller table loaded into a hash table in memory; the <em>probe side</em> is the larger table whose rows are looked up in that hash table. In BHJ, the build table is broadcast as a complete copy to <em>every</em> executor. Then each executor processes its partition of the probe (large) table, looking up each probe row in the local hash table. If the probe side has a skewed key — say, key <code>"category_X"</code> appears in 40% of probe rows — then the executor holding that skewed probe partition must process 40% of all rows. Every matching probe row still triggers a lookup in the broadcast hash table, consuming CPU proportional to the number of hits. The result: one executor is overwhelmed with CPU and memory pressure from the disproportionate probe workload while all other executors finish quickly. This is a <strong>CPU/memory hotspot</strong> caused by probe-side skew, not by the broadcast table itself.</p>
 <p><strong>Why SMJ with AQE skew-join handling is safer on skewed data:</strong> SMJ shuffles both sides by join key. A skewed probe partition ends up in one shuffle partition — which AQE then detects as oversized (larger than median × skewedPartitionFactor). AQE's skew-join feature automatically splits this oversized probe partition into multiple sub-partitions and replicates the matching portion of the build side for each sub-partition. The skewed load is spread across multiple parallel tasks. BHJ — once the broadcast is sent — has no mechanism to redistribute a skewed probe partition: the probe is read directly from its source, and a skewed partition just means one executor gets far more work. AQE's dynamic join switching prefers BHJ for smaller build sides, but if you know the probe side is severely skewed, forcing SMJ (via <code>/*+ MERGE */</code> hint) and letting AQE handle skew in the SMJ path is often the safer choice.</p>
 </div>
 
