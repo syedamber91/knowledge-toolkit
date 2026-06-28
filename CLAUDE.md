@@ -129,18 +129,40 @@ doing source-specific work.
   mid-extraction breaks hydration** — navigate with `location.href`, walk shadow
   roots, and poll for `bodhi-*` elements.
 
-## Learning pack & persona workflow
+## Learning packs, verification loop & Google Drive
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
 internals (render to PDF via headless Chrome `--print-to-pdf`, output under
-`output/`). Its quality is validated in a Q&A loop by two personas, available as
-both skills and agents:
+`output/`). A sibling Spark-internals pack ships alongside it; a Google Drive
+uploader (`scripts/gdrive_upload.py`) currently lives on the
+`claude/eager-gates-UqFZF` branch (noted below).
 
+| Script | Purpose | Output |
+|--------|---------|--------|
+| `scripts/generate_learning_pack.py` | Ben Dicken database-internals pack | `output/ben_dicken_phase1.pdf` |
+| `scripts/generate_vutr_spark.py` | Vu Trinh Spark-internals pack (5 chapters) | `output/vutr_spark.pdf` |
+| `scripts/gdrive_upload.py` *(eager-gates branch)* | OAuth Google Drive uploader | uploads `output/*.pdf` |
+
+**Verification loop.** Each pack's quality is validated in a Q&A loop: examiner
+personas generate questions → a Justin Sung "student" answers using only the PDF
+→ the examiner scores accuracy + coverage. Iterate until every chapter scores
+≥9.0/9.0. **Critical invariant:** when a generator script changes, keep the
+`CHAPTERS[n].content` strings in the verification workflow in sync — otherwise
+scores won't improve even though the PDF did.
+
+Personas/examiners (skills + agents):
 - **`justin-sung`** — learning coach; reviews pedagogy (retrieval practice,
-  emotional hooks, higher-order thinking, WHY→WHAT→HOW) and plays a student who
-  knows only the PDF.
-- **`ben-dicken`** — database-internals examiner; generates precise technical
-  questions and scores answers on accuracy + coverage.
+  emotional hooks, higher-order thinking, WHY→WHAT→HOW) and plays the student
+  who knows only the PDF.
+- **`ben-dicken`** — database-internals examiner; scores accuracy + coverage.
+- **`vutr`, `lucsystemdesign`, `sdcourse`** — additional examiners for
+  Spark/Kafka/OLAP, system-design decisions, and distributed log processing.
+
+**Google Drive upload** *(eager-gates branch)* — final PDFs go to *My Drive →
+Learning Packs* (folder ID `1G0h8cBj9ZXDlXXv97LAj9P0esFwyk5KH`) via
+`scripts/gdrive_upload.py`. OAuth token lives at `~/.config/gdrive_token.json`
+(scope `drive.file`); one-time auth:
+`python3 scripts/gdrive_upload.py --auth <client_secrets.json>`.
 
 See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md).
 
@@ -152,9 +174,10 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
-`media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`
-(verification personas). Note: agent files reference an absolute project root
-from the author's machine — paths there are illustrative, not this repo's path.
+`media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`, `vutr`,
+`lucsystemdesign`, `sdcourse` (verification/examiner personas). Note: agent files
+reference an absolute project root from the author's machine — paths there are
+illustrative, not this repo's path.
 
 ## Pointers
 
