@@ -903,6 +903,41 @@ CH3 = """
 </ul>
 </div>
 
+<div class="topic">
+<h2>The Real-World Shuffle Problem at Scale: Uber's RSS</h2>
+<div class="box why"><div class="box-lbl">Why This Matters</div>
+<p>Shuffle is already expensive in theory. At Uber's scale — 137 million monthly active users, thousands of Spark jobs running concurrently — the local shuffle model created a new class of failure nobody expected. Not OOM. Not skew. <strong>SSD wear-out.</strong> Understanding how Uber fixed this reveals a fundamental truth: the shuffle architecture that works at 1TB breaks at 1PB, and the fix requires rethinking the paradigm entirely.</p>
+</div>
+
+<p>The standard Spark shuffle model is <strong>executor-local</strong>: each executor writes its shuffle output to local disk, and downstream executors pull from those locations. This design made sense when Spark was born. At Uber's scale, it created three compounding problems:</p>
+
+<ul>
+<li><strong>SSD wear-out</strong>: shuffle writes were burning through SSDs in approximately <strong>3 months</strong>. Hardware replacement cost was enormous.</li>
+<li><strong>Shuffle failure cascades</strong>: if an executor died mid-job, its shuffle data was gone. The entire stage had to restart from scratch.</li>
+<li><strong>Node coupling</strong>: compute and shuffle storage were tied to the same machines, making independent scaling impossible.</li>
+</ul>
+
+<div class="box s"><div class="box-lbl">The RSS Insight</div>
+<p>Uber's Remote Shuffle Service (RSS) reverses the MapReduce paradigm. Instead of each executor managing its own shuffle data locally, <strong>RSS centralizes shuffle storage on dedicated servers</strong>. Executors push shuffle data to RSS nodes; downstream executors pull from RSS. Compute nodes no longer touch shuffle data at all — compute and shuffle storage are fully decoupled.</p>
+</div>
+
+<p>The results were measurable:</p>
+<ul>
+<li>SSD lifespan: <strong>3 months → approximately 3 years</strong> (10× improvement)</li>
+<li>Shuffle failure rates: <strong>reduced by 95%</strong></li>
+<li>Compute and shuffle storage can now scale independently</li>
+</ul>
+
+<div class="box n"><div class="box-lbl">The Trade-off</div>
+<p>RSS adds network hops. Every shuffle write now crosses the network twice: executor → RSS node on write, RSS node → executor on read. For small-to-medium jobs this overhead is not worth it. RSS is a solution to a <em>scale</em> problem — not a general replacement for local shuffle. <strong>Every decision has a trade-off.</strong></p>
+</div>
+
+<div class="box gap"><div class="box-lbl">Cross-Chapter Connection</div>
+<p>RSS is evidence that Spark's shuffle-to-disk design (this chapter) and OOM-from-skew (Ch2) are not solved problems — they are active engineering areas. At sufficient scale, even correct designs require architectural replacement.</p>
+</div>
+</div>
+
+
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
 <div class="q"><span class="q-n">Q1 </span>Explain why Spark's shuffle writes to disk even though Spark is marketed as an in-memory engine. What is the specific data path at a shuffle boundary?</div>
