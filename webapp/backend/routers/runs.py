@@ -1,6 +1,11 @@
+from __future__ import annotations
+
+import asyncio
+import json
 from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sse_starlette.sse import EventSourceResponse
 from database import get_db
 from models import Run, Chapter, PassRecord, SignOff, DeliveryStep
 from schemas import RunOut, RunCreate, StatsOut
@@ -43,6 +48,33 @@ def get_run(run_id: int, db: Session = Depends(get_db)):
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
     return run
+
+@router.get("/{run_id}/stream")
+async def stream_run(run_id: int, db: Session = Depends(get_db)):
+    """SSE stream — emits mock log lines for any running run."""
+    run = db.query(Run).filter(Run.id == run_id).first()
+    examiners = run.examiners if run else ["vutr"]
+
+    async def event_gen():
+        agents = examiners + ["justin", "alex", "system"]
+        msgs = [
+            (agents[0], f"Pass {run.current_pass if run else 1} started — generating 5 questions for Ch 3"),
+            ("justin",  "Answering questions from combined pool"),
+            (agents[0], "Ch 3 scored — waiting for alex audit"),
+            ("alex",    "Clarity audit queued for Ch 3"),
+            ("system",  "Gap flagged in Ch 3 — coverage below 9.0"),
+        ]
+        for agent, msg in msgs:
+            data = json.dumps({
+                "ts": datetime.utcnow().strftime("%H:%M:%S"),
+                "agent": agent,
+                "message": msg,
+            })
+            yield {"data": data}
+            await asyncio.sleep(1.2)
+
+    return EventSourceResponse(event_gen())
+
 
 @router.post("", response_model=RunOut, status_code=201)
 def create_run(body: RunCreate, db: Session = Depends(get_db)):

@@ -6,6 +6,8 @@ import { Run } from "@/lib/types";
 import Sidebar from "@/components/run-detail/Sidebar";
 import AgentStrip from "@/components/run-detail/AgentStrip";
 import ScoreGrid from "@/components/run-detail/ScoreGrid";
+import GapsList from "@/components/run-detail/GapsList";
+import LiveLog from "@/components/run-detail/LiveLog";
 
 export default function RunDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -41,7 +43,8 @@ export default function RunDetailPage() {
         <div className="px-6 py-5 space-y-6">
           <AgentStrip run={run} />
           <ScoreGrid run={run} />
-          {/* GapsList + LiveLog added in Task 7 */}
+          <GapsList run={run} />
+          <LiveLog runId={run.id} />
         </div>
       </div>
     </div>
