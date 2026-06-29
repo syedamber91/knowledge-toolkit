@@ -69,6 +69,8 @@ export interface Topic {
   name: string;
   authors: string[];
   post_count: number;
+  authors_post_count: Record<string, number>;
+  suggested_chapters: string[];
   status: "suggested" | "shipped" | "needsUpdate";
   post_count_at_ship: number | null;
   shipped_at: string | null;

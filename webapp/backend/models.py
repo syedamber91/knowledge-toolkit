@@ -77,6 +77,8 @@ class Topic(Base):
     name: Mapped[str] = mapped_column(String, unique=True)
     authors: Mapped[list] = mapped_column(JSON, default=list)
     post_count: Mapped[int] = mapped_column(Integer, default=0)
+    authors_post_count: Mapped[dict] = mapped_column(JSON, default=dict)  # {"author": count}
+    suggested_chapters: Mapped[list] = mapped_column(JSON, default=list)  # pre-determined from vault
     status: Mapped[str] = mapped_column(String, default="suggested")  # suggested|shipped|needsUpdate
     shipped_run_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     post_count_at_ship: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)

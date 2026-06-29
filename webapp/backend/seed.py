@@ -67,19 +67,120 @@ make_run("ben-dicken · DB Internals", ["ben-dicken"], ["ben-dicken"], "Database
 
 db.commit()
 
-# Seed topics
-for name, authors, count, status in [
-    ("Apache Spark",     ["vutr"],                   47, "shipped"),
-    ("Kafka",            ["lucsystemdesign"],         31, "suggested"),
-    ("Iceberg",          ["vutr"],                   18, "needsUpdate"),
-    ("dbt",              ["vutr","lucsystemdesign"],  12, "suggested"),
-    ("ClickHouse",       ["vutr"],                   22, "suggested"),
-    ("Raft Consensus",   ["sdcourse"],               15, "suggested"),
-    ("Database Internals",["ben-dicken"],            18, "shipped"),
-]:
-    t = Topic(name=name, authors=authors, post_count=count, status=status,
-              post_count_at_ship=count-6 if status in ("shipped","needsUpdate") else None,
-              shipped_at=datetime.utcnow()-timedelta(days=14) if status in ("shipped","needsUpdate") else None)
+# Seed topics — authors_post_count gives per-author vault breakdown
+#               suggested_chapters are pre-determined from vault content density
+TOPICS = [
+    {
+        "name": "Apache Spark",
+        "authors": ["vutr"],
+        "authors_post_count": {"vutr": 47},
+        "post_count": 47,
+        "status": "shipped",
+        "suggested_chapters": [
+            "Spark Architecture & Execution Model",
+            "Shuffle, Partitioning & Data Locality",
+            "Catalyst Optimizer & Tungsten",
+            "Memory Management & Spilling",
+            "Structured Streaming Internals",
+        ],
+    },
+    {
+        "name": "Kafka",
+        "authors": ["lucsystemdesign", "vutr"],
+        "authors_post_count": {"lucsystemdesign": 31, "vutr": 22},
+        "post_count": 53,
+        "status": "suggested",
+        "suggested_chapters": [
+            "Kafka Architecture & Log Storage",
+            "Partitions, Replication & Leader Election",
+            "Consumer Groups & Offset Management",
+            "Exactly-once Semantics & Transactions",
+            "Kafka Streams & ksqlDB",
+        ],
+    },
+    {
+        "name": "Iceberg",
+        "authors": ["vutr"],
+        "authors_post_count": {"vutr": 18},
+        "post_count": 18,
+        "status": "needsUpdate",
+        "suggested_chapters": [
+            "Table Format & Snapshot Model",
+            "Hidden Partitioning & Partition Evolution",
+            "Schema Evolution & Column Mapping",
+            "Time Travel & Branching",
+            "Compaction, Maintenance & Engine Integration",
+        ],
+    },
+    {
+        "name": "dbt",
+        "authors": ["vutr", "lucsystemdesign"],
+        "authors_post_count": {"vutr": 8, "lucsystemdesign": 4},
+        "post_count": 12,
+        "status": "suggested",
+        "suggested_chapters": [
+            "dbt Project Structure & DAG",
+            "Models, Sources & Seeds",
+            "Tests, Documentation & Freshness",
+            "Materializations & Incremental Patterns",
+            "dbt Cloud, CI/CD & Environment Management",
+        ],
+    },
+    {
+        "name": "ClickHouse",
+        "authors": ["vutr"],
+        "authors_post_count": {"vutr": 22},
+        "post_count": 22,
+        "status": "suggested",
+        "suggested_chapters": [
+            "MergeTree Engine & Data Organisation",
+            "Primary Keys, Sparse Indexes & Skipping Indexes",
+            "Aggregating, Replacing & Collapsing MergeTree",
+            "Distributed Tables & Sharding",
+            "Query Optimization & Materialized Views",
+        ],
+    },
+    {
+        "name": "Raft Consensus",
+        "authors": ["sdcourse"],
+        "authors_post_count": {"sdcourse": 15},
+        "post_count": 15,
+        "status": "suggested",
+        "suggested_chapters": [
+            "Leader Election & Term Management",
+            "Log Replication & Commitment Rules",
+            "Safety, Liveness & Network Partitions",
+            "Membership Changes & Joint Consensus",
+            "Raft in Practice: etcd, CockroachDB, TiKV",
+        ],
+    },
+    {
+        "name": "Database Internals",
+        "authors": ["ben-dicken"],
+        "authors_post_count": {"ben-dicken": 18},
+        "post_count": 18,
+        "status": "shipped",
+        "suggested_chapters": [
+            "Storage Engines: B-Trees vs LSM-Trees",
+            "Indexing Strategies & Access Patterns",
+            "Transactions, MVCC & Isolation Levels",
+            "Query Execution & Join Algorithms",
+            "Replication & Distributed Consistency",
+        ],
+    },
+]
+
+for td in TOPICS:
+    t = Topic(
+        name=td["name"],
+        authors=td["authors"],
+        authors_post_count=td["authors_post_count"],
+        post_count=td["post_count"],
+        suggested_chapters=td["suggested_chapters"],
+        status=td["status"],
+        post_count_at_ship=td["post_count"] - 6 if td["status"] in ("shipped", "needsUpdate") else None,
+        shipped_at=datetime.utcnow() - timedelta(days=14) if td["status"] in ("shipped", "needsUpdate") else None,
+    )
     db.add(t)
 db.commit()
 db.close()
