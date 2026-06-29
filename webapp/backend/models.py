@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from datetime import datetime
-from sqlalchemy import String, Integer, Float, Boolean, ForeignKey, DateTime, Text, JSON
+from typing import Optional
+from sqlalchemy import String, Integer, Float, ForeignKey, DateTime, Text, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database import Base
 
@@ -14,7 +17,7 @@ class Run(Base):
     current_stage: Mapped[str] = mapped_column(String, default="ingestion")
     # ingestion|generation|verification|sign-off|delivery
     current_pass: Mapped[int] = mapped_column(Integer, default=1)
-    pdf_path: Mapped[str | None] = mapped_column(String, nullable=True)
+    pdf_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     started_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     chapters: Mapped[list["Chapter"]] = relationship(back_populates="run", cascade="all, delete-orphan")
     sign_offs: Mapped[list["SignOff"]] = relationship(back_populates="run", cascade="all, delete-orphan")
@@ -34,9 +37,9 @@ class PassRecord(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     chapter_id: Mapped[int] = mapped_column(ForeignKey("chapters.id"))
     pass_num: Mapped[int] = mapped_column(Integer)
-    acc_score: Mapped[float | None] = mapped_column(Float, nullable=True)
-    cov_score: Mapped[float | None] = mapped_column(Float, nullable=True)
-    alex_score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    acc_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    cov_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    alex_score: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
     chapter: Mapped["Chapter"] = relationship(back_populates="passes")
     gaps: Mapped[list["Gap"]] = relationship(back_populates="pass_record", cascade="all, delete-orphan")
 
@@ -65,7 +68,7 @@ class DeliveryStep(Base):
     index: Mapped[int] = mapped_column(Integer)       # 0-4
     label: Mapped[str] = mapped_column(String)
     status: Mapped[str] = mapped_column(String, default="waiting")  # waiting|uploading|done
-    detail: Mapped[str | None] = mapped_column(Text, nullable=True)
+    detail: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     run: Mapped["Run"] = relationship(back_populates="delivery_steps")
 
 class Topic(Base):
@@ -75,6 +78,6 @@ class Topic(Base):
     authors: Mapped[list] = mapped_column(JSON, default=list)
     post_count: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String, default="suggested")  # suggested|shipped|needsUpdate
-    shipped_run_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    post_count_at_ship: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    shipped_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    shipped_run_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    post_count_at_ship: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    shipped_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)

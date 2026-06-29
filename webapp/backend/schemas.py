@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 from datetime import datetime
+from typing import Optional
 from pydantic import BaseModel
 
 class GapOut(BaseModel):
@@ -10,9 +13,9 @@ class GapOut(BaseModel):
 class PassRecordOut(BaseModel):
     id: int
     pass_num: int
-    acc_score: float | None
-    cov_score: float | None
-    alex_score: float | None
+    acc_score: Optional[float]
+    cov_score: Optional[float]
+    alex_score: Optional[float]
     gaps: list[GapOut] = []
     model_config = {"from_attributes": True}
 
@@ -36,7 +39,7 @@ class DeliveryStepOut(BaseModel):
     index: int
     label: str
     status: str
-    detail: str | None
+    detail: Optional[str]
     model_config = {"from_attributes": True}
 
 class RunOut(BaseModel):
@@ -48,7 +51,7 @@ class RunOut(BaseModel):
     status: str
     current_stage: str
     current_pass: int
-    pdf_path: str | None
+    pdf_path: Optional[str]
     started_at: datetime
     chapters: list[ChapterOut] = []
     sign_offs: list[SignOffOut] = []
@@ -73,6 +76,6 @@ class TopicOut(BaseModel):
     authors: list[str]
     post_count: int
     status: str
-    post_count_at_ship: int | None
-    shipped_at: datetime | None
+    post_count_at_ship: Optional[int]
+    shipped_at: Optional[datetime]
     model_config = {"from_attributes": True}
