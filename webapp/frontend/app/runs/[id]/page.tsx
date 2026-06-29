@@ -8,10 +8,13 @@ import AgentStrip from "@/components/run-detail/AgentStrip";
 import ScoreGrid from "@/components/run-detail/ScoreGrid";
 import GapsList from "@/components/run-detail/GapsList";
 import LiveLog from "@/components/run-detail/LiveLog";
+import SignOffCards from "@/components/sign-off/SignOffCards";
+import DeliveryChecklist from "@/components/sign-off/DeliveryChecklist";
 
 export default function RunDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [run, setRun] = useState<Run | null>(null);
+  const [shipping, setShipping] = useState(false);
 
   useEffect(() => {
     api.runs.get(Number(id)).then(setRun);
@@ -20,8 +23,31 @@ export default function RunDetailPage() {
   if (!run) return <div className="p-8 text-[var(--gray-50)]">Loading…</div>;
 
   if (run.current_stage === "sign-off" || run.status === "done") {
-    // Sign-off + Delivery view — added in Task 8
-    return <div className="p-8 text-[var(--gray-50)]">Sign-off screen coming in Task 8</div>;
+    const allApproved = run.sign_offs.every((s) => s.status === "approved");
+    return (
+      <div className="flex h-[calc(100vh-56px)]">
+        <Sidebar run={run} />
+        <div className="flex-1 overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-[var(--border)] px-6 py-3.5 z-10">
+            <span className="text-[14px] font-semibold text-[var(--gray-10)]">Sign-off Gate + Delivery</span>
+            <span className="ml-3 text-[12px] text-[var(--gray-50)]">{run.title} · Pass {run.current_pass}</span>
+          </div>
+          <div className="px-6 py-5 grid grid-cols-2 gap-8">
+            <div>
+              <SignOffCards signOffs={run.sign_offs} />
+            </div>
+            <div>
+              <DeliveryChecklist
+                steps={run.delivery_steps}
+                allApproved={allApproved}
+                onShip={() => setShipping(true)}
+                shipping={shipping}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
