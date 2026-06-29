@@ -15,7 +15,8 @@ export default function LiveLog({ runId }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const es = new EventSource(`http://localhost:8000/runs/${runId}/stream`);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+    const es = new EventSource(`${baseUrl}/runs/${runId}/stream`);
     es.onmessage = (e) => {
       try {
         const line: LogLine = JSON.parse(e.data);
