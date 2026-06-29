@@ -35,7 +35,7 @@ function ScoreBars({ chapters }: { chapters: Run["chapters"] }) {
     { key: "alex_score" as const, color: "var(--amber)" },
   ];
   const avg = (key: "acc_score" | "cov_score" | "alex_score") => {
-    const vals = latest.map((p) => p?.[key] ?? 0).filter(Boolean);
+    const vals = latest.filter((p) => p != null && p[key] != null).map((p) => p![key] as number);
     return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0;
   };
   return (
