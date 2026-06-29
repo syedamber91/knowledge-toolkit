@@ -87,6 +87,26 @@ web-toolkit capture "https://example.com/post"
 youtube-toolkit build
 ```
 
+## Research-driven capture (the planning front-end)
+
+The five toolkits are **URL/handle-driven** — you must already know the source.
+The `/research-plan` skill (and `research-planner` agent) is the front-end that
+turns a **goal** (e.g. "business opportunities & market gaps in Bhopal, India")
+into a vetted, token-thrifty capture plan *before* any extraction runs:
+
+**goal → research plan + per-goal rubric → autonomous web discovery → score &
+shortlist (kill the noise) → approval gate → existing capture pipeline.**
+
+- It exists to **save tokens**: discovery and "which sources actually matter?"
+  judgment happen up front, so extraction only ever runs on sources that earned
+  their place. It **stops for approval** and never captures on its own.
+- **Relevance is a per-goal rubric generated on the fly** — distinct from the
+  static post-capture `TOPIC_VOCABULARY` (which stays untouched; that's
+  tech-topic tagging, a different job).
+- The shortlist is written as a gitignored brief under `output/research/` and its
+  commands map 1:1 to the existing CLIs/skills/agents (`/substack-capture`,
+  `/youtube-capture`, `/media-capture`), which do the actual extraction.
+
 ## Key conventions (reuse, don't reinvent)
 
 - **Topic vocabulary is canonical and centralized.** The base lives in
@@ -191,12 +211,16 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
+- `research-plan` — goal → research plan → autonomous source discovery → scored
+  shortlist (approval gate) → existing capture pipeline (see "Research-driven
+  capture" above).
 - `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture` —
   source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
 - `alex-persona` — the 15-year-old clarity auditor persona (`/alex` trigger).
 
-**Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
+**Agents** (`.claude/agents/`): `research-planner` (goal → vetted capture
+manifest; stops at the approval gate), `substack-capturer`, `youtube-capturer`,
 `media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`, `vutr`,
 `lucsystemdesign`, `sdcourse`, `alex` (verification/examiner personas). Note: agent files
 reference an absolute project root from the author's machine — paths there are
