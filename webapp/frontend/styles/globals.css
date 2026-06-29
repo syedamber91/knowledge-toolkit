@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blue:      #185FA5;
+  --blue-bg:   #EBF0F7;
+  --green:     #3B6D11;
+  --green-bg:  #E2F1D8;
+  --amber:     #EF9F27;
+  --amber-dk:  #854F0B;
+  --amber-bg:  #FEF2E1;
+  --red:       #A32D2D;
+  --red-bg:    #F9E8E8;
+  --teal:      #0F6E56;
+  --teal-bg:   #E1F4EF;
+  --gray-10:   #111111;
+  --gray-30:   #333333;
+  --gray-50:   #666666;
+  --gray-70:   #999999;
+  --gray-90:   #CCCCCC;
+  --gray-95:   #EBEBEB;
+  --gray-97:   #F5F5F5;
+  --border:    #E0E0E0;
+}

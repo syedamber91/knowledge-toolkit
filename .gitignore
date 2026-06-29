@@ -9,6 +9,9 @@ vault/
 debug_dom/
 dump_dom.py
 
+# UI backend database
+webapp/backend/toolkit.db
+
 # Python
 __pycache__/
 *.py[cod]
@@ -24,3 +27,4 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+.superpowers/
