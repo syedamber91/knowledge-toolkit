@@ -12,7 +12,7 @@ const AGENT_META: Record<string, { initials: string; role: string; color: string
 interface Props { signOffs: SignOff[] }
 
 export default function SignOffCards({ signOffs }: Props) {
-  const allApproved = signOffs.every((s) => s.status === "approved");
+  const allApproved = signOffs.length > 0 && signOffs.every((s) => s.status === "approved");
   return (
     <div className="space-y-4">
       {allApproved && (

@@ -21,7 +21,9 @@ export default function LiveLog({ runId }: Props) {
       try {
         const line: LogLine = JSON.parse(e.data);
         setLines((prev) => [...prev, line]);
-      } catch {}
+      } catch (err) {
+        console.warn("[LiveLog] Failed to parse SSE message:", e.data, err);
+      }
     };
     es.onerror = () => es.close();
     return () => es.close();

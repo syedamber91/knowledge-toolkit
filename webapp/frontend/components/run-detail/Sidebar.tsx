@@ -48,7 +48,6 @@ export default function Sidebar({ run }: Props) {
           const stIdx = STAGE_ORDER.indexOf(st.key);
           const isDone   = stIdx < currentIdx || (stIdx === currentIdx && run.status === "done");
           const isActive = stIdx === currentIdx && run.status !== "done";
-          const isPending = stIdx > currentIdx;
 
           return (
             <div key={st.key} className="relative">

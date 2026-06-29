@@ -12,11 +12,6 @@ const AGENT_META: Record<string, { color: string; label: string }> = {
 interface Props { run: Run }
 
 export default function AgentStrip({ run }: Props) {
-  const agents = [
-    ...run.examiners,
-    "justin",
-    "alex",
-  ];
   const isJoint = run.examiners.length > 1;
 
   return (
