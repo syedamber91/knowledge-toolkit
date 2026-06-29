@@ -1,7 +1,7 @@
 """Run once to populate dev data: python seed.py"""
 from datetime import datetime, timedelta
 from database import SessionLocal, engine, Base
-from models import Run, Chapter, PassRecord, Gap, SignOff, DeliveryStep, Topic
+from models import Run, Chapter, PassRecord, SignOff, DeliveryStep, Topic
 
 Base.metadata.create_all(bind=engine)
 db = SessionLocal()
