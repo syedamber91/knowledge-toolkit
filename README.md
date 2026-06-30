@@ -31,6 +31,9 @@ collects the lesson text the platform legitimately displays, and builds an
 > **Full walkthrough:** see [`docs/END_TO_END_PLAN.md`](docs/END_TO_END_PLAN.md)
 > for the complete end-to-end plan, architecture, and step-by-step runbook.
 
+> **Running on a server?** See [`docs/VPS_SETUP.md`](docs/VPS_SETUP.md) for a
+> headless Linux VPS runbook covering both the CLI toolkits and the webapp.
+
 ## Setup
 
 ```bash

@@ -208,3 +208,4 @@ illustrative, not this repo's path.
 - [`docs/END_TO_END_PLAN.md`](docs/END_TO_END_PLAN.md) — full runbook & data model.
 - [`docs/PORTAL_NOTES.md`](docs/PORTAL_NOTES.md) — Learnyst portal reconnaissance.
 - [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md) — persona verification loop.
+- [`docs/VPS_SETUP.md`](docs/VPS_SETUP.md) — running the CLIs + webapp on a headless Linux VPS.
