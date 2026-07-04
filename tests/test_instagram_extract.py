@@ -97,6 +97,26 @@ def test_block_is_reraised_as_friendly_runtimeerror(tmp_path, monkeypatch):
     assert "resume" in str(ei.value).lower()
 
 
+def test_non_block_error_propagates_unchanged(tmp_path, monkeypatch):
+    """A 'run login first'-style error (contains the word 'login') must NOT be
+    relabelled as a rate-limit/block message."""
+    monkeypatch.setattr(store, "CONTENT_PATH", tmp_path / "media.json")
+    monkeypatch.setattr(crawler.time, "sleep", lambda *a, **k: None)
+
+    def no_session(_target):
+        raise RuntimeError(
+            "No authenticated Instagram session. Run "
+            "`instagram-toolkit login --from-chrome` first (use a burner account)."
+        )
+        yield
+
+    with pytest.raises(RuntimeError) as ei:
+        crawler.crawl("someacct", post_fetch=no_session)
+    msg = str(ei.value).lower()
+    assert "login" in msg and "burner" in msg          # original guidance preserved
+    assert "rate-limited" not in msg and "blocked" not in msg
+
+
 # --- vault rendering ---------------------------------------------------------
 
 def test_vault_renders_instagram_note(tmp_path):

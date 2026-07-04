@@ -96,12 +96,24 @@ def _hashtag_posts(tag: str):
 
 
 def _reraise_as_block(exc: Exception) -> None:
-    """Convert a known Instagram block/login error into a friendly RuntimeError."""
+    """Convert a genuine Instagram rate-limit/block error into a friendly message.
+
+    Matches on Instaloader exception *types* (not loose substrings), so our own
+    guidance errors — e.g. "run `instagram-toolkit login` first", which contains
+    the word 'login' — propagate unchanged instead of being mislabelled a block.
+    """
     name = type(exc).__name__
     text = str(exc).lower()
-    if name in _BLOCK_NAMES or "429" in str(exc) or "login" in text or "wait" in text:
+    is_block = (
+        name in _BLOCK_NAMES
+        or "429" in str(exc)
+        or "too many requests" in text
+        or "please wait" in text
+        or "checkpoint_required" in text
+    )
+    if is_block:
         raise RuntimeError(
-            f"Instagram blocked the request or requires login ({name}: {exc}). "
+            f"Instagram rate-limited or blocked the request ({name}: {exc}). "
             "Progress is saved — wait a while, then re-run the same command to resume."
         ) from exc
     raise exc
