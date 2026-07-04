@@ -57,26 +57,51 @@ def _saved_cookies() -> dict[str, str]:
     return {c["name"]: c["value"] for c in state.get("cookies", []) if c.get("value")}
 
 
-def login() -> None:
-    """Open a browser to Instagram, wait for manual login, save cookies."""
+def login(timeout: float = 300.0, poll: float = 2.0) -> None:
+    """Open a browser to Instagram and auto-save cookies once you're logged in.
+
+    Polls for the ``sessionid`` cookie so no keypress is needed — log in at your
+    own pace in the opened window and this returns as soon as the authenticated
+    session appears (or raises if it does not within ``timeout`` seconds).
+    """
+    import time as _time
+
     from playwright.sync_api import sync_playwright
 
     AUTH_DIR.mkdir(parents=True, exist_ok=True)
-    console.print(f"Opening [bold]{_LOGIN_URL}[/bold] — log in, then return here.")
+    console.print(
+        f"Opening [bold]{_LOGIN_URL}[/bold] — log in with your BURNER account in "
+        "the window that appears. I'll detect and save the session automatically "
+        f"(waiting up to {int(timeout)}s)."
+    )
+    deadline = _time.time() + timeout
+    saved = False
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False)
         context = browser.new_context()
         page = context.new_page()
         page.goto(_LOGIN_URL)
-        input("Press Enter once you are logged in… ")
-        context.storage_state(path=str(STATE_PATH))
+        while _time.time() < deadline:
+            has_session = any(
+                c.get("name") == SESSION_COOKIE and c.get("value")
+                and "instagram" in (c.get("domain") or "")
+                for c in context.cookies()
+            )
+            if has_session:
+                context.storage_state(path=str(STATE_PATH))
+                saved = True
+                break
+            _time.sleep(poll)
         browser.close()
-    if not session_has_auth():
+    if saved and session_has_auth():
+        console.print(f"[green]Session saved:[/green] {STATE_PATH}")
+    else:
         console.print(
-            f"[yellow]Warning:[/yellow] no {SESSION_COOKIE} cookie captured — "
-            "the session may not be authenticated. Try `--from-chrome` instead."
+            "[yellow]No logged-in Instagram session detected before the timeout. "
+            "Re-run `instagram-toolkit login` and complete the login in the "
+            "window.[/yellow]"
         )
-    console.print(f"[green]Session saved:[/green] {STATE_PATH}")
+        raise RuntimeError("Instagram login not detected before timeout.")
 
 
 # --- Reuse the session from the user's everyday Chrome -----------------------
