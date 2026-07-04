@@ -11,9 +11,10 @@ and builds cross-linked [Obsidian](https://obsidian.md) vaults so the material
 can be explored as a graph. It also generates a database-internals "learning
 pack" PDF that is verified by two persona agents.
 
-Five independent toolkits live under `src/`, sharing a small `media_core`. Stack:
+Six independent toolkits live under `src/`, sharing a small `media_core`. Stack:
 **Python 3.9+**, [Typer](https://typer.tiangolo.com/) CLIs, [Pydantic](https://docs.pydantic.dev/)
-models, [Playwright](https://playwright.dev/) for browser sessions.
+models, [Playwright](https://playwright.dev/) for browser sessions,
+[Instaloader](https://instaloader.github.io/) for Instagram.
 
 **Guardrails (non-negotiable):** no DRM circumvention (never download/decrypt
 protected audio/video), no stored passwords (interactive/session-cookie auth
@@ -31,8 +32,9 @@ pytest                      # run the test suite
 - Tests live in `tests/` (`testpaths` set in `pyproject.toml`). The unit tests
   for extraction, parsing, topics, and vault building need **no login or
   network**; integration/e2e tests skip themselves without a live session.
-- Four installed CLI entry points (`pyproject.toml` → `[project.scripts]`):
-  `soic-toolkit`, `substack-toolkit`, `youtube-toolkit`, `web-toolkit`.
+- Five installed CLI entry points (`pyproject.toml` → `[project.scripts]`):
+  `soic-toolkit`, `substack-toolkit`, `youtube-toolkit`, `web-toolkit`,
+  `instagram-toolkit`.
 
 > **README drift — trust the code, not the README.** The README still documents
 > a `media-toolkit youtube/web` command. No such entry point exists. The real
@@ -49,6 +51,7 @@ src/
   substack_toolkit/  # Substack publication capture
   youtube_toolkit/   # YouTube transcript capture
   web_toolkit/       # readable web-article capture
+  instagram_toolkit/ # Instagram caption + metadata capture (Instaloader)
 tests/               # pytest suite + fixtures/ (sample HTML/JSON; mostly offline)
 docs/                # END_TO_END_PLAN, PORTAL_NOTES, LEARNING_PACK_VERIFICATION_WORKFLOW
 scripts/             # generate_learning_pack.py (HTML→PDF learning pack)
@@ -56,7 +59,7 @@ scripts/             # generate_learning_pack.py (HTML→PDF learning pack)
 .env.example         # config template
 ```
 
-## The five toolkits
+## The six toolkits
 
 | Package | Captures | Auth model | Catalog | Default vault |
 |---------|----------|-----------|---------|---------------|
@@ -64,7 +67,8 @@ scripts/             # generate_learning_pack.py (HTML→PDF learning pack)
 | `substack_toolkit/` | Free + paid Substack posts | `substack.sid` cookie (from Chrome or login) | `data/substack.json` | `~/Documents/Obsidian Vault/Substack` |
 | `youtube_toolkit/` | Video transcripts | none (public, via yt-dlp) | `data/media.json` | `MEDIA_VAULT_DIR` (Obsidian iCloud) |
 | `web_toolkit/` | Readable articles | none (public HTML) | `data/media.json` (shared) | `MEDIA_VAULT_DIR` (shared) |
-| `media_core/` | — (shared infra) | — | `data/media.json` | builds the unified YouTube+web vault |
+| `instagram_toolkit/` | Public post/reel captions + metadata (no media, no comment text) | `sessionid` cookie (from Chrome or login) — **use a burner account** | `data/media.json` (shared) | `MEDIA_VAULT_DIR` (shared) |
+| `media_core/` | — (shared infra) | — | `data/media.json` | builds the unified YouTube+web+Instagram vault |
 
 Per-package files follow a consistent shape:
 - `cli.py` — Typer command (the installed entry point).
@@ -85,6 +89,11 @@ substack-toolkit login --from-chrome && substack-toolkit crawl <handle> && subst
 youtube-toolkit capture "https://www.youtube.com/@<handle>/videos" --limit 5
 web-toolkit capture "https://example.com/post"
 youtube-toolkit build
+# Instagram (shares the same catalog & unified vault; USE A BURNER ACCOUNT)
+instagram-toolkit login --from-chrome
+instagram-toolkit crawl <username> --limit 30
+instagram-toolkit crawl-hashtag <tag> --limit 30
+instagram-toolkit build
 ```
 
 ## Key conventions (reuse, don't reinvent)
@@ -128,6 +137,17 @@ doing source-specific work.
   `href` links). Pages only hydrate when authenticated, and **reloading a tab
   mid-extraction breaks hydration** — navigate with `location.href`, walk shadow
   roots, and poll for `bodhi-*` elements.
+- **Instagram** (`instagram_toolkit`, `docs/superpowers/specs/2026-07-04-instagram-toolkit-design.md`):
+  Instaloader-backed, authenticated via the `sessionid` cookie imported from
+  Chrome (same Keychain-decrypt as Substack). Captures **caption + metadata
+  only** — Instaloader is configured with all `download_*` flags off, so no
+  image/video/comment is ever fetched; the permalink is kept for manual visual
+  review. **Use a burner account** — scraping risks a lockout. IG blocks fast
+  scrapers even when logged in, so pace slowly (3–6s) and use small `--limit`;
+  the crawler stops politely on a block and resumes on re-run. The
+  `post_fetch` seam is injected in tests so extraction/crawl logic runs offline
+  without Instaloader or a login. Requires `pip install instaloader` (in
+  `pyproject.toml` deps).
 
 ## Learning packs, verification loop & Google Drive
 

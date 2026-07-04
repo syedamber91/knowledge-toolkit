@@ -1,0 +1,30 @@
+[
+  {
+    "shortcode": "CxAbc123",
+    "url": "https://www.instagram.com/reel/CxAbc123/",
+    "caption": "Premium Ajwa dates gift box for Ramadan\nCorporate gifting available — DM to order.",
+    "owner_username": "premiumdatesco",
+    "owner_fullname": "Premium Dates Co",
+    "taken_at": "2026-03-01T10:00:00+00:00",
+    "is_video": true,
+    "video_duration": 28.5,
+    "likes": 1240,
+    "comments": 57,
+    "hashtags": ["dates", "ramadan", "corporategifting"],
+    "mentions": ["somepartner"]
+  },
+  {
+    "shortcode": "CxDef456",
+    "url": "https://www.instagram.com/p/CxDef456/",
+    "caption": "",
+    "owner_username": "premiumdatesco",
+    "owner_fullname": "Premium Dates Co",
+    "taken_at": "2026-02-15T09:30:00+00:00",
+    "is_video": false,
+    "video_duration": null,
+    "likes": 300,
+    "comments": 4,
+    "hashtags": [],
+    "mentions": []
+  }
+]

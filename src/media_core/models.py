@@ -16,20 +16,24 @@ from pydantic import BaseModel, Field
 
 KIND_YOUTUBE = "youtube"
 KIND_ARTICLE = "article"
+KIND_INSTAGRAM = "instagram"
 
 
 class MediaItem(BaseModel):
-    kind: str                       # KIND_YOUTUBE | KIND_ARTICLE
+    kind: str                       # KIND_YOUTUBE | KIND_ARTICLE | KIND_INSTAGRAM
     title: str
     url: str
-    source: str = ""               # channel name (YouTube) or site domain (web)
-    source_id: str = ""            # channel id / bare domain — stable grouping key
+    source: str = ""               # channel name (YouTube) / site domain (web) / IG username
+    source_id: str = ""            # channel id / bare domain / IG username — stable grouping key
     author: str = ""
     published_at: Optional[datetime] = None
-    duration_seconds: Optional[int] = None   # YouTube only
+    duration_seconds: Optional[int] = None   # YouTube video / Instagram reel
     description: str = ""           # video description / article excerpt
-    # Transcript (YouTube) or readable article text (web), as Markdown.
+    # Transcript (YouTube), readable article text (web), or caption (Instagram), as Markdown.
     body_markdown: str = ""
+    # Engagement counts where the platform exposes them (Instagram; optional elsewhere).
+    like_count: Optional[int] = None
+    comment_count: Optional[int] = None
     # False when the body could not be captured (e.g. transcript disabled).
     body_accessible: bool = True
     # Canonical topics matched from the shared vocabulary (cross-source links).
