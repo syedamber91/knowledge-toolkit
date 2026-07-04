@@ -25,14 +25,32 @@ from typing import Iterable
 from rich.console import Console
 
 from .config import CONTENT_PATH, VAULT_DIR
-from .models import KIND_ARTICLE, KIND_YOUTUBE, MediaCatalog, MediaItem
+from .models import KIND_ARTICLE, KIND_INSTAGRAM, KIND_YOUTUBE, MediaCatalog, MediaItem
 from youtube_toolkit.capture import video_id_of
 
 console = Console()
 
 _EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
-_KIND_LABEL = {KIND_YOUTUBE: "YouTube", KIND_ARTICLE: "Web"}
-_KIND_FOLDER = {KIND_YOUTUBE: "youtube", KIND_ARTICLE: "web"}
+_KIND_LABEL = {KIND_YOUTUBE: "YouTube", KIND_ARTICLE: "Web", KIND_INSTAGRAM: "Instagram"}
+_KIND_FOLDER = {KIND_YOUTUBE: "youtube", KIND_ARTICLE: "web", KIND_INSTAGRAM: "instagram"}
+
+# Per-kind labels for the single "open the original" link and the body heading.
+_LINK_LABEL = {KIND_YOUTUBE: "Watch on YouTube", KIND_ARTICLE: "Open article",
+               KIND_INSTAGRAM: "Open on Instagram"}
+_BODY_HEADING = {KIND_YOUTUBE: "## Transcript", KIND_ARTICLE: "## Article",
+                 KIND_INSTAGRAM: "## Caption"}
+_DESC_HEADING = {KIND_YOUTUBE: "## Description", KIND_ARTICLE: "## Summary"}
+_BODY_WARNING = {KIND_YOUTUBE: "No transcript available for this video.",
+                 KIND_ARTICLE: "Article body could not be extracted.",
+                 KIND_INSTAGRAM: "Caption could not be captured for this post."}
+
+_IG_SHORTCODE_RE = re.compile(r"/(?:p|reel|tv)/([^/?#]+)")
+
+
+def shortcode_of(url: str) -> str:
+    """Extract the Instagram shortcode from a /p/<code>/, /reel/<code>/ or /tv/ URL."""
+    m = _IG_SHORTCODE_RE.search(url or "")
+    return m.group(1) if m else ""
 
 
 def slugify(text: str) -> str:
@@ -64,6 +82,8 @@ def _item_basename(item: MediaItem) -> str:
     base = slugify(item.title)[:60] or "untitled"
     if item.kind == KIND_YOUTUBE:
         return f"{base}-{video_id_of(item.url) or _short(item.url)}"
+    if item.kind == KIND_INSTAGRAM:
+        return f"{base}-{shortcode_of(item.url) or _short(item.url)}"
     return f"{base}-{_short(item.url)}"
 
 
@@ -98,6 +118,10 @@ def _render_item(item: MediaItem, source_moc: str) -> str:
     fm.append(f"url: {item.url}")
     if item.duration_seconds:
         fm.append(f"duration: {_fmt_duration(item.duration_seconds)}")
+    if item.like_count is not None:
+        fm.append(f"like_count: {item.like_count}")
+    if item.comment_count is not None:
+        fm.append(f"comment_count: {item.comment_count}")
     fm.append(f"topics: {_yaml_list(_yaml_quote(t) for t in item.topics)}")
     fm.append(f"tags: {_yaml_list(item.keywords)}")
     fm.append("---")
@@ -112,23 +136,22 @@ def _render_item(item: MediaItem, source_moc: str) -> str:
         meta.append(item.published_at.date().isoformat())
     if item.duration_seconds:
         meta.append(_fmt_duration(item.duration_seconds))
+    if item.like_count is not None or item.comment_count is not None:
+        meta.append(f"{item.like_count or 0} likes · {item.comment_count or 0} comments")
     if meta:
         body.append("*" + " · ".join(meta) + "*")
-    link_label = "Watch on YouTube" if item.kind == KIND_YOUTUBE else "Open article"
+    link_label = _LINK_LABEL.get(item.kind, "Open link")
     body.append(f"\n> Source: [{link_label}]({item.url})")
     if not item.body_accessible:
-        warn = ("No transcript available for this video."
-                if item.kind == KIND_YOUTUBE else
-                "Article body could not be extracted.")
+        warn = _BODY_WARNING.get(item.kind, "Body could not be captured.")
         body += ["", f"> [!warning] {warn}"]
-    if item.description:
-        body += ["", "## Description" if item.kind == KIND_YOUTUBE else "## Summary",
-                 "", item.description]
+    if item.description and item.kind in _DESC_HEADING:
+        body += ["", _DESC_HEADING[item.kind], "", item.description]
     if item.topics:
         body += ["", "## Topics", "",
                  " · ".join(f"[[{slugify(t)}|{t}]]" for t in item.topics)]
     if item.body_markdown:
-        heading = "## Transcript" if item.kind == KIND_YOUTUBE else "## Article"
+        heading = _BODY_HEADING.get(item.kind, "## Content")
         body += ["", "---", "", heading, "", item.body_markdown]
     return "\n".join(fm + body).rstrip() + "\n"
 
@@ -163,11 +186,15 @@ def _render_home(catalog: MediaCatalog,
                  source_items: dict[str, list[MediaItem]]) -> str:
     yt = len(catalog.by_kind(KIND_YOUTUBE))
     web = len(catalog.by_kind(KIND_ARTICLE))
+    ig = len(catalog.by_kind(KIND_INSTAGRAM))
+    counts = f"{yt} YouTube videos · {web} web articles"
+    if ig:
+        counts += f" · {ig} Instagram posts"
     lines = ["---", 'title: "Learning from YouTube & Websites"',
              "tags: [home, moc]", "---", "",
              "# Learning from YouTube & Websites", "",
-             f"{yt} YouTube videos · {web} web articles. Open the **graph view** "
-             "to see how topics connect videos and articles.", "", "## Sources"]
+             f"{counts}. Open the **graph view** "
+             "to see how topics connect them.", "", "## Sources"]
     for moc in sorted(source_items):
         items = source_items[moc]
         lines.append(f"- [[{moc}|{_source_label(items[0])}]] ({len(items)})")
