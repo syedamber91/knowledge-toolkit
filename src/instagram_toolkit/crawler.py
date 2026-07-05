@@ -51,8 +51,21 @@ def _make_loader():
     )
 
 
+def _safe_field(post, name):
+    """getattr that also tolerates a lazily-fetched Instaloader property
+    raising mid-access (e.g. BadResponseException), not just a missing
+    attribute. `comments` and `video_duration` fall back to a per-post
+    single-shortcode GraphQL fetch when the initial timeline payload didn't
+    include them, and that secondary fetch can be blocked/403'd independently
+    of the rest of the post — which must not crash the whole crawl."""
+    try:
+        return getattr(post, name, None)
+    except Exception:  # noqa: BLE001 - any failure in the lazy fetch, not just KeyError
+        return None
+
+
 def _normalize(post) -> dict:
-    """Instaloader Post -> normalized dict (no extra network requests)."""
+    """Instaloader Post -> normalized dict (no *required* extra network requests)."""
     is_video = bool(getattr(post, "is_video", False))
     kind = "reel" if is_video else "p"
     return {
@@ -65,9 +78,9 @@ def _normalize(post) -> dict:
         "owner_fullname": "",
         "taken_at": post.date_utc,
         "is_video": is_video,
-        "video_duration": getattr(post, "video_duration", None),
+        "video_duration": _safe_field(post, "video_duration"),
         "likes": getattr(post, "likes", None),
-        "comments": getattr(post, "comments", None),
+        "comments": _safe_field(post, "comments"),
         "hashtags": list(getattr(post, "caption_hashtags", []) or []),
         "mentions": list(getattr(post, "caption_mentions", []) or []),
     }

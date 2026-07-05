@@ -29,7 +29,11 @@ VAULT_DIR = Path(
 ).expanduser()
 
 STATE_PATH = AUTH_DIR / "substack_state.json"
-CONTENT_PATH = DATA_DIR / "substack.json"
+# Catalog of captured Substack posts. Override with SUBSTACK_CONTENT_PATH (e.g.
+# point at a nonexistent path) to build a media vault without merging Substack.
+CONTENT_PATH = Path(
+    os.environ.get("SUBSTACK_CONTENT_PATH", DATA_DIR / "substack.json")
+).expanduser()
 
 
 def _get_float(name: str, default: float) -> float:

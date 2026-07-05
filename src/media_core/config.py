@@ -28,8 +28,13 @@ _DEFAULT_VAULT = (
 )
 VAULT_DIR = Path(os.environ.get("MEDIA_VAULT_DIR", _DEFAULT_VAULT)).expanduser()
 
-# Resumable capture cache (the raw catalog of everything captured).
-CONTENT_PATH = DATA_DIR / "media.json"
+# Resumable capture cache (the raw catalog of everything captured). Defaults to
+# the shared ``data/media.json`` but can be pointed at a separate catalog via
+# ``MEDIA_CONTENT_PATH`` so an isolated vault (e.g. a topic-specific one) can be
+# built without mixing in previously captured content.
+CONTENT_PATH = Path(
+    os.environ.get("MEDIA_CONTENT_PATH", DATA_DIR / "media.json")
+).expanduser()
 
 
 def _get_float(name: str, default: float) -> float:

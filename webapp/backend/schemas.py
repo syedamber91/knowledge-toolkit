@@ -75,6 +75,8 @@ class TopicOut(BaseModel):
     name: str
     authors: list[str]
     post_count: int
+    authors_post_count: dict = {}
+    suggested_chapters: list[str] = []
     status: str
     post_count_at_ship: Optional[int]
     shipped_at: Optional[datetime]

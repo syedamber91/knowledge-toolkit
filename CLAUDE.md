@@ -165,7 +165,7 @@ doing source-specific work.
   `href` links). Pages only hydrate when authenticated, and **reloading a tab
   mid-extraction breaks hydration** — navigate with `location.href`, walk shadow
   roots, and poll for `bodhi-*` elements.
-- **Instagram** (`instagram_toolkit`, `docs/superpowers/specs/2026-07-04-instagram-toolkit-design.md`):
+- **Instagram** (`/instagram-capture`, `docs/superpowers/specs/2026-07-04-instagram-toolkit-design.md`):
   Instaloader-backed, authenticated via the `sessionid` cookie imported from
   Chrome (same Keychain-decrypt as Substack). Captures **caption + metadata
   only** — Instaloader is configured with all `download_*` flags off, so no
@@ -239,20 +239,24 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
-- `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture` —
-  source-specific capture recipes.
+- `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture`,
+  `instagram-capture` — source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
 - `alex-persona` — the 15-year-old clarity auditor persona (`/alex` trigger).
 - `graphify` (`/graphify`) — turns any folder (code, docs, papers, images) into a
   navigable knowledge graph with community detection and an audit trail, emitting
   interactive HTML + GraphRAG-ready JSON + a plain-language `GRAPH_REPORT.md`.
   Self-bootstrapping: installs the `graphifyy` pip package at runtime if absent.
+- `nate-herk-persona`, `jack-roberts-persona` — direct-mentor personas grounded
+  in captured YouTube transcripts (`/nate-herk`, `/jack-roberts` triggers); see
+  `docs/superpowers/specs/2026-07-05-nate-herk-jack-roberts-persona-design.md`.
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
-`media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`, `vutr`,
-`lucsystemdesign`, `sdcourse`, `alex` (verification/examiner personas). Note: agent files
-reference an absolute project root from the author's machine — paths there are
-illustrative, not this repo's path.
+`media-capturer`, `instagram-capturer` (capture orchestrators); `justin-sung`,
+`ben-dicken`, `vutr`, `lucsystemdesign`, `sdcourse`, `alex` (verification/
+examiner personas); `nate-herk`, `jack-roberts` (direct-mentor personas). Note:
+agent files reference an absolute project root from the author's machine —
+paths there are illustrative, not this repo's path.
 
 ## Pointers
 
