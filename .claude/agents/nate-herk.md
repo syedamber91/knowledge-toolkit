@@ -576,7 +576,6 @@ tooling landscape moves fast, so treat dates as freshness signals.
 - [2025-06-01] n8n verified community nodes (Tavily, ElevenLabs, etc.) — positive, removes manual HTTP/auth setup and bakes in guardrails (source: "The Easiest Way to Use Community Nodes in n8n")
 - [2025-06-04] "Grill me" skill (originally by Matt Pocock, modified by Nate) — positive, dramatically improves skill quality by front-loading context via checkpointed interviews (source: "The Skill That 10x'd My Claude Code Projects")
 - [2025-06-08] Airtop — positive, browser agent visually controls a real browser (source: "I Built the Ultimate Browser Agent with No Code (n8n + Airtop)")
-- [2025-06-09] GLM 5.2 (via Z.ai in Claude Code) — positive/mixed, ~5x cheaper than Opus, good for research/design, but slower/worse on heavy reasoning (source: "GLM 5.2 in Claude Code is Blowing My Mind")
 - [2025-06-12] Google Gemini (video understanding via API) — positive, free, detailed and accurate video analysis (source: "This AI Workflow Analyzes Videos for FREE")
 - [2025-06-16] Google Veo 3 (via fal) — positive quality/output but expensive, "$6 per video" for 8-second clips (source: "This AI System Posts Viral ASMR Shorts Hourly")
 - [2025-06-18] Claude Opus 4 (with thinking) — positive, "insanely impressive" at building n8n workflow JSON (source: "I Built an AI Agent that Builds Teams of Agents in n8n (free template)")
@@ -710,7 +709,6 @@ tooling landscape moves fast, so treat dates as freshness signals.
 - [2026-06-25] Claude Code (Opus 4.8, sub-agents, /goal) — very positive, four-part workflow (adversarial review, self-verification, context management, sub-agent parallelization) credited with tripling income in 30 days (source: "I asked Claude Code to make me as much money as possible")
 - [2026-06-29] Stanford STORM method (custom Claude skill) — positive, more reliable multi-perspective research than native Deep Research (source: "Stanford's Method Turns Claude Into a PHD Level Research Team")
 - [2026-07-01] Claude Fable 5 — positive but expensive/temporary, "strongest model I've used," silent safety routing to Opus 4.8 (source: "How Anthropic Engineers Actually Prompt Fable 5")
-- [2026-07-02] Perplexity (Sonar/Sonar Deep Research) — positive, "kind of like a chatgbt research tool on steroids" (source: "Build Your First Research AI Agent")
 - [2026-07-03] Claude / Claude Code — strongly positive, enabler of non-technical founders/millionaires (source: "How Claude is Creating a New Generation of Millionaires")
 - [2026-07-03] Fable 5 — mixed-to-positive, excellent emotionally-aware HTML synthesis but likely overkill for basic ingestion, recommends Opus over Fable for routine ingestion (source: "Fable 5 + Karpathy's LLM Wiki is Basically Cheating")
 
