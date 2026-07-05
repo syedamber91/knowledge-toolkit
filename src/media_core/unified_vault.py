@@ -198,6 +198,7 @@ def _render_home(catalog: MediaCatalog,
     for moc in sorted(source_items):
         items = source_items[moc]
         lines.append(f"- [[{moc}|{_source_label(items[0])}]] ({len(items)})")
+    lines.append("See [[Log|Ingestion Log]] for a running history of what's been added.")
     lines += ["", "## Topics"]
 
     def total(topic: str) -> int:
@@ -242,6 +243,13 @@ def build_vault(catalog: MediaCatalog,
     for topic, by_source in topic_index.items():
         _write(target / "topics" / f"{slugify(topic)}.md",
                _render_topic(topic, by_source))
+
+    # --- ingestion log (append-only; distinct from Home's current-state view) ---
+    yt_count = len(catalog.by_kind(KIND_YOUTUBE))
+    web_count = len(catalog.by_kind(KIND_ARTICLE))
+    ig_count = len(catalog.by_kind(KIND_INSTAGRAM))
+    breakdown = f"{yt_count} YouTube, {web_count} web, {ig_count} Instagram"
+    _log_ingest(target, len(catalog.items), breakdown)
 
     _write(target / "Home.md", _render_home(catalog, topic_index, source_items))
 
