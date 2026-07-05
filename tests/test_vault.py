@@ -72,3 +72,60 @@ def test_vault_dir_override_writes_to_custom_path(tmp_path):
 def test_slugify():
     assert vault.slugify("Intrinsic Value!") == "intrinsic-value"
     assert vault.slugify("  A/B  Test ") == "ab-test"
+
+
+# --- ingestion log (index + log + cross-links routing pattern) ---------------
+
+def test_log_created_on_first_build_backfills_without_claiming_new(tmp_path):
+    out = tmp_path / "Obsidian Vault"
+    vault.build_vault(_catalog(), vault_dir=out)
+
+    log = (out / "Log.md").read_text()
+    assert log.count("\n- **") == 1        # exactly one entry
+    # First-ever entry backfills pre-existing content — must not claim it was
+    # "just captured" when it wasn't.
+    assert "2 item(s) already in vault (log started here) (2 total: 2 lesson notes)" in log
+    assert "[[Log|Ingestion Log]]" in (out / "Home.md").read_text()
+
+
+def test_log_appends_new_entry_when_items_added(tmp_path):
+    out = tmp_path / "Obsidian Vault"
+    vault.build_vault(_catalog(), vault_dir=out)
+
+    grown = _catalog()
+    grown.courses[0].modules[0].lessons.append(
+        Lesson(
+            title="Margin of Safety",
+            url="https://learn.soic.in/l3",
+            body_text="Margin of safety protects against valuation error.",
+            key_points=["Buy below intrinsic value"],
+        )
+    )
+    vault.build_vault(grown, vault_dir=out)
+
+    log = (out / "Log.md").read_text()
+    assert log.count("\n- **") == 2        # first entry preserved, second appended
+    assert "1 new item(s) captured (3 total: 3 lesson notes)" in log
+
+
+def test_log_skips_entry_when_no_new_items(tmp_path):
+    out = tmp_path / "Obsidian Vault"
+    vault.build_vault(_catalog(), vault_dir=out)
+    vault.build_vault(_catalog(), vault_dir=out)  # identical rebuild
+
+    log = (out / "Log.md").read_text()
+    assert log.count("\n- **") == 1        # no duplicate entry for an unchanged rebuild
+
+
+def test_log_records_removed_items(tmp_path):
+    out = tmp_path / "Obsidian Vault"
+    vault.build_vault(_catalog(), vault_dir=out)
+
+    shrunk = _catalog()
+    shrunk.courses[0].modules[0].lessons.pop()  # drop one lesson
+
+    vault.build_vault(shrunk, vault_dir=out)
+
+    log = (out / "Log.md").read_text()
+    assert log.count("\n- **") == 2
+    assert "1 item(s) removed (1 total: 1 lesson notes)" in log
