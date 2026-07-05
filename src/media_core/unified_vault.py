@@ -309,6 +309,50 @@ def _render_sub_channel_moc(channel) -> str:
 
 # --- unified build -----------------------------------------------------------
 
+_LOG_TOTAL_RE = re.compile(r"\((\d+) total")
+
+
+def _last_logged_total(log_path: Path) -> int:
+    """Total item count recorded in the log's last entry, or 0 with no log yet."""
+    if not log_path.exists():
+        return 0
+    for line in reversed(log_path.read_text(encoding="utf-8").splitlines()):
+        m = _LOG_TOTAL_RE.search(line)
+        if m:
+            return int(m.group(1))
+    return 0
+
+
+def _log_ingest(target: Path, total: int, breakdown: str) -> None:
+    """Append one line to Log.md recording the delta since the last build.
+
+    Log.md is append-only — a running ingestion history, never overwritten,
+    distinct from Home.md (current state) and topics/*.md (cross-links).
+    Skips writing an entry when nothing changed, so repeated no-op rebuilds
+    don't spam the log.
+    """
+    log_path = target / "Log.md"
+    is_first_entry = not log_path.exists()
+    delta = total - _last_logged_total(log_path)
+    if delta == 0:
+        return
+    if is_first_entry:
+        # Backfill entry for pre-existing content — these items weren't just
+        # captured in this one build, so don't claim they were.
+        action = f"{total} item(s) already in vault (log started here)"
+    else:
+        action = f"{delta} new item(s) captured" if delta > 0 else f"{-delta} item(s) removed"
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    if is_first_entry:
+        header = ("---\ntitle: \"Ingestion Log\"\ntags: [log]\n---\n\n"
+                   "# Ingestion Log\n\n"
+                   "A running history of what was added to (or removed from) this "
+                   "vault and when — append-only, never rewritten.\n\n")
+        _write(log_path, header)
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(f"- **{stamp}** — {action} ({total} total: {breakdown})\n")
+
+
 def build_unified(media, substack, vault_dir=None):
     """Write the unified vault: media + Substack content notes sharing one topics/."""
     target = Path(vault_dir).expanduser() if vault_dir else VAULT_DIR
@@ -361,10 +405,19 @@ def build_unified(media, substack, vault_dir=None):
         _write(target / "topics" / f"{slugify(topic)}.md",
                "\n".join(lines).rstrip() + "\n")
 
+    # --- ingestion log (append-only; distinct from Home's current-state view) ---
+    yt_count = len([i for i in media.items if i.kind == KIND_YOUTUBE])
+    web_count = len([i for i in media.items if i.kind == KIND_ARTICLE])
+    ig_count = len([i for i in media.items if i.kind == KIND_INSTAGRAM])
+    sub_count = sum(len(c.posts) for c in substack.channels) if substack is not None else 0
+    breakdown = f"{yt_count} YouTube, {web_count} web, {ig_count} Instagram, {sub_count} Substack"
+    _log_ingest(target, len(media.items) + sub_count, breakdown)
+
     # --- root Home ---
     home = ["---", 'title: "Knowledge Vault"', "tags: [home, moc]", "---", "",
             "# Knowledge Vault", "",
             "Unified topics across Substack, YouTube and web. Open the graph view.",
+            "See [[Log|Ingestion Log]] for a running history of what's been added.",
             "", "## Sources"]
     for moc, items in source_items.items():
         home.append(f"- [[sources/{moc}|{_source_label(items[0])}]] ({len(items)})")
