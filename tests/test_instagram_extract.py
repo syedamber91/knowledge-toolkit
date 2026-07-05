@@ -60,6 +60,39 @@ def test_item_from_post_matches_topics_from_caption():
     assert "Productivity" in it.topics
 
 
+# --- _normalize resilience ----------------------------------------------------
+
+def test_normalize_tolerates_failed_lazy_metadata_fields():
+    """Some Instaloader Post properties (comments count, video_duration) return
+    None from the initial timeline payload and lazily fetch full single-post
+    metadata on first access. If that secondary network request fails (e.g.
+    Instagram 403s the endpoint for this session), _normalize must still
+    return a usable item with those specific fields as None, rather than
+    letting the underlying exception crash the whole crawl."""
+
+    class _ExplodingField:
+        def __get__(self, obj, objtype=None):
+            raise RuntimeError("simulated Instaloader BadResponseException")
+
+    class FakePost:
+        shortcode = "ABC123"
+        caption = "hello world"
+        owner_username = "someone"
+        date_utc = "2026-01-01T00:00:00+00:00"
+        is_video = True
+        caption_hashtags = []
+        caption_mentions = []
+        likes = 42
+        video_duration = _ExplodingField()
+        comments = _ExplodingField()
+
+    item = crawler._normalize(FakePost())
+    assert item["video_duration"] is None
+    assert item["comments"] is None
+    assert item["likes"] == 42
+    assert item["caption"] == "hello world"
+
+
 # --- crawler (resumable, polite, block-safe) ---------------------------------
 
 def test_crawl_resumes_and_respects_limit(tmp_path, monkeypatch):
