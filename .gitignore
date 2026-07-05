@@ -28,3 +28,16 @@ venv/
 .idea/
 .vscode/
 .superpowers/
+
+# graphify knowledge graph — commit the core graph (graph.json, GRAPH_REPORT.md,
+# manifest.json, cost.json) so new sessions can read it; ignore the heavy,
+# fully-regenerable artifacts (Obsidian vault, interactive HTML, extraction cache).
+graphify-out/obsidian/
+graphify-out/cache/
+graphify-out/memory/
+graphify-out/graph.html
+graphify-out/*.svg
+graphify-out/*.graphml
+graphify-out/.needs_update
+.graphify_*.json
+.graphify_*.txt

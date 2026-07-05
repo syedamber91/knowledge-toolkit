@@ -10,14 +10,14 @@ import ExaminerGrid from "@/components/pack-builder/ExaminerGrid";
 import RunPreview from "@/components/pack-builder/RunPreview";
 import AttentionDigest from "@/components/pack-builder/AttentionDigest";
 
-const DEFAULT_CHAPTERS = ["", "", "", "", ""];
+const EMPTY_CHAPTERS = ["", "", "", "", ""];
 
 export default function NewRunPage() {
   const router = useRouter();
   const [topics, setTopics] = useState<Topic[]>([]);
   const [authors, setAuthors] = useState<string[]>([]);
   const [topic, setTopic] = useState("");
-  const [chapters, setChapters] = useState<string[]>(DEFAULT_CHAPTERS);
+  const [chapters, setChapters] = useState<string[]>(EMPTY_CHAPTERS);
   const [examiners, setExaminers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -25,7 +25,17 @@ export default function NewRunPage() {
 
   const selectedTopic = topics.find((t) => t.name === topic);
   const postCount = selectedTopic?.post_count ?? 0;
-  const canStart = authors.length > 0 && topic !== "" && chapters.some(Boolean) && examiners.length > 0;
+  const canStart = authors.length > 0 && topic !== "" && examiners.length > 0;
+
+  function handleTopicSelect(name: string) {
+    setTopic(name);
+    const t = topics.find((t) => t.name === name);
+    if (t?.suggested_chapters?.length) {
+      setChapters(t.suggested_chapters.slice(0, 5).concat(EMPTY_CHAPTERS).slice(0, 5));
+    } else {
+      setChapters(EMPTY_CHAPTERS);
+    }
+  }
 
   async function start() {
     if (!canStart) return;
@@ -48,7 +58,7 @@ export default function NewRunPage() {
       <div className="grid grid-cols-[1fr_460px] gap-8">
         <div className="space-y-6">
           <AuthorChips selected={authors} onChange={setAuthors} />
-          <TopicBrowser topics={topics} selected={topic} onSelect={setTopic} />
+          <TopicBrowser topics={topics} selected={topic} onSelect={handleTopicSelect} />
           {topic && <ChapterFields chapters={chapters} onChange={setChapters} />}
           <ExaminerGrid selected={examiners} onChange={setExaminers} />
         </div>
@@ -57,8 +67,8 @@ export default function NewRunPage() {
             <div className="bg-white border border-[var(--border)] rounded-lg px-5 py-4">
               <div className="text-[11px] font-semibold text-[var(--gray-50)] mb-1">Vault status</div>
               <div className="text-[13px] font-medium text-[var(--gray-10)]">{postCount} posts matched to {topic}</div>
-              <div className="text-[11px] text-[var(--gray-50)]">
-                {selectedTopic.authors.map((a) => `${a}: ${Math.round(postCount / selectedTopic.authors.length)}`).join(" · ")}
+              <div className="text-[11px] text-[var(--gray-50)] mt-0.5">
+                {Object.entries(selectedTopic.authors_post_count).map(([a, n]) => `${a}: ${n}`).join(" · ")}
               </div>
             </div>
           )}

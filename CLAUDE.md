@@ -3,6 +3,34 @@
 Guidance for AI assistants working in this repository. For the human-facing
 overview see [`README.md`](README.md); for deep dives see [`docs/`](docs/).
 
+## START HERE — read the knowledge graph first
+
+**Before exploring the codebase or planning any change, read the graphify
+knowledge graph.** It is a pre-computed map of this repo — 1119 nodes / 1893
+edges across 84 clustered communities — so you can orient in one read instead of
+grepping around blind.
+
+1. Read [`graphify-out/GRAPH_REPORT.md`](graphify-out/GRAPH_REPORT.md) — the
+   god nodes (core abstractions like `media_core` unified vault builder,
+   `MediaCatalog`, `SubstackCatalog`), community map, and cross-cutting edges.
+2. For targeted lookups, query the graph instead of re-reading files:
+   - `graphify query "how does substack auth work"` — BFS over `graph.json`
+   - `graphify explain "MediaCatalog"` — a node and its neighbours
+   - `graphify path "SOIC Crawler" "Obsidian Vault"` — shortest path between concepts
+   - `graphify affected "media_core models"` — what a change would impact
+3. Only after the graph has given you the lay of the land, start your actual
+   reasoning/implementation.
+
+The graph is committed (`graphify-out/graph.json` + `GRAPH_REPORT.md` +
+`manifest.json`). A `.githooks/post-commit` hook (enable once per clone with
+`git config core.hooksPath .githooks`) watches every commit and, when source
+files change, **flags the graph as stale** (writes `graphify-out/.needs_update`
+and prints a reminder) rather than auto-rebuilding — the pinned graphify's
+`update` command is AST-only and would discard this curated semantic layer and
+its community labels. To refresh properly, run `/graphify .` (re-extracts code
+**and** docs, re-clusters, re-labels). Keep it current — it is the first thing
+every session reads.
+
 ## Overview
 
 `knowledge-toolkit` is a **personal knowledge-capture toolkit**. It logs into
@@ -215,6 +243,10 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
 - `alex-persona` — the 15-year-old clarity auditor persona (`/alex` trigger).
+- `graphify` (`/graphify`) — turns any folder (code, docs, papers, images) into a
+  navigable knowledge graph with community detection and an audit trail, emitting
+  interactive HTML + GraphRAG-ready JSON + a plain-language `GRAPH_REPORT.md`.
+  Self-bootstrapping: installs the `graphifyy` pip package at runtime if absent.
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer` (capture orchestrators) and `justin-sung`, `ben-dicken`, `vutr`,
