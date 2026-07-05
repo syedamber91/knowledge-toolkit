@@ -1186,7 +1186,7 @@ CH3 = """
 <div class="sketch-cap">The whole chapter on one napkin — everything below hangs off this map. Diagram: a hub-and-spoke mind map with SHUFFLE at the center and five grouped branches: why disk, the 3 join strategies, shuffle-dodging tricks, skew, and Uber's RSS at scale.</div>
 
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
-<p>Despite Spark's reputation as an "in-memory" engine, shuffle writes to disk. Every groupBy, join, repartition, and sort crosses a stage boundary where Spark writes shuffle output files to local disk, transfers them over the network to the next stage's executors, and reads them back from disk. This disk + network cost is the dominant bottleneck in most production Spark jobs. The three join strategies — Sort Merge Join, Shuffle Hash Join, and Broadcast Hash Join — exist because different data sizes and distributions call for radically different approaches. Choosing the wrong one silently costs 10× performance or causes OOM.</p>
+<p>Despite Spark's reputation as an "in-memory" engine, shuffle writes to disk. Every groupBy, join, repartition, and sort crosses a stage boundary where Spark writes shuffle output files to local disk, transfers them over the network to the next stage's executors, and reads them back from disk. This disk + network cost is the dominant bottleneck in most production Spark jobs. The three join strategies — Sort Merge Join, Shuffle Hash Join, and Broadcast Hash Join — exist because different data sizes and distributions call for radically different approaches. Choosing the wrong one silently costs 10× performance or causes OOM. Three threads run through this chapter that are worth holding onto explicitly: <strong>why</strong> shuffle is disk-based at all (the fault-tolerance rationale — a lost reducer is cheap to retry, a lost mapper is not, and Google's Dremel paper showed why coupling compute to shuffle storage doesn't scale), <strong>which</strong> of two similar-looking problems you're actually facing when a task hangs (a skewed key needs data-side fixes; a bad executor needs speculative execution — the fixes are not interchangeable), and <strong>how</strong> the same modular arithmetic that makes bucket joins fast also silently breaks them the moment bucket counts don't match.</p>
 </div>
 
 <div class="topic">
@@ -1352,7 +1352,7 @@ CH3 = """
 </ol>
 
 <div class="box f"><div class="box-lbl">Why SHJ Was Removed in Spark 1.6 and Reintroduced in Spark 2.0</div>
-<p>SHJ requires the build side partition to fit entirely in memory. If the build side is large, or if data is skewed such that one partition of the build side is disproportionately large, the executor runs out of memory building the hash table. <strong>Unlike SMJ, SHJ cannot spill to disk</strong> — a hash table must be fully resident to serve lookups correctly. This caused enough production OOMs that Spark 1.6 removed SHJ entirely. Spark 2.0 reintroduced it with stricter guardrails: <code>spark.sql.adaptive.maxShuffledHashJoinLocalMapThreshold = 0</code> by default, meaning the optimizer always skips SHJ unless explicitly enabled. Even with AQE's dynamic join switching, SHJ is only selected when the build-side partition is confirmed to fit in memory at runtime.</p>
+<p>SHJ requires the build side partition to fit entirely in memory. If the build side is large, or if data is skewed such that one partition of the build side is disproportionately large, the executor runs out of memory building the hash table. <strong>Unlike SMJ, SHJ cannot spill to disk</strong> — a hash table must be fully resident to serve lookups correctly. This caused enough production OOMs that Spark 1.6 removed SHJ entirely. Spark 2.0 reintroduced it, but with the optimizer's default preference strongly favoring SMJ — Catalyst only selects SHJ when the build-side partition is confirmed small enough to fit safely in memory, and in practice this makes SHJ selection rare unless a query hint explicitly requests it. Vu Trinh's production rule reflects this: know exactly what you're doing before enabling SHJ, because the guardrail is a preference, not a hard safety net. Even with AQE's dynamic join switching, SHJ is only selected when the build-side partition is confirmed to fit in memory at runtime.</p>
 </div>
 
 <p>Vu's production rule: "In a production Spark application, make sure you know what you're doing when enabling SHJ; it's only efficient when the build-side partitions fit in memory. If they get larger for some reason, your application will likely get an OOM error."</p>
@@ -1396,7 +1396,7 @@ CH3 = """
 
 <p>When two tables are bucketed on the same column with the same number of buckets (using <code>bucketBy(n, column).saveAsTable()</code>), the data is pre-shuffled at write time. All rows with join key K from both tables land in the same bucket file. At join time, Spark reads bucket N of table A and bucket N of table B — they are already co-partitioned. <strong>No shuffle is needed.</strong></p>
 
-<p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata must be stored in the Hive metastore (a relational database, typically embedded or external like MySQL, that stores table schemas, partition layouts, and bucketing information so Spark and other engines can discover and use it at query time) so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, key K hashes to bucket K%50 in table A but bucket K%100 in table B, so bucket 3 of A contains different keys than bucket 3 of B. The co-partitioning property breaks and Spark must shuffle anyway.</p>
+<p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata must be stored in the Hive metastore (a relational database, typically embedded or external like MySQL, that stores table schemas, partition layouts, and bucketing information so Spark and other engines can discover and use it at query time) so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, key K hashes to a <em>different</em> bucket number in each table. Worked example with key K = 253: in table A (50 buckets), 253 % 50 = 3, so K lands in bucket 3. In table B (100 buckets), 253 % 100 = 53, so the same K lands in bucket 53. Bucket 3 of A and bucket 3 of B no longer contain the same keys — the co-partitioning property breaks and Spark must shuffle anyway.</p>
 
 <div class="scribble">bucket join = pay the shuffle ONCE at write time, then join for free forever after. Only worth it if you join this table again and again — like pre-sorting your closet. <span class="who">— Alex, margin note</span></div>
 
@@ -1730,7 +1730,7 @@ CH4 = """
   <li>The JVM deserializes the result and continues processing</li>
 </ol>
 
-<p>This happens for <strong>every single row</strong>. On a 10M-row DataFrame, that is 10M serialization round-trips. The combined overhead — JVM/Python process switching, Pickle serialization, socket transfer, deserialization — typically makes Python UDFs 10–100× slower than equivalent built-in Spark functions.</p>
+<p>This happens for <strong>every single row</strong>. On a 10M-row DataFrame, that is 10M serialization round-trips. The combined overhead — JVM/Python process switching, Pickle serialization, socket transfer, deserialization — typically makes Python UDFs 50–200× slower than equivalent built-in Spark functions (the exact multiplier depends on row size and UDF complexity, but the mechanism — one round trip per row — is constant).</p>
 
 <p>Python UDFs also lose two Spark performance features:</p>
 <ul>
@@ -1850,6 +1850,7 @@ CH4 = """
 <div class="box n"><div class="box-lbl">HashAggregate Operator: Tungsten in Practice</div>
 <p>When Spark executes a <code>GROUP BY</code> with numeric aggregations (SUM, COUNT, AVG on integers/longs), it uses the <code>HashAggregate</code> operator backed by Tungsten's off-heap hash table (UnsafeFixedWidthAggregationMap). Keys and values are stored as UnsafeRow binary data — tight packing, no GC pressure.</p>
 <p>When aggregation involves String columns, Tungsten's fixed-width hash table cannot accommodate variable-length mutable values. Spark falls back to <code>SortAggregate</code>, which sorts by key and streams through — slower, more spill. This is why avoiding String-typed groupBy keys (when possible, use integer IDs) improves aggregation performance significantly.</p>
+<p><strong>Why fixed-width, mechanistically:</strong> <code>UnsafeFixedWidthAggregationMap</code> locates every aggregation buffer with direct pointer arithmetic — <code>slot_address = base_address + (slot_index × fixed_slot_size)</code> — the same O(1) addressing trick that makes UnsafeRow field access fast. This requires every slot to be exactly <code>fixed_slot_size</code> bytes, known in advance, so the map can jump straight to any slot without scanning. A running SUM or COUNT is a fixed-width value (8 bytes for a long) that is mutated <em>in place</em> at that address on every incoming row — no reallocation, no GC. A variable-length String value breaks this: its size isn't known until the value arrives, and if a new value is longer than the one already in the slot, an in-place update would overwrite adjacent memory. There is no way to grow a slot without either reallocating (defeating the in-place mutation model) or over-allocating for a worst-case length up front (wasting memory across millions of slots). <code>SortAggregate</code> avoids the problem entirely by never doing in-place random-access mutation — it sorts first so identical keys become adjacent, then streams through with a regular (variable-length-safe) accumulator.</p>
 </div>
 </div>
 
@@ -1878,6 +1879,10 @@ CH4 = """
 </ul>
 
 <p>Databricks prototyped both for Photon. The code-generated C++ prototype took <strong>two months</strong>. The vectorized (interpreted) C++ prototype took <strong>a couple of weeks</strong>. The vectorized approach also enables native debugging (print statements work; native tools like gdb apply) and allows runtime adaptivity — choosing different code paths based on input data characteristics (nulls present, ASCII-only strings, sparse batches). Databricks chose vectorized.</p>
+
+<div class="box f"><div class="box-lbl">What Code Generation Buys That Vectorized Execution Gives Up</div>
+<p>The trade-off is not one-sided. Code generation's advantage is <strong>operator fusion</strong>: Catalyst's Janino-generated code inlines every operator in the query — filter, project, hash computation, aggregation — into a single specialized tight loop with zero per-operator dispatch overhead (this is the same mechanism from Ch1's Catalyst Phase 4). A vectorized engine like Photon, by contrast, still dispatches to a separate operator implementation for each column batch at each step of the plan — the batching amortizes that dispatch cost over thousands of rows instead of one, but the dispatch still happens once per operator per batch, not zero times. This per-operator-per-batch cost is the classic "Volcano-style iterator overhead" that whole-stage code generation was invented to eliminate. Photon accepts this residual cost in exchange for the weeks-not-months build time, native debuggability, and runtime adaptivity described above — it is a deliberate trade of a small, amortized overhead for engineering velocity, not a strictly better technique.</p>
+</div>
 
 <h3>Photon's Data Model: Column Vectors and Position Lists</h3>
 <p>The fundamental data unit in Photon is a <strong>column vector</strong>: all values of one column for a batch of rows, stored contiguously. A <strong>column batch</strong> is a set of column vectors representing a set of rows. Each column vector also carries a byte vector for NULL information.</p>
@@ -2141,6 +2146,36 @@ CH5 = """
   <li><strong>Sliding windows:</strong> Fixed-size, overlapping. <code>window("event_time", "1 hour", "15 minutes")</code> — 1-hour windows starting every 15 minutes. Each event belongs to multiple overlapping windows.</li>
   <li><strong>Session windows (Spark 3.2+):</strong> Variable-length, defined by inactivity gap. A session groups events with gaps smaller than the timeout; a new session starts after the timeout expires. For example, a 5-minute session window would group together clicks at 10:01, 10:03, and 10:06 into one session, then start a new session when the next click arrives at 10:15 — because the 9-minute gap exceeds the timeout.</li>
 </ul>
+
+<div class="box n"><div class="box-lbl">Worked Example: State Cost of Sliding vs Tumbling Windows</div>
+<p>With <code>window("event_time", "1 hour")</code> (tumbling), one event at 10:20 belongs to exactly <strong>one</strong> open window — [10:00, 11:00) — so Spark maintains exactly one aggregation state entry for it. With <code>window("event_time", "1 hour", "15 minutes")</code> (sliding), the same event at 10:20 falls inside <strong>four</strong> overlapping 1-hour windows simultaneously: [9:30,10:30), [9:45,10:45), [10:00,11:00), [10:15,11:15). Spark must update all four windows' state on every micro-batch that touches this event. General rule: a sliding window of size <code>W</code> with slide interval <code>S</code> keeps <code>W / S</code> windows concurrently open per event — here 60min / 15min = 4×. State memory therefore scales roughly linearly with <code>W/S</code>: doubling the overlap (slide of 7.5 min instead of 15) doubles the concurrent windows to 8, and doubles the state store's memory footprint for the same input volume.</p>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <path d="M30 170 L670 170" stroke-width="2.6" marker-end="url(#arr)"/>
+  </g>
+  <rect x="220" y="30" width="140" height="16" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+  <text x="290" y="20" text-anchor="middle" font-size="12" fill="#1e3a8a">tumbling: 1 window</text>
+  <circle cx="290" cy="170" r="7" fill="#fecaca" stroke="#dc2626" stroke-width="2"/>
+  <text x="290" y="192" text-anchor="middle" font-size="12" fill="#7f1d1d">event @ 10:20</text>
+  <g stroke="#16a34a" stroke-width="2" fill="#dcfce7" opacity="0.85">
+    <rect x="130" y="60" width="140" height="14"/>
+    <rect x="165" y="78" width="140" height="14"/>
+    <rect x="200" y="96" width="140" height="14"/>
+    <rect x="235" y="114" width="140" height="14"/>
+  </g>
+  <text x="490" y="70" font-size="12" fill="#14532d">4 windows open</text>
+  <text x="490" y="88" font-size="12" fill="#14532d">at once for the</text>
+  <text x="490" y="106" font-size="12" fill="#14532d">SAME event —</text>
+  <text x="490" y="124" font-size="12" fill="#14532d" font-weight="700">sliding, 15min step</text>
+  <text x="350" y="10" text-anchor="middle" font-size="14" fill="#44446a">W / S = concurrent windows per event (here: 60min / 15min = 4×)</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: one event at 10:20 belongs to exactly one tumbling window (top bar), but to four overlapping sliding windows simultaneously (stacked green bars) — each one needs its own state entry updated.</div>
+
+<div class="scribble">tumbling windows are lockers — one item, one locker. Sliding windows are more like sticky notes on a shared board — the same event gets copied onto every overlapping note, and Spark has to update all of them. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <div class="topic">
