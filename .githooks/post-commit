@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# graphify staleness flag — runs after every commit.
+#
+# When a commit touches source files, this marks the committed knowledge graph
+# (graphify-out/) as stale and reminds you to refresh it. It intentionally does
+# NOT run `graphify update .` automatically: in the pinned graphify version that
+# command rebuilds AST-only and DISCARDS the curated semantic layer + community
+# labels that make GRAPH_REPORT.md useful to read. A lossy auto-rebuild would be
+# worse than a clearly-flagged stale graph.
+#
+# To refresh properly, run the full pipeline in your AI assistant:  /graphify .
+# (re-extracts code AND docs, re-clusters, re-labels, regenerates the report).
+#
+# Enabled repo-wide via:  git config core.hooksPath .githooks
+# Never blocks or fails a commit.
+
+set -u
+
+[ -f graphify-out/graph.json ] || exit 0
+
+changed_src=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null \
+  | grep -E '\.(py|ts|tsx|js|jsx|mjs|go|rs|java|rb|sh|md|txt)$' \
+  | grep -v '^graphify-out/' || true)
+[ -z "$changed_src" ] && exit 0
+
+n=$(printf '%s\n' "$changed_src" | grep -c . )
+{
+  echo "stale_since_commit=$(git rev-parse HEAD 2>/dev/null)"
+  echo "changed_files=$n"
+} > graphify-out/.needs_update 2>/dev/null || true
+
+echo "graphify: $n source file(s) changed — knowledge graph is now stale."
+echo "          refresh it by running  /graphify .  in your AI assistant."
+
+exit 0
