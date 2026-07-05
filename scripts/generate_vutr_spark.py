@@ -10,7 +10,7 @@ import os
 # CSS — copied verbatim from generate_learning_pack.py
 # ─────────────────────────────────────────────────────────────────────────────
 CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;600;700&display=swap');
 :root {
   --ink:#1c1c2e; --body:#2d2d3e; --muted:#666680; --border:#d8d8e8; --bg:#fff; --alt:#f8f8fc;
   --s-bg:#f0fdf4; --s-bd:#22c55e; --s-tx:#14532d;
@@ -97,6 +97,18 @@ tr:last-child td{border-bottom:none}
 .mermaid{margin:3mm 0;text-align:center;page-break-inside:avoid}
 .mermaid svg{max-width:100%;height:auto}
 .diagram-cap{font-family:'Inter',sans-serif;font-size:7.5pt;color:var(--muted);text-align:center;margin-top:-1mm;margin-bottom:3mm;font-style:italic}
+
+/* Scribble layer — hand-drawn sketches, margin notes, big facts (GRINDE: Non-verbal + Emphasized) */
+.sketch{margin:4mm 0 1mm;text-align:center;page-break-inside:avoid}
+.sketch svg{max-width:100%;height:auto}
+.sketch-cap{font-family:'Caveat',cursive;font-size:12pt;color:#44446a;text-align:center;margin:0 0 4mm;line-height:1.25}
+.scribble{font-family:'Caveat',cursive;font-size:13pt;line-height:1.25;color:#7c2d12;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:8px 14px 10px 16px;padding:2.5mm 4mm;margin:2.5mm 6mm 3.5mm;transform:rotate(-0.6deg);page-break-inside:avoid}
+.scribble .who{font-size:9.5pt;color:#b45309;display:block;margin-top:0.5mm}
+.bigfacts{margin:5mm 0;padding:4mm 5mm;background:#fefce8;border:2px dashed #ca8a04;border-radius:6px;page-break-inside:avoid}
+.bigfacts-head{font-family:'Caveat',cursive;font-size:15pt;font-weight:700;color:#92400e;margin-bottom:2mm}
+.bigfact{font-family:'Caveat',cursive;font-size:16.5pt;font-weight:600;line-height:1.3;color:#1c1c2e;margin-bottom:1.5mm}
+.bigfact .n{color:#dc2626;font-weight:700;margin-right:2mm}
+.retrieval-note{font-family:'Caveat',cursive;font-size:12.5pt;color:#166534;text-align:center;margin:1mm 0 3mm}
 
 /* Cover extras for Spark pack */
 .cover-title{font-family:'Inter',sans-serif;font-size:26pt;font-weight:700;line-height:1.15;color:var(--ink);margin-bottom:4mm}
@@ -775,6 +787,70 @@ CH3 = """
   <p class="ch-sum">Shuffle is the single most expensive operation in Spark — it crosses stage boundaries with disk writes and network transfers. Understanding the three join strategies, when Catalyst chooses each one, and how data skew turns any join into a production incident gives you the complete picture for join optimization.</p>
 </div>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="squig" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+    </filter>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L9,5 L0,10 L3,5 z" fill="#1c1c2e"/>
+    </marker>
+    <marker id="arr-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L9,5 L0,10 L3,5 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L9,5 L0,10 L3,5 z" fill="#16a34a"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="sketch">
+<svg viewBox="0 0 700 360" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <ellipse cx="350" cy="178" rx="86" ry="38" fill="#eff6ff" stroke-width="3.4"/>
+    <rect x="42"  y="34"  width="180" height="74" rx="12" fill="#f0fdf4"/>
+    <rect x="472" y="24"  width="198" height="118" rx="12" fill="#faf5ff"/>
+    <rect x="30"  y="238" width="200" height="92" rx="12" fill="#f0f9ff"/>
+    <rect x="486" y="238" width="184" height="80" rx="12" fill="#fff1f2"/>
+    <rect x="258" y="300" width="184" height="52" rx="12" fill="#fff7ed"/>
+    <path d="M272 156 C230 140, 200 128, 208 108" marker-end="url(#arr)"/>
+    <path d="M430 158 C462 140, 486 128, 496 142" marker-end="url(#arr)"/>
+    <path d="M282 202 C240 220, 210 228, 190 238" marker-end="url(#arr)"/>
+    <path d="M424 200 C462 218, 490 226, 510 238" marker-end="url(#arr)"/>
+    <path d="M350 216 L350 298" marker-end="url(#arr)"/>
+  </g>
+  <g filter="url(#squig)" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="7 5" stroke-linecap="round">
+    <path d="M560 142 C560 168, 470 186, 438 182" marker-end="url(#arr-g)"/>
+  </g>
+  <g filter="url(#squig)" fill="none" stroke="#dc2626" stroke-width="2.4" stroke-dasharray="7 5" stroke-linecap="round">
+    <path d="M578 318 C578 342, 470 350, 444 336" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="350" y="172" text-anchor="middle" font-size="27" font-weight="700" fill="#1c1c2e">SHUFFLE</text>
+  <text x="350" y="196" text-anchor="middle" font-size="14" fill="#44446a">disk + network at EVERY stage boundary</text>
+  <text x="132" y="58"  text-anchor="middle" font-size="17" font-weight="700" fill="#14532d">WHY DISK?</text>
+  <text x="132" y="78"  text-anchor="middle" font-size="13" fill="#14532d">any reducer may need it,</text>
+  <text x="132" y="94"  text-anchor="middle" font-size="13" fill="#14532d">must survive task death</text>
+  <text x="571" y="48"  text-anchor="middle" font-size="17" font-weight="700" fill="#581c87">3 WAYS TO JOIN</text>
+  <text x="571" y="70"  text-anchor="middle" font-size="13.5" fill="#581c87">SMJ — sort both, safe, spills</text>
+  <text x="571" y="88"  text-anchor="middle" font-size="13.5" fill="#581c87">SHJ — hash table, fast, OOMs</text>
+  <text x="571" y="106" text-anchor="middle" font-size="13.5" fill="#581c87">BHJ — mail small table to all</text>
+  <text x="571" y="126" text-anchor="middle" font-size="12.5" font-weight="600" fill="#16a34a">BHJ = zero shuffle!</text>
+  <text x="130" y="262" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">DODGE THE SHUFFLE</text>
+  <text x="130" y="282" text-anchor="middle" font-size="13" fill="#0c4a6e">bucket join (pay at write)</text>
+  <text x="130" y="298" text-anchor="middle" font-size="13" fill="#0c4a6e">reduceByKey (shrink first)</text>
+  <text x="130" y="314" text-anchor="middle" font-size="13" fill="#0c4a6e">broadcast (skip entirely)</text>
+  <text x="578" y="264" text-anchor="middle" font-size="16" font-weight="700" fill="#881337">SKEW</text>
+  <text x="578" y="284" text-anchor="middle" font-size="13" fill="#881337">1 hot key → 1 giant task</text>
+  <text x="578" y="300" text-anchor="middle" font-size="13" fill="#881337">199 done, 1 still running…</text>
+  <text x="350" y="322" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">AT SCALE: Uber RSS</text>
+  <text x="350" y="340" text-anchor="middle" font-size="12.5" fill="#7c2d12">shuffle gets its own servers</text>
+  <text x="497" y="175" font-size="12.5" fill="#16a34a" transform="rotate(-4 497 175)">no Exchange node!</text>
+  <text x="470" y="352" font-size="12.5" fill="#dc2626">AQE auto-splits it (Ch5)</text>
+</svg>
+</div>
+<div class="sketch-cap">The whole chapter on one napkin — everything below hangs off this map. Diagram: a hub-and-spoke mind map with SHUFFLE at the center and five grouped branches: why disk, the 3 join strategies, shuffle-dodging tricks, skew, and Uber's RSS at scale.</div>
+
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
 <p>Despite Spark's reputation as an "in-memory" engine, shuffle writes to disk. Every groupBy, join, repartition, and sort crosses a stage boundary where Spark writes shuffle output files to local disk, transfers them over the network to the next stage's executors, and reads them back from disk. This disk + network cost is the dominant bottleneck in most production Spark jobs. The three join strategies — Sort Merge Join, Shuffle Hash Join, and Broadcast Hash Join — exist because different data sizes and distributions call for radically different approaches. Choosing the wrong one silently costs 10× performance or causes OOM.</p>
 </div>
@@ -785,6 +861,42 @@ CH3 = """
 <div class="box f"><div class="box-lbl">The Most Common Spark Misconception</div>
 <p>Spark is routinely described as an "in-memory" engine. This is true for narrow transformations within a stage — data flows from one transformation to the next in memory, never touching disk. But at every wide dependency boundary (every shuffle), Spark writes to disk. The data path for a shuffle is: task writes output → <strong>disk</strong> → network transfer → <strong>disk</strong> → next stage task reads. Two disk operations and a network transfer for every stage boundary. Vu Trinh explicitly corrects this misconception: shuffle is disk-based even in Spark.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="18" y="70" width="118" height="58" rx="10" fill="#eff6ff"/>
+    <rect x="564" y="70" width="118" height="58" rx="10" fill="#eff6ff"/>
+    <path d="M140 99 L184 99" marker-end="url(#arr)"/>
+    <path d="M300 99 C336 84, 366 84, 400 99" stroke-dasharray="8 6" marker-end="url(#arr)"/>
+    <path d="M516 99 L560 99" marker-end="url(#arr)"/>
+    <path d="M77 66 C160 34, 540 34, 623 66" stroke="#16a34a" stroke-dasharray="7 5" marker-end="url(#arr-g)"/>
+  </g>
+  <g filter="url(#squig)" fill="#fff1f2" stroke="#dc2626" stroke-width="3">
+    <ellipse cx="242" cy="78" rx="52" ry="13"/>
+    <path d="M190 78 L190 128 A52 13 0 0 0 294 128 L294 78" fill="#fff1f2"/>
+    <ellipse cx="458" cy="78" rx="52" ry="13"/>
+    <path d="M406 78 L406 128 A52 13 0 0 0 510 128 L510 78" fill="#fff1f2"/>
+  </g>
+  <text x="77" y="94" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">Stage N task</text>
+  <text x="77" y="114" text-anchor="middle" font-size="12.5" fill="#1e3a8a">(map side)</text>
+  <text x="623" y="94" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">Stage N+1 task</text>
+  <text x="623" y="114" text-anchor="middle" font-size="12.5" fill="#1e3a8a">(reduce side)</text>
+  <text x="242" y="108" text-anchor="middle" font-size="16" font-weight="700" fill="#dc2626">DISK #1</text>
+  <text x="242" y="124" text-anchor="middle" font-size="11.5" fill="#881337">shuffle files</text>
+  <text x="458" y="108" text-anchor="middle" font-size="16" font-weight="700" fill="#dc2626">DISK #2</text>
+  <text x="458" y="124" text-anchor="middle" font-size="11.5" fill="#881337">read back</text>
+  <text x="162" y="88" text-anchor="middle" font-size="12.5" fill="#44446a">write</text>
+  <text x="350" y="80" text-anchor="middle" font-size="13" fill="#44446a">network</text>
+  <text x="538" y="88" text-anchor="middle" font-size="12.5" fill="#44446a">read</text>
+  <text x="350" y="18" text-anchor="middle" font-size="14" fill="#16a34a">inside a stage: pure memory, no disk — this is the "in-memory" part</text>
+  <text x="350" y="168" text-anchor="middle" font-size="17" font-weight="700" fill="#dc2626">every shuffle = 2 disk hits + 1 network trip</text>
+  <text x="350" y="192" text-anchor="middle" font-size="13.5" fill="#44446a">…and stage N+1 can't even START until every stage N task has finished writing</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the shuffle data path. A map task writes to local disk (disk #1), files cross the network, land on disk again (disk #2), and only then does the reduce task read them. A green dashed arc over the top shows the in-memory path that exists only <em>inside</em> a stage.</div>
+
+<div class="scribble">wait — the "in-memory" engine hits disk TWICE on every shuffle?? So "in-memory" only means inside one stage. The stage boundary is where the speed goes to die. <span class="who">— Alex, margin note</span></div>
 
 <p>The shuffle mechanism works as follows. When stage N contains a wide dependency (e.g., a <code>groupByKey</code>), each task in stage N must redistribute its output records by key so that all records with the same key arrive at the same partition in stage N+1. Each task:</p>
 <ol>
@@ -806,6 +918,60 @@ CH3 = """
 <h3>Data Locality in Shuffle Reads</h3>
 <p>Spark's <code>ExternalShuffleService</code> (a separate long-running daemon process on each worker node, outside the executor JVM, that serves shuffle files independently) decouples shuffle file serving from executor lifecycle. When enabled, shuffle files are served from the external service rather than from executor processes. If an executor dies, its shuffle output files are still available for the next stage — without this, executor failure in stage N would require re-running all of stage N.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="10"  y="14" width="212" height="222" rx="12" fill="#f8f8fc"/>
+    <rect x="244" y="14" width="212" height="222" rx="12" fill="#f8f8fc"/>
+    <rect x="478" y="14" width="212" height="222" rx="12" fill="#f8f8fc"/>
+    <!-- SMJ: two sorted decks merging -->
+    <rect x="34"  y="66" width="52" height="16" rx="3" fill="#dbeafe"/>
+    <rect x="38"  y="86" width="52" height="16" rx="3" fill="#dbeafe"/>
+    <rect x="42"  y="106" width="52" height="16" rx="3" fill="#dbeafe"/>
+    <rect x="142" y="66" width="52" height="16" rx="3" fill="#fce7f3"/>
+    <rect x="146" y="86" width="52" height="16" rx="3" fill="#fce7f3"/>
+    <rect x="150" y="106" width="52" height="16" rx="3" fill="#fce7f3"/>
+    <path d="M70 130 C80 152, 96 162, 108 168" marker-end="url(#arr)"/>
+    <path d="M168 130 C158 152, 142 162, 130 168" marker-end="url(#arr)"/>
+    <rect x="84" y="170" width="66" height="22" rx="5" fill="#dcfce7"/>
+    <!-- SHJ: hash table + probe stream -->
+    <rect x="278" y="58" width="82" height="74" rx="6" fill="#fef9c3"/>
+    <path d="M278 82 L360 82 M278 106 L360 106 M318 58 L318 132"/>
+    <path d="M394 150 C376 142, 366 130, 362 120" marker-end="url(#arr)"/>
+    <path d="M420 160 L440 160 M420 172 L446 172 M420 184 L438 184" stroke="#666680"/>
+    <!-- BHJ: one small table copied to 3 executors -->
+    <rect x="560" y="40" width="46" height="30" rx="5" fill="#dcfce7" stroke-width="2.8"/>
+    <rect x="496" y="150" width="54" height="40" rx="6" fill="#eff6ff"/>
+    <rect x="558" y="150" width="54" height="40" rx="6" fill="#eff6ff"/>
+    <rect x="620" y="150" width="54" height="40" rx="6" fill="#eff6ff"/>
+    <path d="M568 74 C540 100, 528 124, 522 146" stroke="#16a34a" marker-end="url(#arr-g)"/>
+    <path d="M583 74 L584 146" stroke="#16a34a" marker-end="url(#arr-g)"/>
+    <path d="M598 74 C626 100, 638 124, 646 146" stroke="#16a34a" marker-end="url(#arr-g)"/>
+  </g>
+  <text x="116" y="42" text-anchor="middle" font-size="17" font-weight="700" fill="#1c1c2e">SMJ — sort &amp; merge</text>
+  <text x="60"  y="60" text-anchor="middle" font-size="11.5" fill="#1e3a8a">table A, sorted</text>
+  <text x="170" y="60" text-anchor="middle" font-size="11.5" fill="#9d174d">table B, sorted</text>
+  <text x="117" y="186" text-anchor="middle" font-size="12" fill="#14532d">one pass</text>
+  <text x="116" y="212" text-anchor="middle" font-size="12.5" fill="#44446a">2 full shuffles, but spills to</text>
+  <text x="116" y="227" text-anchor="middle" font-size="12.5" fill="#44446a">disk safely. Slow &amp; steady.</text>
+  <text x="350" y="42" text-anchor="middle" font-size="17" font-weight="700" fill="#1c1c2e">SHJ — hash table</text>
+  <text x="319" y="50" text-anchor="middle" font-size="11" fill="#92400e">build side, ALL in memory</text>
+  <text x="404" y="166" text-anchor="middle" font-size="11.5" fill="#666680">probe rows</text>
+  <text x="350" y="212" text-anchor="middle" font-size="12.5" fill="#44446a">O(1) lookups — but the table</text>
+  <text x="350" y="227" text-anchor="middle" font-size="12.5" fill="#dc2626" font-weight="700">CANNOT spill. Too big = OOM.</text>
+  <text x="583" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="#1c1c2e">BHJ — broadcast</text>
+  <text x="583" y="60" text-anchor="middle" font-size="11" fill="#14532d">&lt;10MB</text>
+  <text x="523" y="174" text-anchor="middle" font-size="10.5" fill="#1e3a8a">exec 1</text>
+  <text x="585" y="174" text-anchor="middle" font-size="10.5" fill="#1e3a8a">exec 2</text>
+  <text x="647" y="174" text-anchor="middle" font-size="10.5" fill="#1e3a8a">exec 3</text>
+  <text x="584" y="212" text-anchor="middle" font-size="12.5" fill="#44446a">copy the small table to everyone.</text>
+  <text x="584" y="227" text-anchor="middle" font-size="12.5" fill="#16a34a" font-weight="700">ZERO shuffle. No Exchange node.</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the three join strategies side by side — SMJ merges two sorted decks after shuffling both; SHJ builds an in-memory hash table that cannot spill; BHJ mails a copy of the small table to every executor so no shuffle happens at all.</div>
+
+<div class="scribble">so it's: SAFE (SMJ) vs FAST-BUT-FRAGILE (SHJ) vs FREE-IF-IT-FITS (BHJ). Don't shuffle 500GB to meet 8MB — mail the 8MB to everyone instead. <span class="who">— Alex, margin note</span></div>
 
 <div class="topic">
 <h2>Sort Merge Join (SMJ): The Default for Large-Large Joins</h2>
@@ -856,6 +1022,8 @@ CH3 = """
 </div>
 
 <p>Vu's production rule: "In a production Spark application, make sure you know what you're doing when enabling SHJ; it's only efficient when the build-side partitions fit in memory. If they get larger for some reason, your application will likely get an OOM error."</p>
+
+<div class="scribble">a hash table is all-or-nothing — you can't look things up in half a table that's on disk. That's the whole reason SHJ got kicked out of Spark 1.6. SMJ survives by spilling; SHJ just dies. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <div class="topic">
@@ -896,6 +1064,8 @@ CH3 = """
 
 <p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata must be stored in the Hive metastore (a relational database, typically embedded or external like MySQL, that stores table schemas, partition layouts, and bucketing information so Spark and other engines can discover and use it at query time) so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, key K hashes to bucket K%50 in table A but bucket K%100 in table B, so bucket 3 of A contains different keys than bucket 3 of B. The co-partitioning property breaks and Spark must shuffle anyway.</p>
 
+<div class="scribble">bucket join = pay the shuffle ONCE at write time, then join for free forever after. Only worth it if you join this table again and again — like pre-sorting your closet. <span class="who">— Alex, margin note</span></div>
+
 <h3>Join Strategy Hint Priority</h3>
 <p>Spark 3.0+ allows query hints to suggest a join strategy. When multiple hints conflict, Spark enforces this priority order:</p>
 <ol>
@@ -911,6 +1081,40 @@ CH3 = """
 <h2>Data Skew: The Silent Production Killer</h2>
 
 <p>Data skew occurs when one key (or a small set of keys) has far more values than other keys. After a shuffle, all values for the skewed key land in one partition — one task processes 80% of the data while 199 other tasks process the remaining 20%. Symptoms: 199 tasks finish in 5 seconds; one task runs for 10 minutes; the entire stage waits for that one task.</p>
+
+<div class="sketch">
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" stroke="#1c1c2e" stroke-width="2" stroke-linecap="round">
+    <path d="M30 168 L672 168" fill="none" stroke-width="2.6"/>
+    <g fill="#dcfce7" stroke="#16a34a">
+      <rect x="40"  y="152" width="11" height="16" rx="2"/><rect x="56"  y="150" width="11" height="18" rx="2"/>
+      <rect x="72"  y="153" width="11" height="15" rx="2"/><rect x="88"  y="151" width="11" height="17" rx="2"/>
+      <rect x="104" y="152" width="11" height="16" rx="2"/><rect x="120" y="150" width="11" height="18" rx="2"/>
+      <rect x="136" y="153" width="11" height="15" rx="2"/><rect x="152" y="151" width="11" height="17" rx="2"/>
+      <rect x="168" y="152" width="11" height="16" rx="2"/><rect x="184" y="150" width="11" height="18" rx="2"/>
+      <rect x="200" y="153" width="11" height="15" rx="2"/><rect x="216" y="151" width="11" height="17" rx="2"/>
+      <rect x="232" y="152" width="11" height="16" rx="2"/><rect x="248" y="150" width="11" height="18" rx="2"/>
+      <rect x="264" y="153" width="11" height="15" rx="2"/><rect x="280" y="151" width="11" height="17" rx="2"/>
+      <rect x="296" y="152" width="11" height="16" rx="2"/><rect x="312" y="150" width="11" height="18" rx="2"/>
+      <rect x="328" y="153" width="11" height="15" rx="2"/><rect x="344" y="151" width="11" height="17" rx="2"/>
+      <rect x="360" y="152" width="11" height="16" rx="2"/><rect x="376" y="150" width="11" height="18" rx="2"/>
+      <rect x="392" y="153" width="11" height="15" rx="2"/><rect x="408" y="151" width="11" height="17" rx="2"/>
+      <rect x="424" y="152" width="11" height="16" rx="2"/><rect x="440" y="150" width="11" height="18" rx="2"/>
+    </g>
+    <rect x="490" y="22" width="60" height="146" rx="4" fill="#fecaca" stroke="#dc2626" stroke-width="3.4"/>
+    <path d="M636 60 C606 46, 580 36, 558 32" fill="none" stroke="#dc2626" stroke-width="2.4" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="248" y="140" text-anchor="middle" font-size="14.5" fill="#14532d">199 tasks · ~5 seconds each · done ✓</text>
+  <text x="520" y="14"  text-anchor="middle" font-size="15" font-weight="700" fill="#dc2626">task #147</text>
+  <text x="520" y="100" text-anchor="middle" font-size="21" font-weight="700" fill="#7f1d1d" transform="rotate(-90 520 100)">12 MINUTES</text>
+  <text x="646" y="80"  text-anchor="middle" font-size="13.5" fill="#dc2626">the WHOLE stage</text>
+  <text x="646" y="97"  text-anchor="middle" font-size="13.5" fill="#dc2626">waits for THIS guy</text>
+  <text x="350" y="192" text-anchor="middle" font-size="13.5" fill="#44446a">(drawn to scale it'd be even worse — 144× longer than its neighbours)</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: a task-duration bar chart — 26 tiny green bars stand in for the 199 finished tasks, and one absurdly tall red bar (task #147, 12 minutes) towers over them. Skew means parallelism collapses to a single straggler.</div>
+
+<div class="scribble">adding more executors does NOTHING here — the hot key all lands in ONE partition no matter how many machines you buy. Fix the data split, not the cluster size. <span class="who">— Alex, margin note</span></div>
 
 <p>Three solutions for skew:</p>
 <ul>
@@ -954,6 +1158,43 @@ CH3 = """
 </div>
 </div>
 
+
+<div class="bigfacts">
+<div class="bigfacts-head">If you forget everything else in this chapter, keep these three:</div>
+<div class="bigfact"><span class="n">1.</span>Shuffle = disk + network, ALWAYS. "In-memory" only applies inside a stage.</div>
+<div class="bigfact"><span class="n">2.</span>BHJ doesn't reduce the shuffle — it DELETES it. No Exchange node at all.</div>
+<div class="bigfact"><span class="n">3.</span>199 tasks done, 1 still running = skew. Fix the data split, not the cluster.</div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#666680" stroke-width="2.4" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="82" ry="34" fill="#f8f8fc" stroke="#1c1c2e" stroke-width="3"/>
+    <rect x="46"  y="30"  width="170" height="60" rx="12" fill="#fff"/>
+    <rect x="482" y="24"  width="184" height="96" rx="12" fill="#fff"/>
+    <rect x="36"  y="204" width="184" height="72" rx="12" fill="#fff"/>
+    <rect x="492" y="210" width="172" height="62" rx="12" fill="#fff"/>
+    <path d="M276 130 C236 114, 212 102, 208 92" marker-end="url(#arr)"/>
+    <path d="M428 132 C458 116, 478 106, 490 100" marker-end="url(#arr)"/>
+    <path d="M284 172 C246 190, 220 198, 200 206" marker-end="url(#arr)"/>
+    <path d="M422 170 C458 188, 486 198, 508 210" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="22" font-weight="700" fill="#1c1c2e">SHUFFLE</text>
+  <text x="350" y="168" text-anchor="middle" font-size="14" fill="#666680">= ______ + ______ at every stage boundary</text>
+  <text x="131" y="56"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">WHY DISK?</text>
+  <text x="131" y="78"  text-anchor="middle" font-size="14" fill="#666680">__________________</text>
+  <text x="574" y="46"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">3 WAYS TO JOIN</text>
+  <text x="574" y="68"  text-anchor="middle" font-size="14" fill="#666680">S____ — safe, spills</text>
+  <text x="574" y="86"  text-anchor="middle" font-size="14" fill="#666680">S____ — fast, ______</text>
+  <text x="574" y="104" text-anchor="middle" font-size="14" fill="#666680">B____ — ____ shuffle</text>
+  <text x="128" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">DODGE THE SHUFFLE</text>
+  <text x="128" y="250" text-anchor="middle" font-size="14" fill="#666680">________ join (pay at write)</text>
+  <text x="128" y="268" text-anchor="middle" font-size="14" fill="#666680">______ByKey (shrink first)</text>
+  <text x="578" y="236" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">SKEW</text>
+  <text x="578" y="258" text-anchor="middle" font-size="14" fill="#666680">1 ___ key → 1 _____ task</text>
+</svg>
+</div>
+<div class="retrieval-note">✍️ Before the questions: close the chapter and redraw this map from memory — say every blank OUT LOUD, then flip back and check. Recall, not recognition.</div>
 
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
@@ -1013,6 +1254,8 @@ CH3 = """
 </div>
 
 <p>This is the design principle Vu Trinh frames as "pushing computation close to the data source." The reducer is far from the data (after a shuffle); the mapper is close (operating on local partition data before any network transfer). Every byte eliminated before the shuffle saves disk I/O, network bandwidth, and reducer memory. Always ask: "Can I reduce this key's data volume before it leaves the mapper?" If yes, use reduceByKey, aggregateByKey, or combineByKey over groupByKey.</p>
+
+<div class="scribble">shrink the data BEFORE it travels — like zipping a file before emailing it. 10,000,000 values → 200 values crossing the network, just by picking the right function. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <div class="topic">
