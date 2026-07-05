@@ -129,11 +129,56 @@ def _render_channel_moc(channel: Channel) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
+_LOG_TOTAL_RE = re.compile(r"\((\d+) total")
+
+
+def _last_logged_total(log_path: Path) -> int:
+    """Total item count recorded in the log's last entry, or 0 with no log yet."""
+    if not log_path.exists():
+        return 0
+    for line in reversed(log_path.read_text(encoding="utf-8").splitlines()):
+        m = _LOG_TOTAL_RE.search(line)
+        if m:
+            return int(m.group(1))
+    return 0
+
+
+def _log_ingest(target: Path, total: int, breakdown: str) -> None:
+    """Append one line to Log.md recording the delta since the last build.
+
+    Log.md is append-only — a running ingestion history, never overwritten,
+    distinct from Home.md (current state) and topics/*.md (cross-links).
+    Skips writing an entry when nothing changed, so repeated no-op rebuilds
+    don't spam the log.
+    """
+    log_path = target / "Log.md"
+    is_first_entry = not log_path.exists()
+    delta = total - _last_logged_total(log_path)
+    if delta == 0:
+        return
+    if is_first_entry:
+        # Backfill entry for pre-existing content — these items weren't just
+        # captured in this one build, so don't claim they were.
+        action = f"{total} item(s) already in vault (log started here)"
+    else:
+        action = f"{delta} new item(s) captured" if delta > 0 else f"{-delta} item(s) removed"
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
+    if is_first_entry:
+        header = ("---\ntitle: \"Ingestion Log\"\ntags: [log]\n---\n\n"
+                   "# Ingestion Log\n\n"
+                   "A running history of what was added to (or removed from) this "
+                   "vault and when — append-only, never rewritten.\n\n")
+        _write(log_path, header)
+    with log_path.open("a", encoding="utf-8") as f:
+        f.write(f"- **{stamp}** — {action} ({total} total: {breakdown})\n")
+
+
 def _render_home(catalog: SubstackCatalog,
                  topic_index: dict[str, dict[str, list[Post]]]) -> str:
     lines = ["---", 'title: "Substack Knowledge Vault"', "tags: [home, moc]",
              "---", "", "# Substack Knowledge Vault", "",
              "Open the **graph view** to see how topics connect across channels.",
+             "See [[Log|Ingestion Log]] for a running history of what's been added.",
              "", "## Channels"]
     for channel in catalog.channels:
         moc = _channel_moc_name(channel)
@@ -180,6 +225,10 @@ def build_vault(catalog: SubstackCatalog,
     for topic, by_channel in topic_index.items():
         _write(target / "topics" / f"{slugify(topic)}.md",
                _render_topic(topic, by_channel))
+
+    # --- ingestion log (append-only; distinct from Home's current-state view) ---
+    breakdown = f"{written} posts across {len(catalog.channels)} channels"
+    _log_ingest(target, written, breakdown)
 
     _write(target / "Home.md", _render_home(catalog, topic_index))
 
