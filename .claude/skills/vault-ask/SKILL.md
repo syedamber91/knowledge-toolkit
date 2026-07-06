@@ -103,3 +103,29 @@ vault and say which vault each part of the answer came from.
   personas are themselves grounded-answer generators over a pre-synthesized
   reference file. `/vault-ask` generalizes the same shape to any vault
   content, not just persona-covered creators.
+
+## Example questions (ready to use)
+
+The "prompt" for this skill is just a plain-English question — the skill
+supplies all routing/grounding rules. Phrasing habits that sharpen the
+answer: name the creator if attribution matters, use the vault's own topic
+words (RAG, metadata, embeddings, n8n, MCP, agents), and state the shape you
+want ("compare", "step-by-step", "the single most important…", "where do
+they disagree").
+
+AI & Development vault (`MEDIA_VAULT_DIR`):
+
+```
+/vault-ask What does Nate Herk say is the most important foundation for an AI agent?
+/vault-ask Compare how Nate Herk and Jack Roberts approach RAG data quality.
+/vault-ask Walk me step-by-step through building a first RAG pipeline, per Nate Herk.
+/vault-ask What embedding model does Jack Roberts recommend, and why not the default?
+/vault-ask Where do Nate and Jack disagree about building AI automation agencies?
+```
+
+Other vaults (same trigger — routing picks the vault from the subject):
+
+```
+/vault-ask What did the SOIC lessons teach about position sizing?      # -> Stock Market Vault (SOIC_VAULT_DIR)
+/vault-ask Summarize what my Substack authors say about data modeling.  # -> Substack (SUBSTACK_VAULT_DIR)
+```
