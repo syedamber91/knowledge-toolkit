@@ -59,6 +59,16 @@ top-tier model if opus isn't available). Give it:
 - The absolute paths of every note routing surfaced in Step 2 (it reads them
   itself — don't paste their contents into the prompt).
 - An explicit instruction set:
+  - **Read every routed note end-to-end** — long files must be read in
+    continuation chunks (offset/limit) until finished. Skimming is the
+    number-one cause of incomplete answers; model choice matters less than
+    reading depth (observed empirically: on identical routed notes, the
+    agent that read fully surfaced whole frameworks the skimming agent
+    missed entirely).
+  - **Enumerate before drafting**: list every named framework, numbered
+    list, and step-sequence found in each note; the answer must cover each
+    one or explicitly state it was omitted as irrelevant to the question.
+    This makes skipping visible instead of silent.
   - Answer **only** from what these notes actually say — never fill gaps
     from general knowledge.
   - Cite the source note (title + creator) for every non-trivial claim.
@@ -67,6 +77,13 @@ top-tier model if opus isn't available). Give it:
   - Write for a curious beginner: plain language before jargon, define terms
     on first use — this is the "presenting it so it lands" step, not a raw
     transcript dump.
+
+For high-stakes questions (or when the user asks for a thorough answer),
+add a **completeness-critic pass**: dispatch a second, cheaper agent that
+re-reads the routed notes and diffs them against the draft answer, flagging
+any major framework or claim the presenter missed. Feed flags back to the
+presenter for one revision. This mirrors the repo's learning-pack
+verification loop (Alex/examiner pattern) at miniature scale.
 
 ## Step 4 — Return
 
