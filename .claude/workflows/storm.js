@@ -14,12 +14,18 @@ export const meta = {
 const { mode, topic, voices = 3, scratch } = args
 const ROLE_LENSES = ['Operator', 'Investor', 'Customer', 'Skeptic', 'Local-Market']
 
+// Exact, known-good invocation for the storm_core CLI. The project venv lives at
+// the MAIN checkout (the worktree has none), and bare `python` is not on PATH, so
+// the CLI must be run with this absolute python + PYTHONPATH=src from the repo root.
+const REPO = '/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/bold-sammet-8c78b3'
+const PY = `cd '${REPO}' && PYTHONPATH=src '/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.venv/bin/python' -m storm_core`
+
 // Phase 0 — Scope & cast (reads live roster via the CLI, picks best-fit voices + Mufti)
 phase('Scope & Cast')
 const cast = await agent(
   `You are the casting + scoping step of a STORM business-research run.\n` +
   `Business topic: "${topic}".\n` +
-  `1. Run: python -m storm_core roster   (cwd is the repo root; prefix with PYTHONPATH=src and use .venv/bin/python). It prints JSON of the available named personas.\n` +
+  `1. Run this exact command (copy verbatim): ${PY} roster\n   It prints a JSON array of the available named personas.\n` +
   `2. Pick the ${voices} best-fit named voices for THIS topic from that roster (by their description). ALWAYS add the Mufti persona on top as a halal gate (do not count it against the ${voices}).\n` +
   `3. Tighten the topic into a one-line research scope.\n` +
   `Return JSON only.`,
@@ -96,9 +102,8 @@ const verified = await agent(
 // Phase 5 — Render note + HTML via the CLI
 phase('Render')
 const rendered = await agent(
-  `Run, from the repo root with PYTHONPATH=src and .venv/bin/python:\n` +
-  `python -m storm_core build --report ${reportPath}\n` +
-  `Then report the two written file paths (the vault note and the HTML briefing).`,
+  `Run this exact command (copy verbatim): ${PY} build --report ${reportPath}\n` +
+  `It prints two file paths (the vault note and the HTML briefing). Report both.`,
   { phase: 'Render' }
 )
 
