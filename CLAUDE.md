@@ -169,7 +169,10 @@ instagram-toolkit build
   test file. See `docs/superpowers/specs/2026-07-05-nate-herk-jack-roberts-persona-design.md`
   and the corresponding plan for the original design discussion of this
   pattern (it was reverse-engineered from Andrej Karpathy's "LLM knowledge
-  base" idea, applied to this repo's vaults).
+  base" idea, applied to this repo's vaults). Routing (index + log +
+  cross-links) is only half of that idea — the other half is that a costlier
+  model should do the final answer synthesis once routing narrows the field.
+  The `vault-ask` skill (see `.claude/` assets below) implements that half.
 - **Gitignored outputs — never commit.** Per `.gitignore`: `.env`, `.auth/`,
   `data/`, `output/`, `vault/`. These hold sessions and captured content.
 
@@ -279,6 +282,12 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 - `nate-herk-persona`, `jack-roberts-persona` — direct-mentor personas grounded
   in captured YouTube transcripts (`/nate-herk`, `/jack-roberts` triggers); see
   `docs/superpowers/specs/2026-07-05-nate-herk-jack-roberts-persona-design.md`.
+- `vault-ask` (`/vault-ask <question>`) — the "presentation" half of the
+  index + log + cross-links pattern below: routes a question to the right
+  notes cheaply (grep over `Home.md`/`topics/*.md`/`sources/*.md`), then
+  dispatches an Opus-tier subagent to synthesize the answer from only those
+  routed notes. Use for ad-hoc questions against any captured vault that
+  don't warrant a dedicated persona.
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer`, `instagram-capturer` (capture orchestrators); `justin-sung`,
