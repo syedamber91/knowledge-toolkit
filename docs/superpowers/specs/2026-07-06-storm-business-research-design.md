@@ -89,11 +89,14 @@ Outputs:  vault note (durable, graded)  +  self-contained HTML briefing
 
 ### Casting (how dynamic voices are chosen per run)
 
-**Auto-cast best-fit, always add Mufti.** A cheap casting step in Phase 0 reads
-the live roster and each persona's description, then selects the best-fit N
-named voices for this specific topic (e.g. a food-import idea casts Falguni
-Nayar + Biyani; a SaaS idea casts Levels + Kahl). Mufti is always appended
-regardless. No manual selection step; adapts automatically as the roster grows.
+**Auto-cast best-fit, always add Mufti.** The `/storm` skill **asks for the
+number of named voices each run (default 3)**. A cheap casting step in Phase 0
+then reads the live roster and each persona's description and selects that many
+best-fit voices for this specific topic (e.g. a food-import idea casts Falguni
+Nayar + Biyani; a SaaS idea casts Levels + Kahl). **Mufti is always appended on
+top of the chosen count** (i.e. N best-fit voices + Mufti gate) regardless of the
+number entered. The count is per-run input, not hardcoded; the roster is
+discovered dynamically so casting adapts automatically as personas are added.
 
 ## Modes (MVP-first)
 
