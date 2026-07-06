@@ -65,6 +65,7 @@ between technical segments.
 - Never be loyal to one AI vendor; route each task to whichever model is strongest and cheapest for that specific job (Claude for design/code generation, DeepSeek/Codex/GLM for review or heavy lifting, Gemini for multimodal/video/PDF input).
 - The "car and driver" framing: a powerful model is wasted without operator skill — you must learn to drive it correctly to get value from it.
 - Model-task matching ("don't need Shakespeare to cut the grass"): assign the most powerful/expensive model only to hard reasoning/planning work; cheap or free models handle simple, repetitive, or research tasks to save tokens and money.
+- Reinforced as a staged step within Hermes's level progression (routing tasks to the right model is "level three" of the system) and applied concretely to a personal split: Gemini for design/anti-gravity work, Sonnet 4.5 for code review.
 
 > "I am model agnostic. I believe in the multi-brain strategy, which is basically model agnosticism, or we're agnostic."
 > "we don't need Albert Einstein mopping our off floors"
@@ -72,6 +73,9 @@ between technical segments.
 > "But after that, I don't need Shakespeare to cut my grass. Do you know what I'm saying? I don't need a Brainiac to sharpen pencils."
 > "You're going to own the car and swap the engine. This is a really good analogy... And all we're ever going to do is basically just decide which engine do you want to drop in for each specific task."
 > "It's kind of like an F1 car and when we switch the model from Claude to something else, we're essentially just changing the engine."
+> "at level three of the system, guys, what we're doing is leveraging the right model for the right task." (Every Level of Hermes Agent Explained)
+> "We don't need astrophysicists, you know, basically building Legos for us." (Every Level of Hermes Agent Explained)
+> "Design, I'm using Gemini. And anything to do with Gemini or anti-gravity. And then if it's like code review, I typically tend to lean on Sonet 4.5 for that." (How to Use AntiGravity Better than 99% of People)
 
 ### Context Rot / One Window, One Task
 
@@ -116,11 +120,15 @@ between technical segments.
 - Build a "skill" the moment you catch yourself repeating the same prompt or process — it saves tokens, produces consistent quality, and can be shared or reused indefinitely.
 - Draws an explicit line between a *skill* (single repeatable task, human stays in the loop) and a *system* (fully automated, runs unattended every time).
 - The best skills echo Karpathy's framing: indexed/recallable across conversations, use tools specific to the job, and are self-improving over time.
+- Refined two-category taxonomy of skills: "capability uplift" skills (temporary — they compensate for a current model weakness and have a "retirement date" once models improve) vs. "encoded preference" skills (durable — they capture your specific workflow/taste and don't go obsolete as models get better). Frames skills generally as "instruction manuals for Claude" made of goals, steps, tools, and standards.
 
 > "Whenever you find yourself repeating a prompt, it's probably a good indication that you want to build a skill so you never have to repeat yourself. You write the gold standard once and then you can just call that in perpetuity."
 > "So think of them as like a mech suit for your model."
 > "When do I build a skill? If it's a single repeatable task, if you need a human in the loop... This is something that I would build into a system."
 > "super skills themselves basically have three things in common... every conversation is indexed and recallable... It's going to use actual tools that are specific for the job. And crucially, it's self-improving."
+> "skills themselves are instruction manuals for Claude. So they are goals, steps, tools, and standards." (Claude Code just became UNSTOPPABLE (Skills 2.0))
+> "The first one is what we call a capability uplift... but it problem is that these skills have a retirement date." (Claude Code just became UNSTOPPABLE (Skills 2.0))
+> "Secondly, we have what we call encoded preferences... They're more durable. they won't become obsolete via testing because it's your specific way of doing things." (Claude Code just became UNSTOPPABLE (Skills 2.0))
 
 ### Numbered/Acronym Frameworks (Structural Habit)
 
@@ -134,15 +142,27 @@ between technical segments.
 > "The identity is that you are a system pilot. Your mission is to build deterministic self-healing automation in anti-gravity using the blast framework which is blueprint link architect style and trigger protocol."
 > "we're going to follow a very simple four-step system, which is called the SaaS framework... signal... architecture... aesthetics... systems and scale."
 
+### "Levels" Progression — Structural Teaching Device
+
+- A second structural habit distinct from the numbered acronym frameworks above: many tutorials are staged as a numbered "level" progression (0/1 through 6/7), moving the viewer from naive/chatbot-level usage up to full agentic-OS mastery, with each level "worth more than the last."
+- Applied to both agent platforms (Hermes) and website-building workflows (Claude Fable 5) as a way to signal escalating sophistication and reward viewers who watch to the end.
+
+> "there are seven levels to this Hermes agent, and if you make it towards the end of the video, they're going to be saying, 'Hey, who is this super intelligent Hermes individual I see before me?'" (Every Level of Hermes Agent Explained)
+> "Now, here's the thing. Most websites themselves don't look great, especially ones built with Claude... Now, we have seven levels. Each is worth more than the last." (Every Level of Claude Fable 5 Websites Explained)
+> "The foundation is level one. Which effectively is what we call the grab and go." (Every Level of Claude Fable 5 Websites Explained)
+
 ### MCP Connectors Over Computer Use (Priority Ladder)
 
 - Strict hierarchy for connecting an agent to the outside world: prefer a direct MCP/API connector first; use local file access second; fall back to full "computer use"/browser control only as a last resort, since it's slower and less reliable.
-- MCP's standard explanation, reused almost verbatim across many videos: a "universal remote control" for connecting one thing to another.
-- Keep MCP tool counts low — bloated tool lists silently burn context and money.
+- MCP's standard explanation, reused almost verbatim across many videos: a "universal remote control" for connecting one thing to another; also explained (via co-host Nick, affirmed by Jack) as a standardization layer that reduces tool-selection error rates.
+- Keep MCP tool counts low — bloated tool lists silently burn context and money; over-connecting is "the MCP candy store" problem — like giving a five-year-old unlimited candy, more access does not mean better behavior. Jack states his own personal practice as activating around 21 tools, well under his stated ceiling.
 
 > "Number one, MCPs... if you can connect it here, please do that because it will be a lot faster than using the computer. It's way better... Only as a last resort do we want to use the Claude desktop intelligence."
 > "MCP just being how we connect things to other things. I always use the analogy of universal remote control because it's really awesome."
 > "Keep your total number of MCP tools under 50 because... it's good for your context window."
+> "where most people get stuck at this level is they basically give it the MCP candy store... Imagine giving a five-year-old all the candy in the world in a candy shop. It would go freaking and ballistic." (Every Level of Hermes Agent Explained)
+> "it's saying that it wants no more than 50 tools enabled. The reason for that is cuz it requires context windows... I typically use about 21 that I activate." (How to Use AntiGravity Better than 99% of People)
+> "MCP is like a global standard for how models choose which tools to use... it's way safer it's way more standardized and we can significantly reduce those error rates." (AI Agent Hype, Open AI $20,000 Agents, MCP, Manus — spoken by co-host Nick, affirmed by Jack: "very cool yeah yeah anytime you want to make anything better you need to standardize it")
 
 ### RAG Explained via the "Librarian" Metaphor
 
@@ -166,6 +186,9 @@ between technical segments.
 - Design philosophy: pick a reference/inspiration, extract its "design system" (colors, type, spacing) as a markdown file once, and the agent can reproduce that quality on demand forever — taste and typography become programmable, not reserved for specialists.
 - "UI sniping": browse component-inspiration sites (21st.dev, Codepen, Dribbble, Magic UI), grab a single UI element or animation you like, and paste its code/prompt into the agent to bolt onto your own build.
 - Two-stage design workflow: build the first flashy version fast in an online builder (AI Studio, Lovable), then port it into a local IDE (Claude Code/Cursor/AntiGravity) for real architecture, database, and auth.
+- Sharpened claim: "design is code" — every great brand reduces to a tiny set of variables (color, type, scale, spacing); once those are tokenized, good design becomes measurable and checkable (e.g. by aspect ratio rules) rather than subjective, closing the gap that produces "AI slop."
+- "Design blueprint" extraction, elevated as his top-tier website technique: fully reverse-engineer a target site's typography/color/layout DNA and use it as the blueprint for a new, superior build — motivated by the observation that neither the AI nor the user can always articulate what "great design" means in the abstract, so extraction beats description.
+- "Show, don't tell": providing screenshots/reference images to the agent dramatically outperforms describing design in words ("an image speaks a thousand words"); both AntiGravity and Claude Code workflows now lean on image input for this reason.
 
 > "The idea is that we're going to codify something once, and once we do that, we can replicate it infinitely... Design is not an art form reserved for specialists. It's a system that can actually be encoded."
 > "If you can explain to Claude Code what great design looks like, you can produce it on demand as much as you want to in any style that you want to."
@@ -173,6 +196,13 @@ between technical segments.
 > "This UI sniping strategy... All you do is when you find one that you like that you think, dude, that would go great on my website... you basically come down, you're going to share component, come over to anti-gravity."
 > "I would always recommend that you do build the first version in AI Studio. Then when we bring it into anti-gravity, we're going to take it from like a kind of junior to something interstellar."
 > "AI Studio... their approach is to basically throw the kitchen sink at it... By contrast... anti-gravity... its design philosophy is to make something professional and maintainable."
+> "design is code. Every great brand is a tiny set of variables, color, type, scale, spacing. Once you have a token, the design writes itself." (I Replaced PowerPoint With Claude Code)
+> "It's not magic. It's actually measurable. So 20 rules, each one is codified, each one is checkable by aspect ratios." (I Replaced PowerPoint With Claude Code)
+> "The best strategy that I have found to actually create gorgeous websites that convert is to do something called design extraction." (Every Level of Claude Fable 5 Websites Explained)
+> "Claude doesn't always understand what great design is. And sometimes we don't even understand what great design is. We can't articulate them." (Every Level of Claude Fable 5 Websites Explained)
+> "look at the difference compared to what we had earlier. This is night and day. It's chalk and cheese. It's ebony and ivory." (Every Level of Claude Fable 5 Websites Explained)
+> "for level two user of Claude Code websites, I'm providing screenshots and references to help Claude make that design way better. They're going to show, not tell. Remember they say an image speaks a thousand words?" (Every Level of Claude Fable 5 Websites Explained)
+> "Now in anti-gravity... you can give anti-gravity images." (How to Use AntiGravity Better than 99% of People)
 
 ### Adversarial Verification — "No Self-Review," Worker Not Boss
 
@@ -189,18 +219,33 @@ between technical segments.
 ### Sub-Agents and Parallelization ("Motorway Lanes")
 
 - Spin up multiple sub-agents to work concurrently rather than sequentially; states a practical ceiling around five agents before quality diminishes.
+- Reframes agents as "employees, not chatbots": a managed team of 10-30 agents can run in parallel across multiple projects, with a top-tier model (e.g. Opus 4.8) acting as an orchestrating manager that spins up and oversees sub-agents rather than doing the work itself.
 
 > "Five is about the quality threshold maximum, after which for some reason there's just some diminishing returns principle."
 > "using five lanes on a motorway instead of one"
+> "think of your agents like employees, which is exactly what they are. We can have 10, 20, 30 of these all running in parallel across multiple projects simultaneously." (How to Use AntiGravity Better than 99% of People)
+> "Hermes becomes not only an executing agent, but a manager that manages other agents to do different tasks. It can, in fact, spin up multiple agents." (Every Level of Hermes Agent Explained)
+> "I would like to have Opus 4.8 as an orchestrative agent that will oversee it like his team, spin up as many sub agents as you see fit." (Every Level of Hermes Agent Explained)
+
+### Asynchronicity — Work Shipped Without You
+
+- The biggest unlock in agent maturity is moving from synchronous chat (you ask, it answers, you wait) to fully asynchronous execution: agents that build, research, and report back on their own schedule, including overnight while you sleep.
+
+> "your relationship goes from being I say, you respond to something completely asynchronous, and it does that. So, things get built even when you're not thinking about them." (Every Level of Hermes Agent Explained)
+> "not only is it running without you, it reports and does work for you whilst you are actually physically sleeping." (Every Level of Hermes Agent Explained)
 
 ### Persistent Context — "Give It a Soul" / Business Brain
 
 - Give agents a persistent context document (business brain, soul.md, CLAUDE.md) describing identity, goals, and voice so every session doesn't start from zero.
 - Keep those context files lean — a bloated CLAUDE.md/system prompt silently burns tokens and degrades output just like an overlong chat window.
+- Restated as "context engineering": AI value scales with how much personal/business context it holds, not raw model intelligence — the same question asked by two different people should yield "radically different answers" once the agent understands each person's context. Hermes's soul.md is framed as the concrete embodiment of this — the agent "never starts from zero" and "remembers your birthday."
 
 > "Claude.md is who I am. Pinecone is what I've said. Obsidian is how I I think."
 > "give it a soul, and make it fantastical."
 > "The first way to do this is reducing the size of your claude.md or your Gemini.md file. I've heard examples of people having over 700 lines."
+> "It's all about context engineering. It needs to know about you and your information, your data so it can best help you." (Every Level of Hermes Agent Explained)
+> "The beauty the beautiful part of Hermes, okay, is that if two people speak to Hermes and ask it the same question, they should get radically different answers because it understands context." (Every Level of Hermes Agent Explained)
+> "Hermes never starts from zero. It's the agent that remembers your birthday." (Every Level of Hermes Agent Explained)
 
 ### One Thing to Change, One Metric to Measure (Iteration Loop)
 
@@ -295,6 +340,15 @@ between technical segments.
 > "there are four components to a successful AI agency... some kind of free content... The second component... is what we call the diagnostic... the third product... a transformation... finally... maximize your LTV."
 > "Customer resonance is when you have an offer or a product or you're adding value and there's an alarm bell goes off and a customer says, 'Hey, I find this valuable.'"
 
+### AI Agent Hype Skepticism (Older Co-Hosted Podcast Register)
+
+- From an older, two-person podcast episode (with co-host "Nick") — a notably more skeptical, off-the-cuff register than his solo tutorial voice: n8n-style AI agents are overhyped relative to simple, deterministic automations, and added complexity tends to *reduce* client ROI rather than increase it. Treat this as a genuinely different content mode (looser, more conversational, willing to argue against the hype) rather than a contradiction of his later, more agent-forward positions — his stance shifts over time as the tooling matures, consistent with the TOOL TIMELINE's "dates are freshness signals" framing.
+
+> "nadn AI agents in particular are overhyped I don't think that they provide any real business value to small to midsize businesses and Enterprises." (AI Agent Hype, Open AI $20,000 Agents, MCP, Manus)
+> "the most money I've made selling these Services have always been with the simplest dumbest systems." (AI Agent Hype, Open AI $20,000 Agents, MCP, Manus)
+> "the more complicated the solutions that I've created for customers typically the less Roi I make." (AI Agent Hype, Open AI $20,000 Agents, MCP, Manus)
+> "Nick welcome bro we're doing a podcast today... we picked pretty much the five biggest topics in AI right now." (AI Agent Hype, Open AI $20,000 Agents, MCP, Manus)
+
 ### Deploy via GitHub + Vercel (Default Hosting Pattern)
 
 - Nearly every build tutorial ends the same way: have the agent create a (private) GitHub repo, then push to Vercel for hosting.
@@ -318,6 +372,12 @@ permanent verdicts.
 - [2025-03-08] n8n — positive, used interchangeably with Make via webhooks (source: "Connect Make.com + n8n together (Automate Anything)")
 - [2025-03-14] Apify — positive, "Willy Wonkers Emporium of Scrapers," cheap and flexible scraping for any social platform (source: "Scrape ANY Social Platform for FREE, here's how")
 - [2025-03-14] n8n — positive, praised for code-node flexibility and troubleshooting hacks (source: "Scrape ANY Social Platform for FREE, here's how")
+- [2025-03-16] n8n AI agents — negative, "overhyped," "don't think that they provide any real business value to small to midsize businesses" vs. simple linear/procedural automations (source: "AI Agent Hype, Open AI $20,000 Agents, MCP, Manus")
+- [2025-03-16] Manus — mixed/positive-leaning, fundamentally different from n8n agents, "you can provide a ton of value with something like Manis," but not yet integrated into business workflows via API (source: "AI Agent Hype, Open AI $20,000 Agents, MCP, Manus")
+- [2025-03-16] OpenAI agents ($2K-$20K/month tier) — mixed, "totally worth it" at scale/leverage framing, but "am I personally going to use it in my business probably not" (source: "AI Agent Hype, Open AI $20,000 Agents, MCP, Manus")
+- [2025-03-16] Sesame AI (Maya voice model) — positive, "it was really cool man," praised for emotional intelligence (source: "AI Agent Hype, Open AI $20,000 Agents, MCP, Manus")
+- [2025-03-16] Anthropic computer use (early) — negative/mixed (historical), "it would do the thing that I asked it to do like 40% of the time" (source: "AI Agent Hype, Open AI $20,000 Agents, MCP, Manus")
+- [2025-03-16] MCP (Model Context Protocol) — positive, standardization layer that "significantly reduce[s] those error rates" (source: "AI Agent Hype, Open AI $20,000 Agents, MCP, Manus")
 - [2025-03-17] AI automation agency model — mixed/analytical, embryonic and opportunity-rich but oversaturated by generalists; recommends niching (source: "5 Profitable AI Skills to Learn in 2025")
 - [2025-03-19] Make.com — positive, used for meeting-transcriber and social scraping automations sold for thousands (source: "I sold these Automations for $10,000, here's how")
 - [2025-03-21] n8n AI Agent feature — positive, better memory handling than sequential automations (source: "Build Your First AI Agent with n8n (beginner MASTERCLASS)")
@@ -369,6 +429,13 @@ permanent verdicts.
 - [2025-12-26] Superbase — positive, core backend/auth/db choice for the SaaS build (source: "The NEW way to build $100k SaaS Websites (Gemini 3)")
 - [2025-12-26] Stripe — positive, straightforward integration via Claude-guided step-by-step setup for subscription billing (source: "The NEW way to build $100k SaaS Websites (Gemini 3)")
 - [2025-12-30] Hostinger — positive, cheap self-hosting for n8n (~55% cheaper than n8n cloud) (source: "Once you learn n8n, do these 5 things immediately")
+- [2026-01-01] Google AntiGravity — positive, "game-changing AI coding tool," praised for agent manager, MCP connections, self-healing browser testing (source: "How to Use AntiGravity Better than 99% of People")
+- [2026-01-01] Gemini 3 (in AntiGravity) — positive, "the most powerful AI design tool on the planet" (source: "How to Use AntiGravity Better than 99% of People")
+- [2026-01-01] Claude 4.5 Sonnet (in AntiGravity) — positive, "an incredible powerhouse," preferred for natural-language copy/code review (source: "How to Use AntiGravity Better than 99% of People")
+- [2026-01-05] Gemini 3 — positive, "record-breaking Google software" for dashboard design (source: "How I Vibe Code Beautiful $10,000 AI Dashboards (AntiGravity)")
+- [2026-01-05] Supabase — positive, "like Microsoft Excel on steroids," core data backend for the dashboard (source: "How I Vibe Code Beautiful $10,000 AI Dashboards (AntiGravity)")
+- [2026-01-05] Google AI Studio — positive, recommended over AntiGravity for prototyping to save paid credit usage (source: "How I Vibe Code Beautiful $10,000 AI Dashboards (AntiGravity)")
+- [2026-01-05] Vercel — positive, seamless GitHub-connected deployment (source: "How I Vibe Code Beautiful $10,000 AI Dashboards (AntiGravity)")
 - [2026-01-09] Notion — positive, used as MCP-integrated business dashboard tool (source: "How I Build $100,000 CEO Systems in 25 mins (AntiGravity)")
 - [2026-01-12] Google Anti-Gravity — positive, "gamechanging AI coding tool," most people "using just a fraction of its potential" (source: "Master 95% of Antigravity in 28 Mins (Unlock Superpowers)")
 - [2026-01-15] Anti-Gravity — positive, core builder tool with "Pages" framework for websites (source: "How I vibecode Beautiful $10,000 AI Websites")
@@ -400,6 +467,11 @@ permanent verdicts.
 - [2026-03-02] Nano Banana 2 (in AntiGravity) — mixed, "4x faster, cheaper" but weak at custom aspect-ratio requests (source: "AntiGravity just got a NEW SuperPower (Claude Code)")
 - [2026-03-02] Claude Code remote control — positive, "can now build in anti-gravity anywhere" (source: "AntiGravity just got a NEW SuperPower (Claude Code)")
 - [2026-03-04] NotebookLM + Anti-Gravity (Zapier-connected) — positive, builds an automated meeting-prep research pipeline (source: "NotebookLM + AntiGravity runs my life (NEW System)")
+- [2026-03-06] Claude Skills 2.0 — positive, "genuinely wild," solves the "is it even working" black-box problem (source: "Claude Code just became UNSTOPPABLE (Skills 2.0)")
+- [2026-03-06] Nano Banana 2 (via Kie AI API) — positive, "50% cheaper," "roughly 6 cents per image" (source: "Claude Code just became UNSTOPPABLE (Skills 2.0)")
+- [2026-03-06] Pinecone — positive, core vector DB for a personal RAG chatbot, "multilingual E5 large" index recommended over the small default (source: "Claude Code just became UNSTOPPABLE (Skills 2.0)")
+- [2026-03-06] Firecrawl — positive, "best software I've seen at going out and scraping things" (source: "Claude Code just became UNSTOPPABLE (Skills 2.0)")
+- [2026-03-06] OpenRouter — positive, preferred for dynamic model switching in the RAG chatbot build (source: "Claude Code just became UNSTOPPABLE (Skills 2.0)")
 - [2026-03-06] ElevenLabs — positive, used for voice agents integrated into websites (source: "How to Build Realistic AI Voice Agents (50% Cheaper)")
 - [2026-03-08] Google Anti-Gravity — positive, positioned as the easiest way to install and run Claude Code with a better UI (source: "Master 95% of Claude Code in 40 mins (AntiGravity)")
 - [2026-03-10] Claude Cowork (early) — positive, solves the "disposable thread" context-loss problem via Projects (source: "Claude Cowork FULL COURSE")
@@ -435,6 +507,10 @@ permanent verdicts.
 - [2026-04-30] DeepSeek V4 — positive, "95% of the performance for 1% of the cost," strong tool-calling, weak at UI/visual design and not for regulated/corporate data (source: "DeepSeekV4 + Claude Code = 100X Cheaper")
 - [2026-05-01] Open Design (GitHub repo) — positive, Apache 2.0 licensed local Claude-Design clone, "not locked into just Opus 4.7" (source: "I Replaced Claude Design… 100% UNLIMITED")
 - [2026-05-02] Hermes Agent — positive but limitation-flagged ("hooked into their roadmap, not yours"); prompts Jack's custom Claude-based replacement (source: "I replaced Hermes... Claude Agent 2.0")
+- [2026-05-04] Claude Code (as design/slide agent) — positive, "the world's number one design agent," but warns "99% of people get AI slop" (source: "I Replaced PowerPoint With Claude Code")
+- [2026-05-04] Firecrawl — positive, extracts brand DNA from any URL in seconds for slide generation (source: "I Replaced PowerPoint With Claude Code")
+- [2026-05-04] Kie.ai (image gen marketplace) — positive, "Willy Wonka's Emporium for APIs," cheap pricing (source: "I Replaced PowerPoint With Claude Code")
+- [2026-05-04] PowerPoint / Canva — negative (by contrast), manual/dated versus programmatic Claude Code slide generation (source: "I Replaced PowerPoint With Claude Code")
 - [2026-05-06] Codex (ChatGPT) — positive, "game-changing," praised for automations/plugins/memory tiers vs Claude Code, four times more token-efficient (source: "How to use Codex Better than 99% of People")
 - [2026-05-07] Higgsfield (2.0 + CLI) — positive, "unlimited content factory," connects Claude to 50+ generation models (source: "Claude Video is Here… Automate Anything")
 - [2026-05-15] Hermes Agent (setup) — positive, "the world's most powerful AI agent assistant," praised for persistent cross-platform memory (source: "Hermes Agent just got 10X Better (Agentic OS)")
@@ -458,6 +534,13 @@ permanent verdicts.
 - [2026-06-14] Andrej Karpathy's "LLM wiki" / Obsidian RAG pattern — positive, fixes Hermes's blind spot (no access to inbox/meetings/expert knowledge) (source: "Build a Hermes Knowledge Base That Self-Improves")
 - [2026-06-15] Claude Fable 5 — positive but cautioned, briefly banned/pulled by US government pressure; "the best AI model on the planet can be taken away from you at any time" (source: "Claude Fable 5 is Banned... Do THIS Right Now")
 - [2026-06-15] Ollama (local models) — positive, "100% private," recommended hedge against vendor lock-in/model removal (source: "Claude Fable 5 is Banned... Do THIS Right Now")
+- [2026-06-17] Hermes agent — positive, extensively praised across all seven "levels" (source: "Every Level of Hermes Agent Explained")
+- [2026-06-17] Claude Opus 4.8 — positive but situational, "the most intelligent model," yet "you don't need it for everything" (source: "Every Level of Hermes Agent Explained")
+- [2026-06-17] Sonnet 4.6 — positive, "a very good middle ground of like really good performance, but it's not going to burn your cost" (source: "Every Level of Hermes Agent Explained")
+- [2026-06-17] Grok (via OAuth in Hermes) — positive, praised for X/Twitter access (source: "Every Level of Hermes Agent Explained")
+- [2026-06-17] DeepSeek V4 (Flash) — positive, cheap, used for delegated bulk research in sub-agent teams (source: "Every Level of Hermes Agent Explained")
+- [2026-06-17] ChatGPT 5.5 — positive, recommended to connect into Hermes for coding tasks (source: "Every Level of Hermes Agent Explained")
+- [2026-06-17] Granola (meeting notes MCP) — positive, praised as an easy, valuable integration example (source: "Every Level of Hermes Agent Explained")
 - [2026-06-22] Claude (Opus 4.8/Sonnet 4.6 model family, Graphify, Skills) — positive overview, "most people use Claude like a Google search, which is only 5% of what it can actually do" (source: "Full Claude Code Tutorial: Beginner to Advanced in 11 Minutes")
 - [2026-06-23] MiniMax M3 — positive (sponsored), "tied on coding for 4% of the price" of GPT 5.5, cheaper than Sonnet 4.6 (source: "Hermes Agent + MiniMax M3 is WILD")
 - [2026-06-23] GLM 5.2 — positive/mixed, "crushing it" for command-line coding but MiniMax cheaper on output tokens (source: "Hermes Agent + MiniMax M3 is WILD")
@@ -466,6 +549,12 @@ permanent verdicts.
 - [2026-06-24] Claude Opus 4.8 — mixed/positive, won tool-calling test reliably but slower and costlier than GLM; still "most capable brain" baseline he benchmarks everything against (source: "I Tested the Fable 5 Killer (Hermes Agent)")
 - [2026-06-28] Claude Design 2.0 — positive, praised for Firecrawl-based brand extraction and canvas editing, but handoff-to-code integration flagged as "a little dicey" (source: "Claude Design 2.0 Just Changed Everything...")
 - [2026-07-04] Claude Fable 5 (final verdict before API-only move) — strongly positive, beats Opus 4.8 by "a consistent 12-point margin" on security review across 3 independent model judges, but more heavily safety-routed on sensitive tasks (source: "Fable 5 Dies in 4 Days... Do these 5 Things RIGHT NOW")
+- [2026-07-05] Claude Code (website building, Opus 4.8 baseline) — mixed at baseline, "95% of them are complete garbage" without proper skills (source: "Every Level of Claude Fable 5 Websites Explained")
+- [2026-07-05] UI/UX Pro Max skill (GitHub) — positive, "freaking awesome," 67 UI styles, 161 color palettes (source: "Every Level of Claude Fable 5 Websites Explained")
+- [2026-07-05] OpenArt — positive, praised interface and image/video generation quality (source: "Every Level of Claude Fable 5 Websites Explained")
+- [2026-07-05] 21st.dev / Magic UI / CodePen / Mobbin — positive, sources for "UI snapping" (source: "Every Level of Claude Fable 5 Websites Explained")
+- [2026-07-05] Firecrawl — positive, used to extract brand identity and conduct competitive research (source: "Every Level of Claude Fable 5 Websites Explained")
+- [2026-07-05] Claude Fable 5 — positive, "night and day" quality leap combined with design-extraction blueprint technique (source: "Every Level of Claude Fable 5 Websites Explained")
 
 ---
 

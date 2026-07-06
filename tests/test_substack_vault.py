@@ -127,3 +127,49 @@ def test_topic_links_are_channel_qualified_on_slug_collision(tmp_path):
     assert "[[posts/other/intro|Intro B]]" in dbt_note
     # The ambiguous bare-slug link must NOT appear.
     assert "[[intro|" not in dbt_note
+
+
+# --- ingestion log (append-only; mirrors media_core.unified_vault) -----------
+
+def test_log_created_on_first_build_backfills_without_claiming_new(tmp_path):
+    vault.build_vault(_catalog(), vault_dir=tmp_path)
+
+    log = (tmp_path / "Log.md").read_text()
+    assert log.count("\n- **") == 1        # exactly one entry
+    # First-ever entry backfills pre-existing content — must not claim it was
+    # "just captured" when it wasn't.
+    assert "2 item(s) already in vault (log started here) (2 total: 2 posts across 2 channels)" in log
+    assert "[[Log|Ingestion Log]]" in (tmp_path / "Home.md").read_text()
+
+
+def test_log_appends_new_entry_when_items_added(tmp_path):
+    vault.build_vault(_catalog(), vault_dir=tmp_path)
+
+    grown = _catalog()
+    grown.channels[0].posts.append(
+        _post("dbt part 2", "dbt-part-2", ["dbt"], "vutr"))
+    vault.build_vault(grown, vault_dir=tmp_path)
+
+    log = (tmp_path / "Log.md").read_text()
+    assert log.count("\n- **") == 2        # first entry preserved, second appended
+    assert "1 new item(s) captured (3 total: 3 posts across 2 channels)" in log
+
+
+def test_log_skips_entry_when_no_new_items(tmp_path):
+    vault.build_vault(_catalog(), vault_dir=tmp_path)
+    vault.build_vault(_catalog(), vault_dir=tmp_path)  # identical rebuild
+
+    log = (tmp_path / "Log.md").read_text()
+    assert log.count("\n- **") == 1        # no duplicate entry for an unchanged rebuild
+
+
+def test_log_records_removed_items(tmp_path):
+    vault.build_vault(_catalog(), vault_dir=tmp_path)
+
+    shrunk = _catalog()
+    shrunk.channels = shrunk.channels[:1]  # drop the "other" channel entirely
+    vault.build_vault(shrunk, vault_dir=tmp_path)
+
+    log = (tmp_path / "Log.md").read_text()
+    assert log.count("\n- **") == 2
+    assert "1 item(s) removed (1 total: 1 posts across 1 channels)" in log

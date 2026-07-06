@@ -141,6 +141,35 @@ instagram-toolkit build
 - **Obsidian output shape.** Notes have YAML frontmatter + body, are wired with
   `[[wikilinks]]`, roll up into MOC (Map-of-Content) notes, and cross-link via
   shared `topics/<topic>.md` notes.
+- **Every vault builder implements the index + log + cross-links routing
+  pattern — this is a standing requirement, not optional.** It's what lets an
+  AI agent (or a human) route to the right note efficiently instead of
+  re-scanning the whole vault. Three components, all required:
+  1. **Index** — `Home.md` (+ per-source MOCs): what exists and roughly where.
+     Already covered by the "Obsidian output shape" bullet above.
+  2. **Log** (`Log.md`) — an **append-only** running history of *when* content
+     was added or removed, distinct from the index (which only reflects
+     current state). Implemented once in `media_core/unified_vault.py` as
+     `_last_logged_total()` + `_log_ingest()` and reused/replicated across
+     every vault builder (`soic_toolkit/vault.py`, `substack_toolkit/vault.py`,
+     `media_core/unified_vault.py`'s `build_vault()` and `build_unified()`).
+     Contract, do not deviate: parse the last entry's `(N total` to get the
+     prior count (no separate state file); word the very first-ever entry as
+     a **backfill** ("N item(s) already in vault (log started here)") — never
+     claim pre-existing content was "just captured"; on later builds, append
+     "N new item(s) captured" or "N item(s) removed" only when the total
+     actually changed (never spam a duplicate entry on an unchanged rebuild);
+     link `[[Log|Ingestion Log]]` from Home.md so it's discoverable.
+  3. **Cross-links** — shared `topics/<topic>.md` notes (see the topic
+     vocabulary bullet above) plus inline `[[wikilinks]]` in every note.
+  **If you add a new vault builder (a new toolkit, a new content kind),
+  implement all three from the start** — copy the `_log_ingest` pattern
+  rather than reinventing it, and add the same 4-test shape (backfill wording,
+  append-on-growth, skip-on-no-change, removed-item wording) to that module's
+  test file. See `docs/superpowers/specs/2026-07-05-nate-herk-jack-roberts-persona-design.md`
+  and the corresponding plan for the original design discussion of this
+  pattern (it was reverse-engineered from Andrej Karpathy's "LLM knowledge
+  base" idea, applied to this repo's vaults).
 - **Gitignored outputs — never commit.** Per `.gitignore`: `.env`, `.auth/`,
   `data/`, `output/`, `vault/`. These hold sessions and captured content.
 

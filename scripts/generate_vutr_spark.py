@@ -10,7 +10,7 @@ import os
 # CSS — copied verbatim from generate_learning_pack.py
 # ─────────────────────────────────────────────────────────────────────────────
 CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Caveat:wght@400;600;700&display=swap');
 :root {
   --ink:#1c1c2e; --body:#2d2d3e; --muted:#666680; --border:#d8d8e8; --bg:#fff; --alt:#f8f8fc;
   --s-bg:#f0fdf4; --s-bd:#22c55e; --s-tx:#14532d;
@@ -98,6 +98,18 @@ tr:last-child td{border-bottom:none}
 .mermaid svg{max-width:100%;height:auto}
 .diagram-cap{font-family:'Inter',sans-serif;font-size:7.5pt;color:var(--muted);text-align:center;margin-top:-1mm;margin-bottom:3mm;font-style:italic}
 
+/* Scribble layer — hand-drawn sketches, margin notes, big facts (GRINDE: Non-verbal + Emphasized) */
+.sketch{margin:4mm 0 1mm;text-align:center;page-break-inside:avoid}
+.sketch svg{max-width:100%;height:auto}
+.sketch-cap{font-family:'Caveat',cursive;font-size:12pt;color:#44446a;text-align:center;margin:0 0 4mm;line-height:1.25}
+.scribble{font-family:'Caveat',cursive;font-size:13pt;line-height:1.25;color:#7c2d12;background:#fffbeb;border:1.5px solid #f59e0b;border-radius:8px 14px 10px 16px;padding:2.5mm 4mm;margin:2.5mm 6mm 3.5mm;transform:rotate(-0.6deg);page-break-inside:avoid}
+.scribble .who{font-size:9.5pt;color:#b45309;display:block;margin-top:0.5mm}
+.bigfacts{margin:5mm 0;padding:4mm 5mm;background:#fefce8;border:2px dashed #ca8a04;border-radius:6px;page-break-inside:avoid}
+.bigfacts-head{font-family:'Caveat',cursive;font-size:15pt;font-weight:700;color:#92400e;margin-bottom:2mm}
+.bigfact{font-family:'Caveat',cursive;font-size:16.5pt;font-weight:600;line-height:1.3;color:#1c1c2e;margin-bottom:1.5mm}
+.bigfact .n{color:#dc2626;font-weight:700;margin-right:2mm}
+.retrieval-note{font-family:'Caveat',cursive;font-size:12.5pt;color:#166534;text-align:center;margin:1mm 0 3mm}
+
 /* Cover extras for Spark pack */
 .cover-title{font-family:'Inter',sans-serif;font-size:26pt;font-weight:700;line-height:1.15;color:var(--ink);margin-bottom:4mm}
 .cover-sub{font-size:12pt;color:var(--muted);font-style:italic;margin-bottom:9mm}
@@ -135,6 +147,48 @@ CH1 = """
   <p class="ch-sum">Spark's entire execution model — stages, shuffles, fault tolerance, and query optimization — follows from two foundational ideas: the RDD abstraction and lazy evaluation. Every performance decision in Spark is traceable to the concepts in this chapter.</p>
 </div>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="squig1" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+    </filter>
+  </defs>
+</svg>
+
+<div class="sketch">
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="80" ry="36" fill="#eff6ff" stroke-width="3.4"/>
+    <rect x="40"  y="20"  width="184" height="76" rx="12" fill="#f0fdf4"/>
+    <rect x="476" y="16"  width="192" height="92" rx="12" fill="#faf5ff"/>
+    <rect x="24"  y="212" width="196" height="86" rx="12" fill="#f0f9ff"/>
+    <rect x="480" y="210" width="196" height="90" rx="12" fill="#fff1f2"/>
+    <path d="M274 128 C232 108, 206 96, 200 96" marker-end="url(#arr)"/>
+    <path d="M426 130 C460 110, 484 98, 496 98" marker-end="url(#arr)"/>
+    <path d="M284 176 C240 198, 214 208, 198 216" marker-end="url(#arr)"/>
+    <path d="M420 174 C458 196, 484 206, 508 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="24" font-weight="700" fill="#1c1c2e">RDD</text>
+  <text x="350" y="168" text-anchor="middle" font-size="13.5" fill="#44446a">lazy recipe, not a container</text>
+  <text x="132" y="46"  text-anchor="middle" font-size="16" font-weight="700" fill="#14532d">WHY RDDs EXIST</text>
+  <text x="132" y="66"  text-anchor="middle" font-size="13" fill="#14532d">MapReduce = disk every pass</text>
+  <text x="132" y="82"  text-anchor="middle" font-size="13" fill="#14532d">100 iters = 200 disk trips</text>
+  <text x="572" y="40"  text-anchor="middle" font-size="16" font-weight="700" fill="#581c87">5 RDD PROPERTIES</text>
+  <text x="572" y="60"  text-anchor="middle" font-size="12.5" fill="#581c87">partitions · compute fn</text>
+  <text x="572" y="76"  text-anchor="middle" font-size="12.5" fill="#581c87">dependencies · partitioner</text>
+  <text x="572" y="92"  text-anchor="middle" font-size="12.5" fill="#581c87">preferred locations</text>
+  <text x="122" y="238" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">NARROW vs WIDE</text>
+  <text x="122" y="258" text-anchor="middle" font-size="13" fill="#0c4a6e">1→1 = pipelined, free</text>
+  <text x="122" y="274" text-anchor="middle" font-size="13" fill="#0c4a6e">1→N = shuffle, new stage</text>
+  <text x="578" y="234" text-anchor="middle" font-size="16" font-weight="700" fill="#881337">CATALYST (4 phases)</text>
+  <text x="578" y="254" text-anchor="middle" font-size="12.5" fill="#881337">analyze → logical opt →</text>
+  <text x="578" y="270" text-anchor="middle" font-size="12.5" fill="#881337">physical plan → codegen</text>
+  <text x="350" y="308" text-anchor="middle" font-size="13.5" fill="#44446a">immutability + laziness = everything downstream follows from these two ideas</text>
+</svg>
+</div>
+<div class="sketch-cap">The whole chapter on one napkin. Diagram: RDD at the hub, with four branches — why RDDs exist (the MapReduce disk problem), the 5 RDD properties, narrow vs wide dependencies, and Catalyst's four optimization phases.</div>
+
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
 <p>Before Spark, iterative machine learning algorithms using MapReduce were extraordinarily expensive. MapReduce writes all intermediate data to disk between the map phase and the reduce phase. A gradient descent algorithm requiring 100 passes over the data means 100 full disk round-trips to HDFS — each pass launching a separate MapReduce job that rewrites everything to disk before the next job can read it. Spark was invented specifically to fix this: it keeps intermediate data in memory across iterations. Understanding <em>how</em> it does this — via RDDs, lineage, and lazy evaluation — is the foundation for every tuning decision you will ever make.</p>
 </div>
@@ -145,6 +199,46 @@ CH1 = """
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
 <p>MapReduce is like doing your homework one step at a time, but after each step you put your work in a filing cabinet, go home, come back, and retrieve it again before the next step. Spark lets you keep your work on the desk across all steps.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="16" y="26" width="90" height="34" rx="6" fill="#fce7f3"/>
+    <rect x="16" y="120" width="90" height="34" rx="6" fill="#fce7f3"/>
+  </g>
+  <g filter="url(#squig1)" fill="#fff1f2" stroke="#dc2626" stroke-width="2.6">
+    <rect x="140" y="20" width="72" height="46" rx="6"/><rect x="248" y="20" width="72" height="46" rx="6"/>
+    <rect x="356" y="20" width="72" height="46" rx="6"/><rect x="464" y="20" width="72" height="46" rx="6"/>
+    <rect x="572" y="20" width="90" height="46" rx="6"/>
+  </g>
+  <g filter="url(#squig1)" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round">
+    <path d="M110 43 L136 43" marker-end="url(#arr-r)"/><path d="M216 43 L244 43" marker-end="url(#arr-r)"/>
+    <path d="M324 43 L352 43" marker-end="url(#arr-r)"/><path d="M432 43 L460 43" marker-end="url(#arr-r)"/>
+    <path d="M540 43 L568 43" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="61"  y="47"  text-anchor="middle" font-size="13" fill="#9d174d">iter 1</text>
+  <text x="61"  y="141" text-anchor="middle" font-size="13" fill="#9d174d">iter 2</text>
+  <text x="176" y="47" text-anchor="middle" font-size="11" fill="#7f1d1d">HDFS</text>
+  <text x="284" y="47" text-anchor="middle" font-size="11" fill="#7f1d1d">HDFS</text>
+  <text x="392" y="47" text-anchor="middle" font-size="11" fill="#7f1d1d">HDFS</text>
+  <text x="500" y="47" text-anchor="middle" font-size="11" fill="#7f1d1d">HDFS</text>
+  <text x="617" y="47" text-anchor="middle" font-size="11" fill="#7f1d1d">…100×</text>
+  <text x="340" y="12" text-anchor="middle" font-size="15" fill="#dc2626" font-weight="700">MapReduce: 200 disk round-trips for 100 iterations</text>
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="16" y="120" width="90" height="34" rx="6" fill="#fce7f3"/>
+  </g>
+  <g filter="url(#squig1)" fill="#dcfce7" stroke="#16a34a" stroke-width="2.6">
+    <rect x="140" y="106" width="522" height="60" rx="10"/>
+  </g>
+  <path d="M110 137 L136 137" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+  <text x="401" y="132" text-anchor="middle" font-size="16" fill="#14532d" font-weight="700">one load into RAM — all 100 iterations stay here</text>
+  <text x="401" y="152" text-anchor="middle" font-size="12.5" fill="#14532d">(RDD lineage means a lost partition just gets recomputed, not re-read from disk)</text>
+  <text x="340" y="184" text-anchor="middle" font-size="15" fill="#16a34a" font-weight="700">Spark: 1 disk read, 100 in-memory passes</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: MapReduce's iterative loop bounces to HDFS and back on every single pass (100 iterations = 200 disk round-trips), while Spark loads once into memory and keeps all 100 passes there.</div>
+
+<div class="scribble">it's not that MapReduce is "bad" — it's that NOTHING kept your data warm between steps. Spark's whole trick is just: stop putting it back in the filing cabinet. <span class="who">— Alex, margin note</span></div>
 
 <p>Google introduced MapReduce in 2004 as a paradigm for distributing data processing across hundreds of machines. The model is clean: a <strong>Map</strong> function processes records and emits key-value pairs; a <strong>Shuffle</strong> redistributes all pairs by key across the network; a <strong>Reduce</strong> function aggregates pairs sharing the same key. Disk writes buffer every phase boundary.</p>
 
@@ -260,6 +354,49 @@ CH1 = """
 
 <p><strong>Wide dependency:</strong> A single partition of a parent RDD contributes to multiple partitions of the child RDD. The compute function for a child partition requires data from <em>multiple</em> parent partitions. Examples: <code>groupByKey</code>, <code>reduceByKey</code>, <code>join</code>, <code>repartition</code>, <code>sort</code>. Wide dependencies create stage boundaries — Spark must complete the parent stage entirely (writing shuffle files to disk) before the child stage can begin reading them.</p>
 
+<div class="sketch">
+<svg viewBox="0 0 700 220" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="10"  y="14" width="330" height="196" rx="12" fill="#f8f8fc"/>
+    <rect x="358" y="14" width="332" height="196" rx="12" fill="#f8f8fc"/>
+  </g>
+  <g fill="#dbeafe" stroke="#1e3a8a" stroke-width="2">
+    <rect x="50"  y="52" width="42" height="30" rx="4"/><rect x="102" y="52" width="42" height="30" rx="4"/>
+    <rect x="154" y="52" width="42" height="30" rx="4"/>
+  </g>
+  <g fill="#dcfce7" stroke="#16a34a" stroke-width="2">
+    <rect x="50"  y="130" width="42" height="30" rx="4"/><rect x="102" y="130" width="42" height="30" rx="4"/>
+    <rect x="154" y="130" width="42" height="30" rx="4"/>
+  </g>
+  <g stroke="#16a34a" stroke-width="2.4" fill="none">
+    <path d="M71 82 L71 130" marker-end="url(#arr-g)"/><path d="M123 82 L123 130" marker-end="url(#arr-g)"/>
+    <path d="M175 82 L175 130" marker-end="url(#arr-g)"/>
+  </g>
+  <text x="175" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1c2e">NARROW</text>
+  <text x="175" y="188" text-anchor="middle" font-size="13.5" fill="#14532d">1 parent → 1 child</text>
+  <text x="175" y="204" text-anchor="middle" font-size="13" fill="#16a34a" font-weight="700">pipelined — no stage break, free</text>
+  <g fill="#dbeafe" stroke="#1e3a8a" stroke-width="2">
+    <rect x="400" y="52" width="42" height="30" rx="4"/><rect x="452" y="52" width="42" height="30" rx="4"/>
+    <rect x="504" y="52" width="42" height="30" rx="4"/>
+  </g>
+  <g fill="#fecaca" stroke="#dc2626" stroke-width="2">
+    <rect x="400" y="130" width="42" height="30" rx="4"/><rect x="452" y="130" width="42" height="30" rx="4"/>
+    <rect x="504" y="130" width="42" height="30" rx="4"/>
+  </g>
+  <g stroke="#dc2626" stroke-width="2" fill="none" stroke-dasharray="5 4">
+    <path d="M421 82 L421 130 M421 82 L473 130 M421 82 L525 130" marker-end="url(#arr-r)"/>
+    <path d="M473 82 L421 130 M473 82 L473 130 M473 82 L525 130" marker-end="url(#arr-r)"/>
+    <path d="M525 82 L421 130 M525 82 L473 130 M525 82 L525 130" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="470" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="#1c1c2e">WIDE</text>
+  <text x="470" y="188" text-anchor="middle" font-size="13.5" fill="#881337">1 parent → N children</text>
+  <text x="470" y="204" text-anchor="middle" font-size="13" fill="#dc2626" font-weight="700">SHUFFLE — new stage, disk + net</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: narrow dependencies (map, filter) draw one clean line per partition and pipeline for free; wide dependencies (groupByKey, join) tangle every parent partition into every child partition — that tangle IS the shuffle.</div>
+
+<div class="scribble">so a "stage boundary" isn't some abstract Spark concept — it's just the point where the arrows stop being 1-to-1 and start being everyone-to-everyone. <span class="who">— Alex, margin note</span></div>
+
 <div class="box n"><div class="box-lbl">Narrow vs Wide: Visual Distinction</div>
 <table>
   <thead><tr><th>Property</th><th>Narrow Dependency</th><th>Wide Dependency</th></tr></thead>
@@ -308,6 +445,38 @@ CH1 = """
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
 <p>When you write a DataFrame query, Catalyst is the engine that figures out the most efficient physical way to execute it. It works in four phases: validate your query, apply logical simplifications, choose a physical execution strategy, and then compile optimized JVM bytecode for that strategy.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="10"  y="30" width="150" height="86" rx="10" fill="#eff6ff"/>
+    <rect x="188" y="30" width="150" height="86" rx="10" fill="#f0fdf4"/>
+    <rect x="366" y="30" width="150" height="86" rx="10" fill="#faf5ff"/>
+    <rect x="544" y="30" width="150" height="86" rx="10" fill="#fff7ed"/>
+    <path d="M164 73 L184 73" marker-end="url(#arr)"/>
+    <path d="M342 73 L362 73" marker-end="url(#arr)"/>
+    <path d="M520 73 L540 73" marker-end="url(#arr)"/>
+  </g>
+  <text x="85"  y="18" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">1. ANALYSIS</text>
+  <text x="85"  y="60" text-anchor="middle" font-size="12.5" fill="#1e3a8a">resolve column names</text>
+  <text x="85"  y="76" text-anchor="middle" font-size="12.5" fill="#1e3a8a">against the catalog</text>
+  <text x="85"  y="98" text-anchor="middle" font-size="11.5" fill="#666680">"column not found" here</text>
+  <text x="263" y="18" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">2. LOGICAL OPT</text>
+  <text x="263" y="60" text-anchor="middle" font-size="12.5" fill="#14532d">predicate pushdown</text>
+  <text x="263" y="76" text-anchor="middle" font-size="12.5" fill="#14532d">projection pruning</text>
+  <text x="263" y="98" text-anchor="middle" font-size="11.5" fill="#666680">pure logic, no physical yet</text>
+  <text x="441" y="18" text-anchor="middle" font-size="15" font-weight="700" fill="#581c87">3. PHYSICAL PLAN</text>
+  <text x="441" y="60" text-anchor="middle" font-size="12.5" fill="#581c87">picks BHJ/SMJ/SHJ</text>
+  <text x="441" y="76" text-anchor="middle" font-size="12.5" fill="#581c87">using cost estimates</text>
+  <text x="441" y="98" text-anchor="middle" font-size="11.5" fill="#666680">Ch3! · AQE redoes this (Ch5)</text>
+  <text x="619" y="18" text-anchor="middle" font-size="15" font-weight="700" fill="#9a3412">4. CODEGEN</text>
+  <text x="619" y="60" text-anchor="middle" font-size="12.5" fill="#9a3412">Janino compiles a</text>
+  <text x="619" y="76" text-anchor="middle" font-size="12.5" fill="#9a3412">single tight JVM loop</text>
+  <text x="619" y="98" text-anchor="middle" font-size="11.5" fill="#666680">Tungsten runs it (Ch4)</text>
+  <text x="350" y="140" text-anchor="middle" font-size="13.5" fill="#44446a">always in THIS order — never skipped, never reordered</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: Catalyst's four phases as a left-to-right pipeline — analysis validates, logical optimization rewrites, physical planning picks a join strategy, code generation compiles the final JVM loop.</div>
 
 <p>DataFrames and Datasets expose a schema — column names and types — that Spark can reason about before execution. This schema visibility is what allows the Catalyst Optimizer to apply optimizations that are impossible with raw RDDs or Python UDFs (which are black boxes).</p>
 
@@ -367,6 +536,8 @@ CH1 = """
 <p><strong>The fix: rewrite UDF logic using native <code>pyspark.sql.functions</code>.</strong> Every built-in function in <code>pyspark.sql.functions</code> — <code>when()</code>, <code>coalesce()</code>, <code>regexp_replace()</code>, <code>to_date()</code>, <code>substring()</code>, <code>concat()</code>, etc. — is a first-class Catalyst expression node. Replacing a Python UDF with equivalent built-in function combinations makes the logic fully transparent to Catalyst: predicate pushdown works, projection pruning works, Tungsten encoding works, and no JVM/Python process boundary is crossed. For complex logic not expressible with built-ins, use a Pandas UDF (vectorized, Arrow-based batch transfer) as the next-best option — it still lacks Catalyst transparency but eliminates the per-row serialization cost.</p>
 </div>
 
+<div class="scribble">a Python UDF isn't just "slow" — it's INVISIBLE to Catalyst. The optimizer can't push a filter through a box it can't see inside. Black box in, zero optimization out. <span class="who">— Alex, margin note</span></div>
+
 <div class="box l"><div class="box-lbl">Cross-Connections from This Chapter</div>
 <ul>
   <li><strong>Ch3 (Join Strategy):</strong> Catalyst Phase 3 selects BHJ vs SMJ vs SHJ based on table size estimates. Understanding those join strategies requires first understanding how Catalyst makes the choice.</li>
@@ -375,6 +546,45 @@ CH1 = """
 </ul>
 </div>
 </div>
+
+<div class="bigfacts">
+<div class="bigfacts-head">If you forget everything else in this chapter, keep these three:</div>
+<div class="bigfact"><span class="n">1.</span>An RDD is a lazy recipe, not a dataset — nothing runs until an action fires.</div>
+<div class="bigfact"><span class="n">2.</span>Narrow deps pipeline for free. Wide deps = shuffle = new stage.</div>
+<div class="bigfact"><span class="n">3.</span>Catalyst always runs Analysis → Logical Opt → Physical Plan → Codegen, in that order.</div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#666680" stroke-width="2.4" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="78" ry="34" fill="#f8f8fc" stroke="#1c1c2e" stroke-width="3"/>
+    <rect x="44"  y="24"  width="176" height="72" rx="12" fill="#fff"/>
+    <rect x="480" y="20"  width="184" height="88" rx="12" fill="#fff"/>
+    <rect x="30"  y="206" width="188" height="80" rx="12" fill="#fff"/>
+    <rect x="486" y="204" width="178" height="80" rx="12" fill="#fff"/>
+    <path d="M274 128 C232 108, 206 96, 200 96" marker-end="url(#arr)"/>
+    <path d="M426 130 C460 110, 484 98, 496 98" marker-end="url(#arr)"/>
+    <path d="M284 176 C240 198, 214 208, 198 216" marker-end="url(#arr)"/>
+    <path d="M420 174 C458 196, 484 206, 508 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="22" font-weight="700" fill="#1c1c2e">RDD</text>
+  <text x="350" y="168" text-anchor="middle" font-size="14" fill="#666680">a ______, not a ________</text>
+  <text x="132" y="46"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">WHY RDDs EXIST</text>
+  <text x="132" y="66"  text-anchor="middle" font-size="14" fill="#666680">________ every pass</text>
+  <text x="132" y="82"  text-anchor="middle" font-size="14" fill="#666680">100 iters = ___ disk trips</text>
+  <text x="572" y="42"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">5 RDD PROPERTIES</text>
+  <text x="572" y="62"  text-anchor="middle" font-size="13.5" fill="#666680">p_________ · c______ fn</text>
+  <text x="572" y="78"  text-anchor="middle" font-size="13.5" fill="#666680">d____________ · partitioner</text>
+  <text x="572" y="94"  text-anchor="middle" font-size="13.5" fill="#666680">preferred l_________</text>
+  <text x="124" y="234" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">N_____ vs W___</text>
+  <text x="124" y="254" text-anchor="middle" font-size="14" fill="#666680">1→1 = _________, free</text>
+  <text x="124" y="270" text-anchor="middle" font-size="14" fill="#666680">1→N = _______, new stage</text>
+  <text x="575" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">CATALYST (4 phases)</text>
+  <text x="575" y="250" text-anchor="middle" font-size="13.5" fill="#666680">a______ → l_____ opt →</text>
+  <text x="575" y="266" text-anchor="middle" font-size="13.5" fill="#666680">p_______ plan → c_____gen</text>
+</svg>
+</div>
+<div class="retrieval-note">✍️ Close the chapter and redraw this map from memory, saying every blank OUT LOUD — then flip back and check. Recall, not recognition.</div>
 
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
@@ -413,6 +623,40 @@ CH2 = """
   <p class="ch-sum">OOM errors are the most common production failure in Spark. Understanding the unified memory model — its regions, borrowing rules, and eviction asymmetry — is the difference between debugging an OOM in 10 minutes and spending a day adding memory that doesn't fix anything.</p>
 </div>
 
+<div class="sketch">
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="82" ry="34" fill="#eff6ff" stroke-width="3.4"/>
+    <rect x="30"  y="20"  width="200" height="82" rx="12" fill="#f0fdf4"/>
+    <rect x="470" y="16"  width="200" height="98" rx="12" fill="#faf5ff"/>
+    <rect x="20"  y="212" width="204" height="84" rx="12" fill="#f0f9ff"/>
+    <rect x="476" y="214" width="196" height="82" rx="12" fill="#fff1f2"/>
+    <path d="M274 128 C232 108, 206 96, 200 96" marker-end="url(#arr)"/>
+    <path d="M426 130 C460 110, 484 98, 496 98" marker-end="url(#arr)"/>
+    <path d="M284 176 C240 198, 214 208, 198 216" marker-end="url(#arr)"/>
+    <path d="M420 174 C458 196, 484 206, 508 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="24" font-weight="700" fill="#1c1c2e">OOM</text>
+  <text x="350" y="168" text-anchor="middle" font-size="13.5" fill="#44446a">why the same job passes Mon, fails Thu</text>
+  <text x="130" y="42"  text-anchor="middle" font-size="16" font-weight="700" fill="#14532d">3 MEMORY REGIONS</text>
+  <text x="130" y="62"  text-anchor="middle" font-size="13" fill="#14532d">reserved (300MB) · user</text>
+  <text x="130" y="78"  text-anchor="middle" font-size="13" fill="#14532d">unified (exec + storage)</text>
+  <text x="130" y="94"  text-anchor="middle" font-size="12" fill="#16a34a" font-weight="700">soft boundary, not hard!</text>
+  <text x="570" y="38"  text-anchor="middle" font-size="16" font-weight="700" fill="#581c87">EVICTION ASYMMETRY</text>
+  <text x="570" y="58"  text-anchor="middle" font-size="13" fill="#581c87">exec borrows storage freely</text>
+  <text x="570" y="74"  text-anchor="middle" font-size="13" fill="#581c87">storage NEVER reclaims exec</text>
+  <text x="570" y="94"  text-anchor="middle" font-size="12" fill="#dc2626" font-weight="700">= cache silently evicted</text>
+  <text x="122" y="238" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">SKEW ≠ SIZE</text>
+  <text x="122" y="258" text-anchor="middle" font-size="13" fill="#0c4a6e">doubling memory does NOT</text>
+  <text x="122" y="274" text-anchor="middle" font-size="13" fill="#0c4a6e">fix a skewed partition</text>
+  <text x="574" y="240" text-anchor="middle" font-size="16" font-weight="700" fill="#881337">TUNGSTEN</text>
+  <text x="574" y="260" text-anchor="middle" font-size="13" fill="#881337">off-heap binary, GC never</text>
+  <text x="574" y="276" text-anchor="middle" font-size="13" fill="#881337">scans it — 4B stays 4B</text>
+  <text x="350" y="312" text-anchor="middle" font-size="13.5" fill="#44446a">scheduling nondeterminism decides WHICH executor gets the hot partition on a given day</text>
+</svg>
+</div>
+<div class="sketch-cap">The whole chapter on one napkin. Diagram: OOM at the hub, with four branches — the 3 memory regions, the eviction asymmetry rule, skew vs raw size, and Tungsten's off-heap trick.</div>
+
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
 <p>OOM errors in Spark feel random. The same job passes on Monday and fails on Thursday. The data volume didn't change. What changed? A different scheduling order put a different partition on the same executor. Or a slightly different data distribution created a skewed partition that needed 80% of executor memory. Vu Trinh captures this precisely: "This is why the same job can pass on Monday and fail on Thursday. It's not the data volume that changed. A different scheduling order, a different outcome." To debug OOMs reliably, you must understand <em>exactly</em> how Spark allocates memory inside an executor and what causes one task to consume far more than its share.</p>
 <p>Two failure modes are commonly confused: <strong>insufficient total memory</strong> (adding executor memory fixes it) and <strong>data skew</strong> (adding memory does not fix it — the skewed task still receives the same disproportionate share of data regardless of executor size). Understanding the unified memory model makes the difference between a 10-minute fix and a wasted day.</p>
@@ -424,6 +668,39 @@ CH2 = """
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
 <p>Each executor's JVM heap (the total pool of RAM that the Java-based Spark executor is allowed to use) is divided into three zones: a small locked zone Spark keeps for itself (300MB), a zone for your application's own data structures, and a large shared zone that Spark splits between "working memory for computations" and "cache storage." The key insight: the working memory can borrow from cache storage, but cache storage cannot borrow back from working memory once it's been taken.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 230" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.4" stroke-linecap="round">
+    <rect x="20"  y="40" width="100" height="90" fill="#fecaca" stroke="#dc2626"/>
+    <rect x="120" y="40" width="230" height="90" fill="#dbeafe" stroke="#1e3a8a"/>
+    <rect x="350" y="40" width="165" height="90" fill="#dcfce7" stroke="#16a34a"/>
+    <rect x="515" y="40" width="165" height="90" fill="#fef9c3" stroke="#ca8a04"/>
+  </g>
+  <path d="M400 40 C420 20, 460 20, 480 40" fill="none" stroke="#16a34a" stroke-width="2.6" marker-end="url(#arr-g)"/>
+  <path d="M480 130 C460 150, 420 150, 400 130" fill="none" stroke="#dc2626" stroke-width="2.6" stroke-dasharray="6 5"/>
+  <text x="440" y="16" text-anchor="middle" font-size="13" fill="#16a34a" font-weight="700">execution borrows freely →</text>
+  <text x="440" y="164" text-anchor="middle" font-size="13" fill="#dc2626" font-weight="700">✕ storage can NEVER take back</text>
+  <text x="70"  y="70"  text-anchor="middle" font-size="13" font-weight="700" fill="#7f1d1d">RESERVED</text>
+  <text x="70"  y="88"  text-anchor="middle" font-size="12" fill="#7f1d1d">300MB</text>
+  <text x="70"  y="104" text-anchor="middle" font-size="11" fill="#7f1d1d">hardcoded</text>
+  <text x="235" y="70"  text-anchor="middle" font-size="13" font-weight="700" fill="#1e3a8a">USER MEMORY</text>
+  <text x="235" y="88"  text-anchor="middle" font-size="12" fill="#1e3a8a">your own objects</text>
+  <text x="235" y="104" text-anchor="middle" font-size="11" fill="#1e3a8a">40% of remaining heap</text>
+  <text x="432" y="70"  text-anchor="middle" font-size="14" font-weight="700" fill="#14532d">EXECUTION</text>
+  <text x="432" y="90"  text-anchor="middle" font-size="12" fill="#14532d">shuffle, sort, hash tbl</text>
+  <text x="432" y="106" text-anchor="middle" font-size="11" fill="#14532d">never evicted mid-task</text>
+  <text x="597" y="70"  text-anchor="middle" font-size="14" font-weight="700" fill="#92400e">STORAGE</text>
+  <text x="597" y="90"  text-anchor="middle" font-size="12" fill="#92400e">cache(), broadcast</text>
+  <text x="597" y="106" text-anchor="middle" font-size="11" fill="#92400e">LRU-evictable</text>
+  <text x="350" y="150" text-anchor="middle" font-size="12" fill="#666680">(the last two together = "unified memory" — 60% of remaining heap, soft split)</text>
+  <text x="350" y="200" text-anchor="middle" font-size="16" fill="#dc2626" font-weight="700">heavy shuffles can silently evict your ENTIRE cache</text>
+  <text x="350" y="220" text-anchor="middle" font-size="13" fill="#44446a">— the next query re-reads from disk and nobody knows why</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the executor heap as four blocks — reserved, user memory, execution, storage. The green arrow shows execution freely taking space from storage; the red dashed arrow shows the reverse never happens.</div>
+
+<div class="scribble">this is a one-way door: execution can walk into storage's room and take the couch, but storage can never walk into execution's room and take it back. <span class="who">— Alex, margin note</span></div>
 
 <p>Before Spark 1.6, memory was partitioned statically — a fixed fraction went to execution, a fixed fraction to storage, and the two could never share. If execution needed more space during a large sort, it could not borrow from an underutilized storage region, and it would spill to disk. This rigidity wasted memory on every workload that didn't perfectly match the static split.</p>
 
@@ -559,6 +836,8 @@ CH2 = """
   <li><strong>Alignment padding:</strong> JVM aligns objects to 8-byte boundaries, adding up to 7 bytes of padding per object</li>
 </ol>
 <p>Total for a 4-byte string: approximately 28 + 28 + 8 + alignment ≈ <strong>48–64 bytes</strong>. Databricks measured this overhead directly when building Tungsten and published the ">48 bytes for a 4-byte string" figure. The same logic applies to boxed integers: a <code>java.lang.Integer</code> is 16B header + 4B field + 4B padding = 24 bytes for what should be 4 bytes of data.</p>
+
+<div class="scribble">every object pays a "box tax" whether or not it needs the box. Tungsten's whole move is: skip the box, write the bytes straight to the shelf. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <p>Project Tungsten is Spark's initiative to bypass JVM object overhead entirely. Tungsten's memory manager operates directly against binary data (the <code>UnsafeRow</code> format) in off-heap memory, bypassing the JVM garbage collector. The key insight: a 4-character string that occupies 48–64 bytes as a JVM heap object is stored as exactly <strong>4 bytes</strong> in Tungsten's binary UnsafeRow format — compact binary without object headers, without the char[] wrapper object, without alignment padding. More importantly, the JVM GC does not scan off-heap memory at all — those 4 bytes are invisible to the GC regardless of how many billions of such strings exist in the executor's Tungsten memory. GC pause time is determined by the number of live objects on the JVM heap; Tungsten removes the entire data plane from the heap, keeping GC overhead low even as data volume grows to hundreds of gigabytes. Three components:</p>
@@ -649,6 +928,35 @@ Spark has no mechanism to bring spilled hash table entries back on demand. There
 <div class="box f"><div class="box-lbl">The Fundamental OOM Insight — Adding Memory Does Not Fix Skew</div>
 <p>The most common and most expensive mistake when debugging Spark OOMs: increasing executor memory. This works only when OOM is caused by insufficient total memory. It <strong>does not work</strong> when OOM is caused by data skew.</p>
 <p><strong>The arithmetic:</strong> Suppose partition 1 has 80% of the data after a shuffle. The task processing partition 1 needs 80% of its executor's unified memory pool. If the executor has 8GB heap (unified pool ≈ 4.5GB), that task needs ~3.6GB. It fails. You double the executor to 16GB (unified pool ≈ 9.4GB). The task still receives the same 80% skewed partition — it still needs 80% of the unified pool ≈ 7.5GB. Still OOM, just at a higher absolute threshold. <strong>Adding memory scales the allocation but not the imbalance.</strong> The skewed task's share of total data — 80% — is unchanged by executor sizing. Whatever memory you provide, the task consumes 80% of it, because the partition holds 80% of the data.</p>
+<div class="sketch">
+<svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="40"  y="100" width="140" height="80" fill="#fff"/>
+    <rect x="330" y="60"  width="140" height="120" fill="#fff"/>
+  </g>
+  <g fill="#fecaca" stroke="#dc2626" stroke-width="2.4">
+    <rect x="60" y="116" width="100" height="64"/>
+  </g>
+  <g fill="#fecaca" stroke="#dc2626" stroke-width="2.4">
+    <rect x="350" y="76"  width="100" height="104"/>
+  </g>
+  <path d="M200 140 C240 140, 260 140, 310 130" fill="none" stroke="#666680" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text x="255" y="118" text-anchor="middle" font-size="14" fill="#666680">double the</text>
+  <text x="255" y="134" text-anchor="middle" font-size="14" fill="#666680">executor...</text>
+  <text x="110" y="76"  text-anchor="middle" font-size="15" font-weight="700" fill="#1c1c2e">8GB executor</text>
+  <text x="110" y="150" text-anchor="middle" font-size="14" font-weight="700" fill="#7f1d1d">80% skew</text>
+  <text x="110" y="166" text-anchor="middle" font-size="13" fill="#7f1d1d">≈3.6GB → OOM</text>
+  <text x="400" y="48"  text-anchor="middle" font-size="15" font-weight="700" fill="#1c1c2e">16GB executor</text>
+  <text x="400" y="120" text-anchor="middle" font-size="14" font-weight="700" fill="#7f1d1d">STILL 80% skew</text>
+  <text x="400" y="140" text-anchor="middle" font-size="13" fill="#7f1d1d">≈7.5GB → STILL OOM</text>
+  <text x="400" y="196" text-anchor="middle" font-size="14" fill="#dc2626" font-weight="700">the SHARE never changed, only the number</text>
+  <text x="350" y="18" text-anchor="middle" font-size="15" fill="#16a34a" font-weight="700">fix the split, not the size — repartition / salt / AQE</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: an 8GB executor with an 80%-skewed partition OOMs at ~3.6GB; doubling it to 16GB just OOMs again at ~7.5GB — the skewed task always consumes the same 80% share, whatever the executor's total size.</div>
+
+<div class="scribble">"just add more memory" is the wrong instinct here — it's like buying a bigger backpack when the problem is that one book weighs as much as all the others combined. <span class="who">— Alex, margin note</span></div>
+
 <p><strong>The correct fix requires breaking the partition.</strong> Options: (1) <strong>Repartition / increase shuffle.partitions</strong> — more partitions means smaller absolute partition sizes, but a single dominant skewed key still concentrates in one partition; (2) <strong>Salting</strong> — artificially split the hot key into N sub-keys so data distributes across N partitions. For example, if 70% of rows have <code>user_id = 'anonymous'</code>, salting adds a random suffix so 'anonymous' becomes 'anonymous_1', 'anonymous_2', ..., 'anonymous_5' — spreading one giant partition into five roughly equal ones; (3) <strong>AQE skew join handling</strong> — detects oversized shuffle partitions at runtime and automatically splits them into sub-partitions without code changes. All three fix the partition size directly. Adding executor memory fixes nothing.</p>
 </div>
 
@@ -732,6 +1040,44 @@ Spark has no mechanism to bring spilled hash table entries back on demand. There
 </div>
 </div>
 
+<div class="bigfacts">
+<div class="bigfacts-head">If you forget everything else in this chapter, keep these three:</div>
+<div class="bigfact"><span class="n">1.</span>Execution borrows from Storage freely. Storage can NEVER take it back.</div>
+<div class="bigfact"><span class="n">2.</span>Skew ≠ size — doubling executor memory OOMs again at the same 80% share.</div>
+<div class="bigfact"><span class="n">3.</span>Off-heap Tungsten data is invisible to the GC — 4 bytes stays 4 bytes.</div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#666680" stroke-width="2.4" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="80" ry="34" fill="#f8f8fc" stroke="#1c1c2e" stroke-width="3"/>
+    <rect x="34"  y="22"  width="196" height="78" rx="12" fill="#fff"/>
+    <rect x="474" y="18"  width="196" height="92" rx="12" fill="#fff"/>
+    <rect x="24"  y="210" width="200" height="80" rx="12" fill="#fff"/>
+    <rect x="480" y="212" width="192" height="78" rx="12" fill="#fff"/>
+    <path d="M274 128 C232 108, 206 96, 200 96" marker-end="url(#arr)"/>
+    <path d="M426 130 C460 110, 484 98, 496 98" marker-end="url(#arr)"/>
+    <path d="M284 176 C240 198, 214 208, 198 216" marker-end="url(#arr)"/>
+    <path d="M420 174 C458 196, 484 206, 508 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="22" font-weight="700" fill="#1c1c2e">OOM</text>
+  <text x="350" y="168" text-anchor="middle" font-size="14" fill="#666680">same job: pass ____, fail ____</text>
+  <text x="132" y="44"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">3 MEMORY REGIONS</text>
+  <text x="132" y="64"  text-anchor="middle" font-size="13.5" fill="#666680">r_______ (___MB) · user</text>
+  <text x="132" y="80"  text-anchor="middle" font-size="13.5" fill="#666680">u_______ (exec + storage)</text>
+  <text x="572" y="40"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">EVICTION ASYMMETRY</text>
+  <text x="572" y="60"  text-anchor="middle" font-size="13.5" fill="#666680">exec b_______ storage freely</text>
+  <text x="572" y="76"  text-anchor="middle" font-size="13.5" fill="#666680">storage NEVER _______ exec</text>
+  <text x="124" y="236" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">SKEW ≠ SIZE</text>
+  <text x="124" y="256" text-anchor="middle" font-size="13.5" fill="#666680">doubling memory does ___</text>
+  <text x="124" y="272" text-anchor="middle" font-size="13.5" fill="#666680">fix a ______ partition</text>
+  <text x="576" y="238" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">TUNGSTEN</text>
+  <text x="576" y="258" text-anchor="middle" font-size="13.5" fill="#666680">_____-heap binary, GC</text>
+  <text x="576" y="274" text-anchor="middle" font-size="13.5" fill="#666680">never _____ it</text>
+</svg>
+</div>
+<div class="retrieval-note">✍️ Close the chapter and redraw this map from memory, saying every blank OUT LOUD — then flip back and check. Recall, not recognition.</div>
+
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
 <div class="q"><span class="q-n">Q1 </span>Draw the three memory regions of a Spark executor on a 4GB heap. Provide exact byte calculations for each region with default configuration values. Show each arithmetic step explicitly — which fraction is applied to which base.</div>
@@ -775,8 +1121,72 @@ CH3 = """
   <p class="ch-sum">Shuffle is the single most expensive operation in Spark — it crosses stage boundaries with disk writes and network transfers. Understanding the three join strategies, when Catalyst chooses each one, and how data skew turns any join into a production incident gives you the complete picture for join optimization.</p>
 </div>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <filter id="squig" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="7" result="n"/>
+      <feDisplacementMap in="SourceGraphic" in2="n" scale="2.6"/>
+    </filter>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L9,5 L0,10 L3,5 z" fill="#1c1c2e"/>
+    </marker>
+    <marker id="arr-r" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L9,5 L0,10 L3,5 z" fill="#dc2626"/>
+    </marker>
+    <marker id="arr-g" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L9,5 L0,10 L3,5 z" fill="#16a34a"/>
+    </marker>
+  </defs>
+</svg>
+
+<div class="sketch">
+<svg viewBox="0 0 700 360" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <ellipse cx="350" cy="178" rx="86" ry="38" fill="#eff6ff" stroke-width="3.4"/>
+    <rect x="42"  y="34"  width="180" height="74" rx="12" fill="#f0fdf4"/>
+    <rect x="472" y="24"  width="198" height="118" rx="12" fill="#faf5ff"/>
+    <rect x="30"  y="238" width="200" height="92" rx="12" fill="#f0f9ff"/>
+    <rect x="486" y="238" width="184" height="80" rx="12" fill="#fff1f2"/>
+    <rect x="258" y="300" width="184" height="52" rx="12" fill="#fff7ed"/>
+    <path d="M272 156 C230 140, 200 128, 208 108" marker-end="url(#arr)"/>
+    <path d="M430 158 C462 140, 486 128, 496 142" marker-end="url(#arr)"/>
+    <path d="M282 202 C240 220, 210 228, 190 238" marker-end="url(#arr)"/>
+    <path d="M424 200 C462 218, 490 226, 510 238" marker-end="url(#arr)"/>
+    <path d="M350 216 L350 298" marker-end="url(#arr)"/>
+  </g>
+  <g filter="url(#squig)" fill="none" stroke="#16a34a" stroke-width="2.4" stroke-dasharray="7 5" stroke-linecap="round">
+    <path d="M560 142 C560 168, 470 186, 438 182" marker-end="url(#arr-g)"/>
+  </g>
+  <g filter="url(#squig)" fill="none" stroke="#dc2626" stroke-width="2.4" stroke-dasharray="7 5" stroke-linecap="round">
+    <path d="M578 318 C578 342, 470 350, 444 336" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="350" y="172" text-anchor="middle" font-size="27" font-weight="700" fill="#1c1c2e">SHUFFLE</text>
+  <text x="350" y="196" text-anchor="middle" font-size="14" fill="#44446a">disk + network at EVERY stage boundary</text>
+  <text x="132" y="58"  text-anchor="middle" font-size="17" font-weight="700" fill="#14532d">WHY DISK?</text>
+  <text x="132" y="78"  text-anchor="middle" font-size="13" fill="#14532d">any reducer may need it,</text>
+  <text x="132" y="94"  text-anchor="middle" font-size="13" fill="#14532d">must survive task death</text>
+  <text x="571" y="48"  text-anchor="middle" font-size="17" font-weight="700" fill="#581c87">3 WAYS TO JOIN</text>
+  <text x="571" y="70"  text-anchor="middle" font-size="13.5" fill="#581c87">SMJ — sort both, safe, spills</text>
+  <text x="571" y="88"  text-anchor="middle" font-size="13.5" fill="#581c87">SHJ — hash table, fast, OOMs</text>
+  <text x="571" y="106" text-anchor="middle" font-size="13.5" fill="#581c87">BHJ — mail small table to all</text>
+  <text x="571" y="126" text-anchor="middle" font-size="12.5" font-weight="600" fill="#16a34a">BHJ = zero shuffle!</text>
+  <text x="130" y="262" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">DODGE THE SHUFFLE</text>
+  <text x="130" y="282" text-anchor="middle" font-size="13" fill="#0c4a6e">bucket join (pay at write)</text>
+  <text x="130" y="298" text-anchor="middle" font-size="13" fill="#0c4a6e">reduceByKey (shrink first)</text>
+  <text x="130" y="314" text-anchor="middle" font-size="13" fill="#0c4a6e">broadcast (skip entirely)</text>
+  <text x="578" y="264" text-anchor="middle" font-size="16" font-weight="700" fill="#881337">SKEW</text>
+  <text x="578" y="284" text-anchor="middle" font-size="13" fill="#881337">1 hot key → 1 giant task</text>
+  <text x="578" y="300" text-anchor="middle" font-size="13" fill="#881337">199 done, 1 still running…</text>
+  <text x="350" y="322" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">AT SCALE: Uber RSS</text>
+  <text x="350" y="340" text-anchor="middle" font-size="12.5" fill="#7c2d12">shuffle gets its own servers</text>
+  <text x="497" y="175" font-size="12.5" fill="#16a34a" transform="rotate(-4 497 175)">no Exchange node!</text>
+  <text x="470" y="352" font-size="12.5" fill="#dc2626">AQE auto-splits it (Ch5)</text>
+</svg>
+</div>
+<div class="sketch-cap">The whole chapter on one napkin — everything below hangs off this map. Diagram: a hub-and-spoke mind map with SHUFFLE at the center and five grouped branches: why disk, the 3 join strategies, shuffle-dodging tricks, skew, and Uber's RSS at scale.</div>
+
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
-<p>Despite Spark's reputation as an "in-memory" engine, shuffle writes to disk. Every groupBy, join, repartition, and sort crosses a stage boundary where Spark writes shuffle output files to local disk, transfers them over the network to the next stage's executors, and reads them back from disk. This disk + network cost is the dominant bottleneck in most production Spark jobs. The three join strategies — Sort Merge Join, Shuffle Hash Join, and Broadcast Hash Join — exist because different data sizes and distributions call for radically different approaches. Choosing the wrong one silently costs 10× performance or causes OOM.</p>
+<p>Despite Spark's reputation as an "in-memory" engine, shuffle writes to disk. Every groupBy, join, repartition, and sort crosses a stage boundary where Spark writes shuffle output files to local disk, transfers them over the network to the next stage's executors, and reads them back from disk. This disk + network cost is the dominant bottleneck in most production Spark jobs. The three join strategies — Sort Merge Join, Shuffle Hash Join, and Broadcast Hash Join — exist because different data sizes and distributions call for radically different approaches. Choosing the wrong one silently costs 10× performance or causes OOM. Three threads run through this chapter that are worth holding onto explicitly: <strong>why</strong> shuffle is disk-based at all (the fault-tolerance rationale — a lost reducer is cheap to retry, a lost mapper is not, and Google's Dremel paper showed why coupling compute to shuffle storage doesn't scale), <strong>which</strong> of two similar-looking problems you're actually facing when a task hangs (a skewed key needs data-side fixes; a bad executor needs speculative execution — the fixes are not interchangeable), and <strong>how</strong> the same modular arithmetic that makes bucket joins fast also silently breaks them the moment bucket counts don't match.</p>
 </div>
 
 <div class="topic">
@@ -785,6 +1195,42 @@ CH3 = """
 <div class="box f"><div class="box-lbl">The Most Common Spark Misconception</div>
 <p>Spark is routinely described as an "in-memory" engine. This is true for narrow transformations within a stage — data flows from one transformation to the next in memory, never touching disk. But at every wide dependency boundary (every shuffle), Spark writes to disk. The data path for a shuffle is: task writes output → <strong>disk</strong> → network transfer → <strong>disk</strong> → next stage task reads. Two disk operations and a network transfer for every stage boundary. Vu Trinh explicitly corrects this misconception: shuffle is disk-based even in Spark.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="18" y="70" width="118" height="58" rx="10" fill="#eff6ff"/>
+    <rect x="564" y="70" width="118" height="58" rx="10" fill="#eff6ff"/>
+    <path d="M140 99 L184 99" marker-end="url(#arr)"/>
+    <path d="M300 99 C336 84, 366 84, 400 99" stroke-dasharray="8 6" marker-end="url(#arr)"/>
+    <path d="M516 99 L560 99" marker-end="url(#arr)"/>
+    <path d="M77 66 C160 34, 540 34, 623 66" stroke="#16a34a" stroke-dasharray="7 5" marker-end="url(#arr-g)"/>
+  </g>
+  <g filter="url(#squig)" fill="#fff1f2" stroke="#dc2626" stroke-width="3">
+    <ellipse cx="242" cy="78" rx="52" ry="13"/>
+    <path d="M190 78 L190 128 A52 13 0 0 0 294 128 L294 78" fill="#fff1f2"/>
+    <ellipse cx="458" cy="78" rx="52" ry="13"/>
+    <path d="M406 78 L406 128 A52 13 0 0 0 510 128 L510 78" fill="#fff1f2"/>
+  </g>
+  <text x="77" y="94" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">Stage N task</text>
+  <text x="77" y="114" text-anchor="middle" font-size="12.5" fill="#1e3a8a">(map side)</text>
+  <text x="623" y="94" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">Stage N+1 task</text>
+  <text x="623" y="114" text-anchor="middle" font-size="12.5" fill="#1e3a8a">(reduce side)</text>
+  <text x="242" y="108" text-anchor="middle" font-size="16" font-weight="700" fill="#dc2626">DISK #1</text>
+  <text x="242" y="124" text-anchor="middle" font-size="11.5" fill="#881337">shuffle files</text>
+  <text x="458" y="108" text-anchor="middle" font-size="16" font-weight="700" fill="#dc2626">DISK #2</text>
+  <text x="458" y="124" text-anchor="middle" font-size="11.5" fill="#881337">read back</text>
+  <text x="162" y="88" text-anchor="middle" font-size="12.5" fill="#44446a">write</text>
+  <text x="350" y="80" text-anchor="middle" font-size="13" fill="#44446a">network</text>
+  <text x="538" y="88" text-anchor="middle" font-size="12.5" fill="#44446a">read</text>
+  <text x="350" y="18" text-anchor="middle" font-size="14" fill="#16a34a">inside a stage: pure memory, no disk — this is the "in-memory" part</text>
+  <text x="350" y="168" text-anchor="middle" font-size="17" font-weight="700" fill="#dc2626">every shuffle = 2 disk hits + 1 network trip</text>
+  <text x="350" y="192" text-anchor="middle" font-size="13.5" fill="#44446a">…and stage N+1 can't even START until every stage N task has finished writing</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the shuffle data path. A map task writes to local disk (disk #1), files cross the network, land on disk again (disk #2), and only then does the reduce task read them. A green dashed arc over the top shows the in-memory path that exists only <em>inside</em> a stage.</div>
+
+<div class="scribble">wait — the "in-memory" engine hits disk TWICE on every shuffle?? So "in-memory" only means inside one stage. The stage boundary is where the speed goes to die. <span class="who">— Alex, margin note</span></div>
 
 <p>The shuffle mechanism works as follows. When stage N contains a wide dependency (e.g., a <code>groupByKey</code>), each task in stage N must redistribute its output records by key so that all records with the same key arrive at the same partition in stage N+1. Each task:</p>
 <ol>
@@ -806,6 +1252,60 @@ CH3 = """
 <h3>Data Locality in Shuffle Reads</h3>
 <p>Spark's <code>ExternalShuffleService</code> (a separate long-running daemon process on each worker node, outside the executor JVM, that serves shuffle files independently) decouples shuffle file serving from executor lifecycle. When enabled, shuffle files are served from the external service rather than from executor processes. If an executor dies, its shuffle output files are still available for the next stage — without this, executor failure in stage N would require re-running all of stage N.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="10"  y="14" width="212" height="222" rx="12" fill="#f8f8fc"/>
+    <rect x="244" y="14" width="212" height="222" rx="12" fill="#f8f8fc"/>
+    <rect x="478" y="14" width="212" height="222" rx="12" fill="#f8f8fc"/>
+    <!-- SMJ: two sorted decks merging -->
+    <rect x="34"  y="66" width="52" height="16" rx="3" fill="#dbeafe"/>
+    <rect x="38"  y="86" width="52" height="16" rx="3" fill="#dbeafe"/>
+    <rect x="42"  y="106" width="52" height="16" rx="3" fill="#dbeafe"/>
+    <rect x="142" y="66" width="52" height="16" rx="3" fill="#fce7f3"/>
+    <rect x="146" y="86" width="52" height="16" rx="3" fill="#fce7f3"/>
+    <rect x="150" y="106" width="52" height="16" rx="3" fill="#fce7f3"/>
+    <path d="M70 130 C80 152, 96 162, 108 168" marker-end="url(#arr)"/>
+    <path d="M168 130 C158 152, 142 162, 130 168" marker-end="url(#arr)"/>
+    <rect x="84" y="170" width="66" height="22" rx="5" fill="#dcfce7"/>
+    <!-- SHJ: hash table + probe stream -->
+    <rect x="278" y="58" width="82" height="74" rx="6" fill="#fef9c3"/>
+    <path d="M278 82 L360 82 M278 106 L360 106 M318 58 L318 132"/>
+    <path d="M394 150 C376 142, 366 130, 362 120" marker-end="url(#arr)"/>
+    <path d="M420 160 L440 160 M420 172 L446 172 M420 184 L438 184" stroke="#666680"/>
+    <!-- BHJ: one small table copied to 3 executors -->
+    <rect x="560" y="40" width="46" height="30" rx="5" fill="#dcfce7" stroke-width="2.8"/>
+    <rect x="496" y="150" width="54" height="40" rx="6" fill="#eff6ff"/>
+    <rect x="558" y="150" width="54" height="40" rx="6" fill="#eff6ff"/>
+    <rect x="620" y="150" width="54" height="40" rx="6" fill="#eff6ff"/>
+    <path d="M568 74 C540 100, 528 124, 522 146" stroke="#16a34a" marker-end="url(#arr-g)"/>
+    <path d="M583 74 L584 146" stroke="#16a34a" marker-end="url(#arr-g)"/>
+    <path d="M598 74 C626 100, 638 124, 646 146" stroke="#16a34a" marker-end="url(#arr-g)"/>
+  </g>
+  <text x="116" y="42" text-anchor="middle" font-size="17" font-weight="700" fill="#1c1c2e">SMJ — sort &amp; merge</text>
+  <text x="60"  y="60" text-anchor="middle" font-size="11.5" fill="#1e3a8a">table A, sorted</text>
+  <text x="170" y="60" text-anchor="middle" font-size="11.5" fill="#9d174d">table B, sorted</text>
+  <text x="117" y="186" text-anchor="middle" font-size="12" fill="#14532d">one pass</text>
+  <text x="116" y="212" text-anchor="middle" font-size="12.5" fill="#44446a">2 full shuffles, but spills to</text>
+  <text x="116" y="227" text-anchor="middle" font-size="12.5" fill="#44446a">disk safely. Slow &amp; steady.</text>
+  <text x="350" y="42" text-anchor="middle" font-size="17" font-weight="700" fill="#1c1c2e">SHJ — hash table</text>
+  <text x="319" y="50" text-anchor="middle" font-size="11" fill="#92400e">build side, ALL in memory</text>
+  <text x="404" y="166" text-anchor="middle" font-size="11.5" fill="#666680">probe rows</text>
+  <text x="350" y="212" text-anchor="middle" font-size="12.5" fill="#44446a">O(1) lookups — but the table</text>
+  <text x="350" y="227" text-anchor="middle" font-size="12.5" fill="#dc2626" font-weight="700">CANNOT spill. Too big = OOM.</text>
+  <text x="583" y="34" text-anchor="middle" font-size="17" font-weight="700" fill="#1c1c2e">BHJ — broadcast</text>
+  <text x="583" y="60" text-anchor="middle" font-size="11" fill="#14532d">&lt;10MB</text>
+  <text x="523" y="174" text-anchor="middle" font-size="10.5" fill="#1e3a8a">exec 1</text>
+  <text x="585" y="174" text-anchor="middle" font-size="10.5" fill="#1e3a8a">exec 2</text>
+  <text x="647" y="174" text-anchor="middle" font-size="10.5" fill="#1e3a8a">exec 3</text>
+  <text x="584" y="212" text-anchor="middle" font-size="12.5" fill="#44446a">copy the small table to everyone.</text>
+  <text x="584" y="227" text-anchor="middle" font-size="12.5" fill="#16a34a" font-weight="700">ZERO shuffle. No Exchange node.</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the three join strategies side by side — SMJ merges two sorted decks after shuffling both; SHJ builds an in-memory hash table that cannot spill; BHJ mails a copy of the small table to every executor so no shuffle happens at all.</div>
+
+<div class="scribble">so it's: SAFE (SMJ) vs FAST-BUT-FRAGILE (SHJ) vs FREE-IF-IT-FITS (BHJ). Don't shuffle 500GB to meet 8MB — mail the 8MB to everyone instead. <span class="who">— Alex, margin note</span></div>
 
 <div class="topic">
 <h2>Sort Merge Join (SMJ): The Default for Large-Large Joins</h2>
@@ -852,10 +1352,12 @@ CH3 = """
 </ol>
 
 <div class="box f"><div class="box-lbl">Why SHJ Was Removed in Spark 1.6 and Reintroduced in Spark 2.0</div>
-<p>SHJ requires the build side partition to fit entirely in memory. If the build side is large, or if data is skewed such that one partition of the build side is disproportionately large, the executor runs out of memory building the hash table. <strong>Unlike SMJ, SHJ cannot spill to disk</strong> — a hash table must be fully resident to serve lookups correctly. This caused enough production OOMs that Spark 1.6 removed SHJ entirely. Spark 2.0 reintroduced it with stricter guardrails: <code>spark.sql.adaptive.maxShuffledHashJoinLocalMapThreshold = 0</code> by default, meaning the optimizer always skips SHJ unless explicitly enabled. Even with AQE's dynamic join switching, SHJ is only selected when the build-side partition is confirmed to fit in memory at runtime.</p>
+<p>SHJ requires the build side partition to fit entirely in memory. If the build side is large, or if data is skewed such that one partition of the build side is disproportionately large, the executor runs out of memory building the hash table. <strong>Unlike SMJ, SHJ cannot spill to disk</strong> — a hash table must be fully resident to serve lookups correctly. This caused enough production OOMs that Spark 1.6 removed SHJ entirely. Spark 2.0 reintroduced it, but with the optimizer's default preference strongly favoring SMJ — Catalyst only selects SHJ when the build-side partition is confirmed small enough to fit safely in memory, and in practice this makes SHJ selection rare unless a query hint explicitly requests it. Vu Trinh's production rule reflects this: know exactly what you're doing before enabling SHJ, because the guardrail is a preference, not a hard safety net. Even with AQE's dynamic join switching, SHJ is only selected when the build-side partition is confirmed to fit in memory at runtime.</p>
 </div>
 
 <p>Vu's production rule: "In a production Spark application, make sure you know what you're doing when enabling SHJ; it's only efficient when the build-side partitions fit in memory. If they get larger for some reason, your application will likely get an OOM error."</p>
+
+<div class="scribble">a hash table is all-or-nothing — you can't look things up in half a table that's on disk. That's the whole reason SHJ got kicked out of Spark 1.6. SMJ survives by spilling; SHJ just dies. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <div class="topic">
@@ -894,7 +1396,9 @@ CH3 = """
 
 <p>When two tables are bucketed on the same column with the same number of buckets (using <code>bucketBy(n, column).saveAsTable()</code>), the data is pre-shuffled at write time. All rows with join key K from both tables land in the same bucket file. At join time, Spark reads bucket N of table A and bucket N of table B — they are already co-partitioned. <strong>No shuffle is needed.</strong></p>
 
-<p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata must be stored in the Hive metastore (a relational database, typically embedded or external like MySQL, that stores table schemas, partition layouts, and bucketing information so Spark and other engines can discover and use it at query time) so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, key K hashes to bucket K%50 in table A but bucket K%100 in table B, so bucket 3 of A contains different keys than bucket 3 of B. The co-partitioning property breaks and Spark must shuffle anyway.</p>
+<p>The constraint: <code>bucketBy()</code> only works with <code>saveAsTable()</code>, not with <code>write.parquet()</code>. Bucketing metadata must be stored in the Hive metastore (a relational database, typically embedded or external like MySQL, that stores table schemas, partition layouts, and bucketing information so Spark and other engines can discover and use it at query time) so Spark can use it at join time. Both tables must be bucketed with the same number of buckets on the join key — if one has 50 buckets and the other has 100 buckets, key K hashes to a <em>different</em> bucket number in each table. Worked example with key K = 253: in table A (50 buckets), 253 % 50 = 3, so K lands in bucket 3. In table B (100 buckets), 253 % 100 = 53, so the same K lands in bucket 53. Bucket 3 of A and bucket 3 of B no longer contain the same keys — the co-partitioning property breaks and Spark must shuffle anyway.</p>
+
+<div class="scribble">bucket join = pay the shuffle ONCE at write time, then join for free forever after. Only worth it if you join this table again and again — like pre-sorting your closet. <span class="who">— Alex, margin note</span></div>
 
 <h3>Join Strategy Hint Priority</h3>
 <p>Spark 3.0+ allows query hints to suggest a join strategy. When multiple hints conflict, Spark enforces this priority order:</p>
@@ -911,6 +1415,40 @@ CH3 = """
 <h2>Data Skew: The Silent Production Killer</h2>
 
 <p>Data skew occurs when one key (or a small set of keys) has far more values than other keys. After a shuffle, all values for the skewed key land in one partition — one task processes 80% of the data while 199 other tasks process the remaining 20%. Symptoms: 199 tasks finish in 5 seconds; one task runs for 10 minutes; the entire stage waits for that one task.</p>
+
+<div class="sketch">
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" stroke="#1c1c2e" stroke-width="2" stroke-linecap="round">
+    <path d="M30 168 L672 168" fill="none" stroke-width="2.6"/>
+    <g fill="#dcfce7" stroke="#16a34a">
+      <rect x="40"  y="152" width="11" height="16" rx="2"/><rect x="56"  y="150" width="11" height="18" rx="2"/>
+      <rect x="72"  y="153" width="11" height="15" rx="2"/><rect x="88"  y="151" width="11" height="17" rx="2"/>
+      <rect x="104" y="152" width="11" height="16" rx="2"/><rect x="120" y="150" width="11" height="18" rx="2"/>
+      <rect x="136" y="153" width="11" height="15" rx="2"/><rect x="152" y="151" width="11" height="17" rx="2"/>
+      <rect x="168" y="152" width="11" height="16" rx="2"/><rect x="184" y="150" width="11" height="18" rx="2"/>
+      <rect x="200" y="153" width="11" height="15" rx="2"/><rect x="216" y="151" width="11" height="17" rx="2"/>
+      <rect x="232" y="152" width="11" height="16" rx="2"/><rect x="248" y="150" width="11" height="18" rx="2"/>
+      <rect x="264" y="153" width="11" height="15" rx="2"/><rect x="280" y="151" width="11" height="17" rx="2"/>
+      <rect x="296" y="152" width="11" height="16" rx="2"/><rect x="312" y="150" width="11" height="18" rx="2"/>
+      <rect x="328" y="153" width="11" height="15" rx="2"/><rect x="344" y="151" width="11" height="17" rx="2"/>
+      <rect x="360" y="152" width="11" height="16" rx="2"/><rect x="376" y="150" width="11" height="18" rx="2"/>
+      <rect x="392" y="153" width="11" height="15" rx="2"/><rect x="408" y="151" width="11" height="17" rx="2"/>
+      <rect x="424" y="152" width="11" height="16" rx="2"/><rect x="440" y="150" width="11" height="18" rx="2"/>
+    </g>
+    <rect x="490" y="22" width="60" height="146" rx="4" fill="#fecaca" stroke="#dc2626" stroke-width="3.4"/>
+    <path d="M636 60 C606 46, 580 36, 558 32" fill="none" stroke="#dc2626" stroke-width="2.4" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="248" y="140" text-anchor="middle" font-size="14.5" fill="#14532d">199 tasks · ~5 seconds each · done ✓</text>
+  <text x="520" y="14"  text-anchor="middle" font-size="15" font-weight="700" fill="#dc2626">task #147</text>
+  <text x="520" y="100" text-anchor="middle" font-size="21" font-weight="700" fill="#7f1d1d" transform="rotate(-90 520 100)">12 MINUTES</text>
+  <text x="646" y="80"  text-anchor="middle" font-size="13.5" fill="#dc2626">the WHOLE stage</text>
+  <text x="646" y="97"  text-anchor="middle" font-size="13.5" fill="#dc2626">waits for THIS guy</text>
+  <text x="350" y="192" text-anchor="middle" font-size="13.5" fill="#44446a">(drawn to scale it'd be even worse — 144× longer than its neighbours)</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: a task-duration bar chart — 26 tiny green bars stand in for the 199 finished tasks, and one absurdly tall red bar (task #147, 12 minutes) towers over them. Skew means parallelism collapses to a single straggler.</div>
+
+<div class="scribble">adding more executors does NOTHING here — the hot key all lands in ONE partition no matter how many machines you buy. Fix the data split, not the cluster size. <span class="who">— Alex, margin note</span></div>
 
 <p>Three solutions for skew:</p>
 <ul>
@@ -954,6 +1492,43 @@ CH3 = """
 </div>
 </div>
 
+
+<div class="bigfacts">
+<div class="bigfacts-head">If you forget everything else in this chapter, keep these three:</div>
+<div class="bigfact"><span class="n">1.</span>Shuffle = disk + network, ALWAYS. "In-memory" only applies inside a stage.</div>
+<div class="bigfact"><span class="n">2.</span>BHJ doesn't reduce the shuffle — it DELETES it. No Exchange node at all.</div>
+<div class="bigfact"><span class="n">3.</span>199 tasks done, 1 still running = skew. Fix the data split, not the cluster.</div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig)" fill="none" stroke="#666680" stroke-width="2.4" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="82" ry="34" fill="#f8f8fc" stroke="#1c1c2e" stroke-width="3"/>
+    <rect x="46"  y="30"  width="170" height="60" rx="12" fill="#fff"/>
+    <rect x="482" y="24"  width="184" height="96" rx="12" fill="#fff"/>
+    <rect x="36"  y="204" width="184" height="72" rx="12" fill="#fff"/>
+    <rect x="492" y="210" width="172" height="62" rx="12" fill="#fff"/>
+    <path d="M276 130 C236 114, 212 102, 208 92" marker-end="url(#arr)"/>
+    <path d="M428 132 C458 116, 478 106, 490 100" marker-end="url(#arr)"/>
+    <path d="M284 172 C246 190, 220 198, 200 206" marker-end="url(#arr)"/>
+    <path d="M422 170 C458 188, 486 198, 508 210" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="22" font-weight="700" fill="#1c1c2e">SHUFFLE</text>
+  <text x="350" y="168" text-anchor="middle" font-size="14" fill="#666680">= ______ + ______ at every stage boundary</text>
+  <text x="131" y="56"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">WHY DISK?</text>
+  <text x="131" y="78"  text-anchor="middle" font-size="14" fill="#666680">__________________</text>
+  <text x="574" y="46"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">3 WAYS TO JOIN</text>
+  <text x="574" y="68"  text-anchor="middle" font-size="14" fill="#666680">S____ — safe, spills</text>
+  <text x="574" y="86"  text-anchor="middle" font-size="14" fill="#666680">S____ — fast, ______</text>
+  <text x="574" y="104" text-anchor="middle" font-size="14" fill="#666680">B____ — ____ shuffle</text>
+  <text x="128" y="230" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">DODGE THE SHUFFLE</text>
+  <text x="128" y="250" text-anchor="middle" font-size="14" fill="#666680">________ join (pay at write)</text>
+  <text x="128" y="268" text-anchor="middle" font-size="14" fill="#666680">______ByKey (shrink first)</text>
+  <text x="578" y="236" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">SKEW</text>
+  <text x="578" y="258" text-anchor="middle" font-size="14" fill="#666680">1 ___ key → 1 _____ task</text>
+</svg>
+</div>
+<div class="retrieval-note">✍️ Before the questions: close the chapter and redraw this map from memory — say every blank OUT LOUD, then flip back and check. Recall, not recognition.</div>
 
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
@@ -1013,6 +1588,8 @@ CH3 = """
 </div>
 
 <p>This is the design principle Vu Trinh frames as "pushing computation close to the data source." The reducer is far from the data (after a shuffle); the mapper is close (operating on local partition data before any network transfer). Every byte eliminated before the shuffle saves disk I/O, network bandwidth, and reducer memory. Always ask: "Can I reduce this key's data volume before it leaves the mapper?" If yes, use reduceByKey, aggregateByKey, or combineByKey over groupByKey.</p>
+
+<div class="scribble">shrink the data BEFORE it travels — like zipping a file before emailing it. 10,000,000 values → 200 values crossing the network, just by picking the right function. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <div class="topic">
@@ -1056,6 +1633,40 @@ CH4 = """
   <p class="ch-sum">PySpark's Python-to-JVM bridge is a measurable performance cost — every Python UDF pays a per-row serialization tax. Tungsten cuts JVM object overhead at the binary level. Photon replaces JVM bytecode execution with native C++ for Lakehouse workloads. Together these three layers define the full performance story of modern Spark.</p>
 </div>
 
+<div class="sketch">
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="86" ry="34" fill="#eff6ff" stroke-width="3.4"/>
+    <rect x="26"  y="18"  width="208" height="86" rx="12" fill="#f0fdf4"/>
+    <rect x="470" y="16"  width="204" height="98" rx="12" fill="#faf5ff"/>
+    <rect x="18"  y="210" width="208" height="84" rx="12" fill="#f0f9ff"/>
+    <rect x="478" y="212" width="196" height="82" rx="12" fill="#fff1f2"/>
+    <path d="M272 128 C230 108, 204 96, 198 96" marker-end="url(#arr)"/>
+    <path d="M428 130 C462 110, 486 98, 498 98" marker-end="url(#arr)"/>
+    <path d="M282 176 C238 198, 212 208, 196 216" marker-end="url(#arr)"/>
+    <path d="M418 174 C456 196, 482 206, 506 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="22" font-weight="700" fill="#1c1c2e">PERFORMANCE</text>
+  <text x="350" y="168" text-anchor="middle" font-size="13.5" fill="#44446a">3 layers, one story</text>
+  <text x="130" y="40"  text-anchor="middle" font-size="16" font-weight="700" fill="#14532d">PYSPARK BRIDGE</text>
+  <text x="130" y="60"  text-anchor="middle" font-size="13" fill="#14532d">2 processes, Py4J glue</text>
+  <text x="130" y="76"  text-anchor="middle" font-size="13" fill="#14532d">UDF = row-by-row tax</text>
+  <text x="130" y="92"  text-anchor="middle" font-size="12" fill="#16a34a" font-weight="700">Arrow batches fix it</text>
+  <text x="572" y="38"  text-anchor="middle" font-size="16" font-weight="700" fill="#581c87">TUNGSTEN</text>
+  <text x="572" y="58"  text-anchor="middle" font-size="13" fill="#581c87">4B string costs 48B</text>
+  <text x="572" y="74"  text-anchor="middle" font-size="13" fill="#581c87">as a JVM object</text>
+  <text x="572" y="94"  text-anchor="middle" font-size="12" fill="#dc2626" font-weight="700">off-heap = GC invisible</text>
+  <text x="122" y="236" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">PHOTON (C++)</text>
+  <text x="122" y="256" text-anchor="middle" font-size="13" fill="#0c4a6e">vectorized, JNI = 0.06%</text>
+  <text x="122" y="272" text-anchor="middle" font-size="13" fill="#0c4a6e">enhances, not replaces</text>
+  <text x="576" y="238" text-anchor="middle" font-size="16" font-weight="700" fill="#881337">PERF HIERARCHY</text>
+  <text x="576" y="258" text-anchor="middle" font-size="13" fill="#881337">built-in &lt; Pandas UDF</text>
+  <text x="576" y="274" text-anchor="middle" font-size="13" fill="#881337">&lt;&lt; Python UDF (200×!)</text>
+  <text x="350" y="312" text-anchor="middle" font-size="13.5" fill="#44446a">every layer here exists because the JVM has a cost the engineers refused to accept</text>
+</svg>
+</div>
+<div class="sketch-cap">The whole chapter on one napkin. Diagram: Performance at the hub, with four branches — the PySpark process bridge, Tungsten's binary format, Photon's native C++ engine, and the resulting performance hierarchy.</div>
+
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
 <p>In 2013, 92% of Databricks users wrote Spark in Scala. By 2020, 47% used Python and 41% used SQL — Scala dropped to 12%. Python is now the dominant Spark language. But Spark runs on the JVM. Python is a separate process. Every operation crosses a process boundary with serialization overhead. Understanding where that overhead occurs — and which modern APIs eliminate it — is essential for any PySpark engineer writing production code on large datasets.</p>
 </div>
@@ -1066,6 +1677,36 @@ CH4 = """
 <div class="box s"><div class="box-lbl">In Simple Terms</div>
 <p>When you run a PySpark script, two separate processes start: a Python process (your code) and a JVM process (the actual Spark engine). Your Python code talks to Spark through a library called Py4J that translates Python method calls into Java calls. Most of the time this is fast because you're only sending small amounts of data (file paths, configuration). The problem: Python UDFs send every single row of your data through this bridge, one row at a time.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 210" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.4" stroke-linecap="round">
+    <rect x="30"  y="40" width="170" height="120" rx="10" fill="#dbeafe"/>
+    <rect x="500" y="40" width="170" height="120" rx="10" fill="#dcfce7"/>
+  </g>
+  <g stroke="#dc2626" stroke-width="2" fill="none">
+    <path d="M204 66 L496 66" marker-end="url(#arr-r)"/><path d="M496 84 L204 84" marker-end="url(#arr-r)"/>
+    <path d="M204 102 L496 102" marker-end="url(#arr-r)"/><path d="M496 120 L204 120" marker-end="url(#arr-r)"/>
+    <path d="M204 138 L496 138" marker-end="url(#arr-r)"/>
+  </g>
+  <text x="115" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#1e3a8a">JVM (Spark)</text>
+  <text x="115" y="90" text-anchor="middle" font-size="13" fill="#1e3a8a">DAGScheduler</text>
+  <text x="115" y="108" text-anchor="middle" font-size="13" fill="#1e3a8a">BlockManager</text>
+  <text x="115" y="126" text-anchor="middle" font-size="13" fill="#1e3a8a">real data lives here</text>
+  <text x="585" y="30" text-anchor="middle" font-size="16" font-weight="700" fill="#14532d">Python worker</text>
+  <text x="585" y="90" text-anchor="middle" font-size="13" fill="#14532d">your UDF code</text>
+  <text x="585" y="108" text-anchor="middle" font-size="13" fill="#14532d">Pickle in, Pickle out</text>
+  <text x="350" y="60"  text-anchor="middle" font-size="12.5" fill="#dc2626">row 1 →</text>
+  <text x="350" y="96"  text-anchor="middle" font-size="12.5" fill="#dc2626">← row 1 result</text>
+  <text x="350" y="114" text-anchor="middle" font-size="12.5" fill="#dc2626">row 2 →</text>
+  <text x="350" y="150" text-anchor="middle" font-size="12.5" fill="#dc2626">…10,000,000 more times</text>
+  <text x="350" y="186" text-anchor="middle" font-size="16" font-weight="700" fill="#dc2626">one row = one round trip across the socket</text>
+  <text x="350" y="204" text-anchor="middle" font-size="13" fill="#44446a">Pandas UDFs replace this with ONE big Arrow batch, not 10M little ones</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the JVM process and Python worker process as two boxes connected by a socket; a Python UDF forces every single row to cross that socket individually via Pickle serialization.</div>
+
+<div class="scribble">imagine mailing a letter for every single word of a book instead of just mailing the whole book once. That's a Python UDF vs a Pandas UDF. <span class="who">— Alex, margin note</span></div>
 
 <p>PySpark is a wrapper around Apache Spark's JVM implementation. When a PySpark script executes, two processes start simultaneously:</p>
 <ul>
@@ -1089,7 +1730,7 @@ CH4 = """
   <li>The JVM deserializes the result and continues processing</li>
 </ol>
 
-<p>This happens for <strong>every single row</strong>. On a 10M-row DataFrame, that is 10M serialization round-trips. The combined overhead — JVM/Python process switching, Pickle serialization, socket transfer, deserialization — typically makes Python UDFs 10–100× slower than equivalent built-in Spark functions.</p>
+<p>This happens for <strong>every single row</strong>. On a 10M-row DataFrame, that is 10M serialization round-trips. The combined overhead — JVM/Python process switching, Pickle serialization, socket transfer, deserialization — typically makes Python UDFs 50–200× slower than equivalent built-in Spark functions (the exact multiplier depends on row size and UDF complexity, but the mechanism — one round trip per row — is constant).</p>
 
 <p>Python UDFs also lose two Spark performance features:</p>
 <ul>
@@ -1169,6 +1810,28 @@ CH4 = """
 </ol>
 <p>Total for a 4-character string <code>"ABCD"</code>: 28 + 28 + 8 + alignment ≈ <strong>48–64 bytes</strong>. Databricks engineers measured this directly and published it as "a 4-byte string would have over 48 bytes in the JVM object." The same overhead applies to boxed integers: a <code>java.lang.Integer</code> is 16B header + 4B field + 4B padding = <strong>24 bytes</strong> for 4 bytes of actual data.</p>
 
+<div class="sketch">
+<svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <rect x="30"  y="30" width="280" height="130" rx="10" fill="#fff1f2"/>
+    <rect x="390" y="30" width="280" height="130" rx="10" fill="#dcfce7"/>
+  </g>
+  <rect x="50"  y="56" width="16" height="88" fill="#fecaca" stroke="#dc2626" stroke-width="1.6"/>
+  <rect x="70"  y="130" width="200" height="14" fill="#fee2e2" stroke="#dc2626" stroke-width="1.6"/>
+  <text x="170" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#7f1d1d">"ABCD" as a JVM object</text>
+  <text x="58"  y="100" font-size="10.5" fill="#7f1d1d" transform="rotate(-90 58 100)">header 16B</text>
+  <text x="170" y="140" text-anchor="middle" font-size="12" fill="#7f1d1d">char[] array object + refs + padding</text>
+  <text x="170" y="158" text-anchor="middle" font-size="18" font-weight="700" fill="#dc2626">≈ 48–64 bytes for 4 bytes of data</text>
+  <rect x="410" y="90" width="32" height="20" fill="#bbf7d0" stroke="#16a34a" stroke-width="2"/>
+  <text x="530" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#14532d">"ABCD" in Tungsten UnsafeRow</text>
+  <text x="530" y="104" text-anchor="middle" font-size="13" fill="#14532d">← literally just 4 bytes</text>
+  <text x="530" y="140" text-anchor="middle" font-size="18" font-weight="700" fill="#16a34a">no header. no wrapper. no GC scan.</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: the same 4-byte string drawn to scale — as a JVM object it balloons to 48-64 bytes of header, wrapper, and padding; in Tungsten's UnsafeRow it is exactly the 4 bytes it needs to be.</div>
+
+<div class="scribble">12-28× overhead for a FOUR-BYTE string?? and the garbage collector has to walk past every one of those bloated boxes. off-heap just... removes the boxes. <span class="who">— Alex, margin note</span></div>
+
 <p>Project Tungsten addresses this with three components:</p>
 
 <h3>Component 1: Off-Heap Binary Storage via UnsafeRow and <code>sun.misc.Unsafe</code></h3>
@@ -1187,6 +1850,7 @@ CH4 = """
 <div class="box n"><div class="box-lbl">HashAggregate Operator: Tungsten in Practice</div>
 <p>When Spark executes a <code>GROUP BY</code> with numeric aggregations (SUM, COUNT, AVG on integers/longs), it uses the <code>HashAggregate</code> operator backed by Tungsten's off-heap hash table (UnsafeFixedWidthAggregationMap). Keys and values are stored as UnsafeRow binary data — tight packing, no GC pressure.</p>
 <p>When aggregation involves String columns, Tungsten's fixed-width hash table cannot accommodate variable-length mutable values. Spark falls back to <code>SortAggregate</code>, which sorts by key and streams through — slower, more spill. This is why avoiding String-typed groupBy keys (when possible, use integer IDs) improves aggregation performance significantly.</p>
+<p><strong>Why fixed-width, mechanistically:</strong> <code>UnsafeFixedWidthAggregationMap</code> locates every aggregation buffer with direct pointer arithmetic — <code>slot_address = base_address + (slot_index × fixed_slot_size)</code> — the same O(1) addressing trick that makes UnsafeRow field access fast. This requires every slot to be exactly <code>fixed_slot_size</code> bytes, known in advance, so the map can jump straight to any slot without scanning. A running SUM or COUNT is a fixed-width value (8 bytes for a long) that is mutated <em>in place</em> at that address on every incoming row — no reallocation, no GC. A variable-length String value breaks this: its size isn't known until the value arrives, and if a new value is longer than the one already in the slot, an in-place update would overwrite adjacent memory. There is no way to grow a slot without either reallocating (defeating the in-place mutation model) or over-allocating for a worst-case length up front (wasting memory across millions of slots). <code>SortAggregate</code> avoids the problem entirely by never doing in-place random-access mutation — it sorts first so identical keys become adjacent, then streams through with a regular (variable-length-safe) accumulator.</p>
 </div>
 </div>
 
@@ -1216,10 +1880,16 @@ CH4 = """
 
 <p>Databricks prototyped both for Photon. The code-generated C++ prototype took <strong>two months</strong>. The vectorized (interpreted) C++ prototype took <strong>a couple of weeks</strong>. The vectorized approach also enables native debugging (print statements work; native tools like gdb apply) and allows runtime adaptivity — choosing different code paths based on input data characteristics (nulls present, ASCII-only strings, sparse batches). Databricks chose vectorized.</p>
 
+<div class="box f"><div class="box-lbl">What Code Generation Buys That Vectorized Execution Gives Up</div>
+<p>The trade-off is not one-sided. Code generation's advantage is <strong>operator fusion</strong>: Catalyst's Janino-generated code inlines every operator in the query — filter, project, hash computation, aggregation — into a single specialized tight loop with zero per-operator dispatch overhead (this is the same mechanism from Ch1's Catalyst Phase 4). A vectorized engine like Photon, by contrast, still dispatches to a separate operator implementation for each column batch at each step of the plan — the batching amortizes that dispatch cost over thousands of rows instead of one, but the dispatch still happens once per operator per batch, not zero times. This per-operator-per-batch cost is the classic "Volcano-style iterator overhead" that whole-stage code generation was invented to eliminate. Photon accepts this residual cost in exchange for the weeks-not-months build time, native debuggability, and runtime adaptivity described above — it is a deliberate trade of a small, amortized overhead for engineering velocity, not a strictly better technique.</p>
+</div>
+
 <h3>Photon's Data Model: Column Vectors and Position Lists</h3>
 <p>The fundamental data unit in Photon is a <strong>column vector</strong>: all values of one column for a batch of rows, stored contiguously. A <strong>column batch</strong> is a set of column vectors representing a set of rows. Each column vector also carries a byte vector for NULL information.</p>
 
 <p>Photon's filter implementation is elegant: instead of removing filtered rows from the batch (expensive memory movement), Photon maintains a <strong>position list</strong>. Think of it like a bouncer's guest list — instead of physically removing people from a room who fail the filter, the bouncer marks them off the active list. Everyone stays in place; only the list changes. Photon maintains an array of indices of the "active" rows (those not yet filtered out). The filter expression marks positions as inactive in the position list. Downstream operators check the position list and skip inactive rows. No data movement; no copying.</p>
+
+<div class="scribble">it's the classroom trick where instead of physically moving kids who failed the quiz to the back of the room, the teacher just crosses their names off the "still in the game" list. Nobody moves — the list moves. <span class="who">— Alex, margin note</span></div>
 
 <h3>Photon Benchmarks (from the SIGMOD 2022 paper)</h3>
 <div class="box n"><div class="box-lbl">Photon vs Standard DBR Performance</div>
@@ -1255,6 +1925,42 @@ CH4 = """
 
 <p>Photon participates in AQE: its operators implement the required interfaces to export shuffle statistics (e.g., shuffle file sizes) for AQE's runtime re-optimization decisions.</p>
 </div>
+
+<div class="bigfacts">
+<div class="bigfacts-head">If you forget everything else in this chapter, keep these three:</div>
+<div class="bigfact"><span class="n">1.</span>A Python UDF crosses a process boundary PER ROW. Pandas UDFs cross it per batch.</div>
+<div class="bigfact"><span class="n">2.</span>A 4-byte string costs 48+ bytes as a JVM object. Tungsten stores it as 4 bytes, off-heap.</div>
+<div class="bigfact"><span class="n">3.</span>Photon enhances Spark, it doesn't replace it — JNI intra-process calls cost ~0.06%.</div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#666680" stroke-width="2.4" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="86" ry="34" fill="#f8f8fc" stroke="#1c1c2e" stroke-width="3"/>
+    <rect x="26"  y="18"  width="208" height="86" rx="12" fill="#fff"/>
+    <rect x="470" y="16"  width="204" height="98" rx="12" fill="#fff"/>
+    <rect x="18"  y="210" width="208" height="84" rx="12" fill="#fff"/>
+    <rect x="478" y="212" width="196" height="82" rx="12" fill="#fff"/>
+    <path d="M272 128 C230 108, 204 96, 198 96" marker-end="url(#arr)"/>
+    <path d="M428 130 C462 110, 486 98, 498 98" marker-end="url(#arr)"/>
+    <path d="M282 176 C238 198, 212 208, 196 216" marker-end="url(#arr)"/>
+    <path d="M418 174 C456 196, 482 206, 506 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="20" font-weight="700" fill="#1c1c2e">PERFORMANCE</text>
+  <text x="350" y="168" text-anchor="middle" font-size="13.5" fill="#666680">3 layers, ___ story</text>
+  <text x="130" y="42"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">PYSPARK BRIDGE</text>
+  <text x="130" y="62"  text-anchor="middle" font-size="13.5" fill="#666680">2 processes, ____ glue</text>
+  <text x="130" y="78"  text-anchor="middle" font-size="13.5" fill="#666680">UDF = ______-by-_____ tax</text>
+  <text x="572" y="40"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">TUNGSTEN</text>
+  <text x="572" y="60"  text-anchor="middle" font-size="13.5" fill="#666680">4B string costs ___B</text>
+  <text x="572" y="76"  text-anchor="middle" font-size="13.5" fill="#666680">off-heap = ___ invisible</text>
+  <text x="122" y="238" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">PHOTON (___)</text>
+  <text x="122" y="258" text-anchor="middle" font-size="13.5" fill="#666680">vectorized, JNI = ____%</text>
+  <text x="576" y="240" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">PERF HIERARCHY</text>
+  <text x="576" y="260" text-anchor="middle" font-size="13.5" fill="#666680">built-in &lt; ______ UDF &lt;&lt; Python UDF</text>
+</svg>
+</div>
+<div class="retrieval-note">✍️ Close the chapter and redraw this map from memory, saying every blank OUT LOUD — then flip back and check. Recall, not recognition.</div>
 
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
@@ -1292,6 +1998,40 @@ CH5 = """
   <div class="ch-src">Source: vutr.substack.com — If you're learning Apache Spark, this article is for you · A small hands-on project to 2× your Apache Spark learning process</div>
   <p class="ch-sum">Structured Streaming extends the same DataFrame API to continuous data streams by treating them as unbounded tables processed in micro-batches. Adaptive Query Execution closes the loop on the Catalyst Optimizer by re-planning queries at runtime using actual statistics from completed shuffle stages — fixing the three most expensive problems Catalyst gets wrong at plan time.</p>
 </div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="86" ry="34" fill="#eff6ff" stroke-width="3.4"/>
+    <rect x="26"  y="18"  width="204" height="86" rx="12" fill="#f0fdf4"/>
+    <rect x="472" y="16"  width="202" height="98" rx="12" fill="#faf5ff"/>
+    <rect x="18"  y="210" width="204" height="84" rx="12" fill="#f0f9ff"/>
+    <rect x="478" y="212" width="196" height="82" rx="12" fill="#fff1f2"/>
+    <path d="M272 128 C230 108, 204 96, 198 96" marker-end="url(#arr)"/>
+    <path d="M428 130 C462 110, 486 98, 498 98" marker-end="url(#arr)"/>
+    <path d="M282 176 C238 198, 212 208, 196 216" marker-end="url(#arr)"/>
+    <path d="M418 174 C456 196, 482 206, 506 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="20" font-weight="700" fill="#1c1c2e">STREAM = TABLE</text>
+  <text x="350" y="168" text-anchor="middle" font-size="13.5" fill="#44446a">that keeps growing</text>
+  <text x="128" y="40"  text-anchor="middle" font-size="16" font-weight="700" fill="#14532d">MICRO-BATCHES</text>
+  <text x="128" y="60"  text-anchor="middle" font-size="13" fill="#14532d">same DataFrame API</text>
+  <text x="128" y="76"  text-anchor="middle" font-size="13" fill="#14532d">no separate streaming API</text>
+  <text x="128" y="92"  text-anchor="middle" font-size="12" fill="#16a34a" font-weight="700">trigger controls the cadence</text>
+  <text x="570" y="38"  text-anchor="middle" font-size="16" font-weight="700" fill="#581c87">WATERMARKS</text>
+  <text x="570" y="58"  text-anchor="middle" font-size="13" fill="#581c87">how late is "too late"</text>
+  <text x="570" y="74"  text-anchor="middle" font-size="13" fill="#581c87">bounds memory state</text>
+  <text x="570" y="94"  text-anchor="middle" font-size="12" fill="#dc2626" font-weight="700">no watermark = state forever</text>
+  <text x="120" y="236" text-anchor="middle" font-size="16" font-weight="700" fill="#0c4a6e">AQE = CATALYST v2</text>
+  <text x="120" y="256" text-anchor="middle" font-size="13" fill="#0c4a6e">re-plans after each shuffle</text>
+  <text x="120" y="272" text-anchor="middle" font-size="13" fill="#0c4a6e">facts, not estimates</text>
+  <text x="576" y="238" text-anchor="middle" font-size="16" font-weight="700" fill="#881337">AQE'S 3 FIXES</text>
+  <text x="576" y="258" text-anchor="middle" font-size="13" fill="#881337">coalesce · switch join ·</text>
+  <text x="576" y="274" text-anchor="middle" font-size="13" fill="#881337">split skewed partitions</text>
+  <text x="350" y="312" text-anchor="middle" font-size="13.5" fill="#44446a">this chapter closes the loop — Ch1's Catalyst finally gets to see real numbers</text>
+</svg>
+</div>
+<div class="sketch-cap">The whole chapter on one napkin. Diagram: Structured Streaming's "stream as table" idea at the hub, branching into micro-batches, watermarks, AQE as runtime Catalyst, and AQE's three concrete fixes.</div>
 
 <div class="box why"><div class="box-lbl">Why This Chapter Matters</div>
 <p>Batch Spark processes data in minutes to hours. Fraud detection, real-time dashboards, and operational alerts require sub-minute latency. Structured Streaming delivers this without a different programming model — it's the same DataFrame API applied to streams. AQE matters because Catalyst's static optimizer operates on estimates, not facts: it guesses table sizes and partition distributions before execution. AQE corrects those guesses at runtime, automatically coalescing tiny shuffle partitions, switching join strategies based on actual data sizes, and handling skewed joins without manual salting. Understanding both systems completes the Spark engineer's toolkit.</p>
@@ -1380,12 +2120,62 @@ CH5 = """
 <p>An event with event_time = 11:00 AM arrives. 11:00 AM &gt; watermark 10:55 AM. <strong>The event is accepted</strong> and added to the [11:00, 12:00] window.</p>
 </div>
 
+<div class="sketch">
+<svg viewBox="0 0 700 190" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.4" stroke-linecap="round">
+    <path d="M30 100 L670 100" stroke-width="2.8" marker-end="url(#arr)"/>
+  </g>
+  <line x1="600" y1="70" x2="600" y2="130" stroke="#dc2626" stroke-width="2.4" stroke-dasharray="6 4"/>
+  <text x="600" y="60" text-anchor="middle" font-size="14" font-weight="700" fill="#dc2626">watermark = 10:55</text>
+  <circle cx="230" cy="100" r="9" fill="#fecaca" stroke="#dc2626" stroke-width="2.2"/>
+  <circle cx="470" cy="100" r="9" fill="#dcfce7" stroke="#16a34a" stroke-width="2.2"/>
+  <text x="230" y="128" text-anchor="middle" font-size="13.5" fill="#7f1d1d">10:40 event</text>
+  <text x="230" y="146" text-anchor="middle" font-size="16" font-weight="700" fill="#dc2626">DROPPED — too late</text>
+  <text x="470" y="128" text-anchor="middle" font-size="13.5" fill="#14532d">11:00 event</text>
+  <text x="470" y="146" text-anchor="middle" font-size="16" font-weight="700" fill="#16a34a">ACCEPTED — new window</text>
+  <text x="350" y="180" text-anchor="middle" font-size="13" fill="#44446a">anything left of the line is closed forever; state for it is freed</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: a timeline with the current watermark marked as a red dashed line. An event from before the line (10:40) is dropped as too late; an event at or after the line (11:00) is accepted into a fresh window.</div>
+
+<div class="scribble">a watermark is basically Spark saying "I'll wait for stragglers, but not forever." Without one, it has to keep EVERY window's state alive in case a message from last Tuesday shows up. <span class="who">— Alex, margin note</span></div>
+
 <h3>Window Types</h3>
 <ul>
   <li><strong>Tumbling windows:</strong> Fixed-size, non-overlapping. <code>window("event_time", "1 hour")</code> — events belong to exactly one window: [0:00–1:00), [1:00–2:00), etc.</li>
   <li><strong>Sliding windows:</strong> Fixed-size, overlapping. <code>window("event_time", "1 hour", "15 minutes")</code> — 1-hour windows starting every 15 minutes. Each event belongs to multiple overlapping windows.</li>
   <li><strong>Session windows (Spark 3.2+):</strong> Variable-length, defined by inactivity gap. A session groups events with gaps smaller than the timeout; a new session starts after the timeout expires. For example, a 5-minute session window would group together clicks at 10:01, 10:03, and 10:06 into one session, then start a new session when the next click arrives at 10:15 — because the 9-minute gap exceeds the timeout.</li>
 </ul>
+
+<div class="box n"><div class="box-lbl">Worked Example: State Cost of Sliding vs Tumbling Windows</div>
+<p>With <code>window("event_time", "1 hour")</code> (tumbling), one event at 10:20 belongs to exactly <strong>one</strong> open window — [10:00, 11:00) — so Spark maintains exactly one aggregation state entry for it. With <code>window("event_time", "1 hour", "15 minutes")</code> (sliding), the same event at 10:20 falls inside <strong>four</strong> overlapping 1-hour windows simultaneously: [9:30,10:30), [9:45,10:45), [10:00,11:00), [10:15,11:15). Spark must update all four windows' state on every micro-batch that touches this event. General rule: a sliding window of size <code>W</code> with slide interval <code>S</code> keeps <code>W / S</code> windows concurrently open per event — here 60min / 15min = 4×. State memory therefore scales roughly linearly with <code>W/S</code>: doubling the overlap (slide of 7.5 min instead of 15) doubles the concurrent windows to 8, and doubles the state store's memory footprint for the same input volume.</p>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.2" stroke-linecap="round">
+    <path d="M30 170 L670 170" stroke-width="2.6" marker-end="url(#arr)"/>
+  </g>
+  <rect x="220" y="30" width="140" height="16" fill="#dbeafe" stroke="#1e3a8a" stroke-width="1.6"/>
+  <text x="290" y="20" text-anchor="middle" font-size="12" fill="#1e3a8a">tumbling: 1 window</text>
+  <circle cx="290" cy="170" r="7" fill="#fecaca" stroke="#dc2626" stroke-width="2"/>
+  <text x="290" y="192" text-anchor="middle" font-size="12" fill="#7f1d1d">event @ 10:20</text>
+  <g stroke="#16a34a" stroke-width="2" fill="#dcfce7" opacity="0.85">
+    <rect x="130" y="60" width="140" height="14"/>
+    <rect x="165" y="78" width="140" height="14"/>
+    <rect x="200" y="96" width="140" height="14"/>
+    <rect x="235" y="114" width="140" height="14"/>
+  </g>
+  <text x="490" y="70" font-size="12" fill="#14532d">4 windows open</text>
+  <text x="490" y="88" font-size="12" fill="#14532d">at once for the</text>
+  <text x="490" y="106" font-size="12" fill="#14532d">SAME event —</text>
+  <text x="490" y="124" font-size="12" fill="#14532d" font-weight="700">sliding, 15min step</text>
+  <text x="350" y="10" text-anchor="middle" font-size="14" fill="#44446a">W / S = concurrent windows per event (here: 60min / 15min = 4×)</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: one event at 10:20 belongs to exactly one tumbling window (top bar), but to four overlapping sliding windows simultaneously (stacked green bars) — each one needs its own state entry updated.</div>
+
+<div class="scribble">tumbling windows are lockers — one item, one locker. Sliding windows are more like sticky notes on a shared board — the same event gets copied onto every overlapping note, and Spark has to update all of them. <span class="who">— Alex, margin note</span></div>
 </div>
 
 <div class="topic">
@@ -1396,6 +2186,33 @@ CH5 = """
 </div>
 
 <p>Apache Spark 3.0 (released 2020) introduced Adaptive Query Execution (AQE) as a way to extend Catalyst optimization into runtime. The key insight: shuffle stages create a natural pause point. Every exchange (shuffle) operator forces all tasks in the current stage to complete before the next stage can begin. During this pause, the actual shuffle output statistics are available: how many bytes in each partition, how many rows, how the data distributes across partitions. AQE collects these statistics and re-runs the physical planner for the next stage.</p>
+
+<div class="sketch">
+<svg viewBox="0 0 700 180" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.4" stroke-linecap="round">
+    <rect x="20"  y="46" width="160" height="80" rx="10" fill="#eff6ff"/>
+    <rect x="270" y="46" width="160" height="80" rx="10" fill="#fef9c3"/>
+    <rect x="520" y="46" width="160" height="80" rx="10" fill="#dcfce7"/>
+    <path d="M184 86 L266 86" marker-end="url(#arr)"/>
+    <path d="M434 86 L516 86" marker-end="url(#arr)"/>
+  </g>
+  <path d="M225 46 C225 20, 275 20, 275 46" fill="none" stroke="#ca8a04" stroke-width="2.2" marker-end="url(#arr)"/>
+  <text x="100" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">Catalyst plans</text>
+  <text x="100" y="76" text-anchor="middle" font-size="13" fill="#1e3a8a">using ESTIMATES</text>
+  <text x="100" y="94" text-anchor="middle" font-size="13" fill="#1e3a8a">(may be stale/wrong)</text>
+  <text x="350" y="20" text-anchor="middle" font-size="13" fill="#92400e">stage completes → real stats exist!</text>
+  <text x="350" y="76" text-anchor="middle" font-size="15" font-weight="700" fill="#92400e">SHUFFLE happens</text>
+  <text x="350" y="94" text-anchor="middle" font-size="13" fill="#92400e">(natural pause point)</text>
+  <text x="600" y="34" text-anchor="middle" font-size="15" font-weight="700" fill="#14532d">AQE re-plans</text>
+  <text x="600" y="76" text-anchor="middle" font-size="13" fill="#14532d">coalesce · switch join</text>
+  <text x="600" y="94" text-anchor="middle" font-size="13" fill="#14532d">· split skewed part.</text>
+  <text x="350" y="150" text-anchor="middle" font-size="15" fill="#16a34a" font-weight="700">every shuffle boundary is a free re-optimization checkpoint</text>
+  <text x="350" y="170" text-anchor="middle" font-size="13" fill="#44446a">Catalyst can't do this — the real numbers don't exist until the stage finishes</text>
+</svg>
+</div>
+<div class="sketch-cap">Diagram: Catalyst plans a stage using estimates, the shuffle at the stage boundary produces real statistics, and AQE uses those real numbers to re-plan the next stage — coalescing partitions, switching join strategy, or splitting a skewed one.</div>
+
+<div class="scribble">AQE isn't a new optimizer — it's Catalyst getting a second try with the answer key. Every shuffle is a checkpoint where guesses become facts. <span class="who">— Alex, margin note</span></div>
 
 <p>The unit of AQE re-optimization is the <strong>query stage</strong>. Each Exchange operator (Spark's internal name for a shuffle node in the physical plan — the point where data is redistributed across partitions, forcing all upstream tasks to finish before downstream tasks begin; a query stage corresponds exactly to one stage in the DAG (Directed Acyclic Graph — a diagram of the steps in a computation where arrows show dependencies and nothing loops back) between two Exchange boundaries) creates a query stage boundary. AQE collects statistics after each query stage completes, then re-optimizes the next query stage's plan before it begins executing.</p>
 
@@ -1439,6 +2256,42 @@ CH5 = """
 <h3>AQE + Structured Streaming</h3>
 <p>AQE re-optimization applies within each micro-batch independently. Each micro-batch is a complete Spark SQL query with its own query stages. AQE collects statistics and re-optimizes within each micro-batch. Since micro-batches are short (seconds to minutes), the AQE overhead (collecting stage statistics) is a small fraction of total batch time.</p>
 </div>
+
+<div class="bigfacts">
+<div class="bigfacts-head">If you forget everything else in this chapter, keep these three:</div>
+<div class="bigfact"><span class="n">1.</span>A stream is just a table that keeps growing. Same DataFrame API, no new API to learn.</div>
+<div class="bigfact"><span class="n">2.</span>A watermark trades "wait for stragglers" against "stop state from growing forever."</div>
+<div class="bigfact"><span class="n">3.</span>AQE = Catalyst's Phase 3 re-run after every shuffle, with real numbers instead of guesses.</div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#666680" stroke-width="2.4" stroke-linecap="round">
+    <ellipse cx="350" cy="150" rx="86" ry="34" fill="#f8f8fc" stroke="#1c1c2e" stroke-width="3"/>
+    <rect x="26"  y="18"  width="204" height="86" rx="12" fill="#fff"/>
+    <rect x="472" y="16"  width="202" height="98" rx="12" fill="#fff"/>
+    <rect x="18"  y="210" width="204" height="84" rx="12" fill="#fff"/>
+    <rect x="478" y="212" width="196" height="82" rx="12" fill="#fff"/>
+    <path d="M272 128 C230 108, 204 96, 198 96" marker-end="url(#arr)"/>
+    <path d="M428 130 C462 110, 486 98, 498 98" marker-end="url(#arr)"/>
+    <path d="M282 176 C238 198, 212 208, 196 216" marker-end="url(#arr)"/>
+    <path d="M418 174 C456 196, 482 206, 506 214" marker-end="url(#arr)"/>
+  </g>
+  <text x="350" y="146" text-anchor="middle" font-size="18" font-weight="700" fill="#1c1c2e">STREAM = ______</text>
+  <text x="350" y="168" text-anchor="middle" font-size="13.5" fill="#666680">that keeps growing</text>
+  <text x="128" y="42"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">MICRO-______</text>
+  <text x="128" y="62"  text-anchor="middle" font-size="13.5" fill="#666680">same _________ API</text>
+  <text x="570" y="40"  text-anchor="middle" font-size="15" font-weight="700" fill="#666680">WATERMARKS</text>
+  <text x="570" y="60"  text-anchor="middle" font-size="13.5" fill="#666680">how ____ is too late</text>
+  <text x="570" y="76"  text-anchor="middle" font-size="13.5" fill="#666680">bounds memory _____</text>
+  <text x="120" y="238" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">AQE = _______ v2</text>
+  <text x="120" y="258" text-anchor="middle" font-size="13.5" fill="#666680">re-plans after each ________</text>
+  <text x="576" y="240" text-anchor="middle" font-size="15" font-weight="700" fill="#666680">AQE'S 3 FIXES</text>
+  <text x="576" y="260" text-anchor="middle" font-size="13.5" fill="#666680">________ · switch join ·</text>
+  <text x="576" y="276" text-anchor="middle" font-size="13.5" fill="#666680">split ______ partitions</text>
+</svg>
+</div>
+<div class="retrieval-note">✍️ Close the chapter and redraw this map from memory, saying every blank OUT LOUD — then flip back and check. Recall, not recognition. This is the last chapter — try redrawing Ch1-4's maps too before you stop.</div>
 
 <div class="recall">
 <div class="recall-head">Spark Engineer's Checkpoint</div>
