@@ -27,11 +27,20 @@ built, and offer to run `idea` instead.
    3 — Mufti is always added on top as the halal gate.)" Use 3 if they don't say.
 3. **Make a scratch dir** under the session scratchpad, e.g.
    `<scratch>/storm-<slug>/`.
-4. **Invoke the engine.** Call the `Workflow` tool:
-   `Workflow({ name: "storm-business-research", args: { mode: "idea", topic: "<idea>", voices: <n>, scratch: "<abs scratch dir>" } })`.
-   The workflow casts lenses (auto best-fit + Mufti), runs them on vault+web,
-   maps contradictions, adversarially verifies, and renders outputs.
-5. **Relay results.** Report the verdict (KEEP/WATCHLIST/CUT) and the two written
+4. **Write the run config.** The workflow's `args` global arrives EMPTY in this
+   environment (known gotcha), so parameters are passed via a fixed file the
+   workflow reads in Phase 0. Write the run config to
+   `<repo>/output/storm/_run.json` (create the dir first):
+   ```bash
+   mkdir -p output/storm && cat > output/storm/_run.json <<JSON
+   {"mode":"idea","topic":"<idea>","voices":<n>,"scratch":"<abs scratch dir>"}
+   JSON
+   ```
+5. **Invoke the engine.** Call the `Workflow` tool:
+   `Workflow({ name: "storm-business-research" })` (no `args` — the workflow reads
+   `output/storm/_run.json`). It casts lenses (auto best-fit + Mufti), runs them
+   on vault+web, maps contradictions, adversarially verifies, and renders outputs.
+6. **Relay results.** Report the verdict (KEEP/WATCHLIST/CUT) and the two written
    paths: the graded vault note in the Opportunity-Catalog `STORM-Reports/` folder
    and the HTML briefing under `output/storm/`. Note that the vault note is not in
    git (personal vault) — that's expected.
