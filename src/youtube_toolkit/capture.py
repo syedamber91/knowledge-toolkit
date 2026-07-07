@@ -36,8 +36,12 @@ MAX_DURATION_SECONDS = 61
 def _ydl(extra: Optional[dict] = None):
     import yt_dlp
 
+    # YouTube's default web/tv clients intermittently fail newer videos with
+    # "The page needs to be reloaded." The android client bypasses it for info
+    # extraction; list several so yt-dlp falls through to a working one.
     opts = {"quiet": True, "skip_download": True, "no_warnings": True,
-            "ignoreerrors": True}
+            "ignoreerrors": True,
+            "extractor_args": {"youtube": {"player_client": ["android", "web_safari", "tv"]}}}
     opts.update(extra or {})
     return yt_dlp.YoutubeDL(opts)
 
