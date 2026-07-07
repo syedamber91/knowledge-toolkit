@@ -411,32 +411,33 @@ const results = await pipeline(
   },
   async ({ chapter, lucQ, sdQ }) => {
     phase('AnswerAudit')
-    const allQuestions = [...lucQ.questions, ...sdQ.questions]
-    const [answers, audit] = await parallel([
+    // Two SEPARATE student calls (one per examiner's question set), not one
+    // combined call. A single call answering all 10 questions at once let the
+    // student cross-attribute Luc's material into sdcourse answers (and vice
+    // versa) and invent specifics to paper over gaps — splitting the calls
+    // means each one only ever sees its own examiner's 5 questions.
+    const sourcingRules = (voice) =>
+      `STRICT SOURCING RULES:\n- Use ONLY the chapter content above. Do not use outside knowledge of these topics.\n- NEVER invent a quote, statistic, or specific claim and present it as if it came from the chapter. If you want to quote, copy the exact wording from the chapter content — do not paraphrase and then wrap it in quotation marks as though it were verbatim.\n- These questions are ALL from the ${voice} examiner. Answer ONLY from the ${voice} section of the chapter — do not pull in or attribute anything from the chapter's other voice.\n- If the chapter content does not fully answer a question, say plainly what is and isn't covered rather than filling the gap with invented specifics.`
+    const [lucAnswersRes, sdAnswersRes, audit] = await parallel([
       () => agent(
-        `You are a student who has read ONLY this chapter (no outside knowledge). Chapter content:\n\n${chapter.content}\n\nAnswer EXACTLY these ${allQuestions.length} questions, in this exact order, one answer per question — your "answers" array must have exactly ${allQuestions.length} entries, entry i answering question i and nothing else. Do not merge, skip, reorder, or add questions.\n\nSTRICT SOURCING RULES:\n- Use ONLY the chapter content above. Do not use outside knowledge of these topics.\n- NEVER invent a quote, statistic, or specific claim and present it as if it came from the chapter. If you want to quote, copy the exact wording from the chapter content — do not paraphrase and then wrap it in quotation marks as though it were verbatim.\n- The chapter has TWO distinct voices: Luc (lucsystemdesign) and sdcourse. Keep them separate — never attribute Luc's framework/terms/quotes to sdcourse or vice versa. If a question is about one voice's material, answer ONLY from that voice's section of the chapter.\n- If the chapter content does not fully answer a question, say plainly what is and isn't covered rather than filling the gap with invented specifics.\n\nQuestions:\n${allQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`,
-        { agentType: 'justin-sung', phase: 'AnswerAudit', schema: ANSWER_SCHEMA, label: `answers-ch${chapter.id}` }
+        `You are a student who has read ONLY this chapter (no outside knowledge). Chapter content:\n\n${chapter.content}\n\nAnswer EXACTLY these ${lucQ.questions.length} questions from the Luc (lucsystemdesign) examiner, in order, one answer per question.\n\n${sourcingRules('Luc (lucsystemdesign)')}\n\nQuestions:\n${lucQ.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`,
+        { agentType: 'justin-sung', phase: 'AnswerAudit', schema: ANSWER_SCHEMA, label: `luc-answers-ch${chapter.id}` }
+      ),
+      () => agent(
+        `You are a student who has read ONLY this chapter (no outside knowledge). Chapter content:\n\n${chapter.content}\n\nAnswer EXACTLY these ${sdQ.questions.length} questions from the sdcourse examiner, in order, one answer per question.\n\n${sourcingRules('sdcourse')}\n\nQuestions:\n${sdQ.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`,
+        { agentType: 'justin-sung', phase: 'AnswerAudit', schema: ANSWER_SCHEMA, label: `sd-answers-ch${chapter.id}` }
       ),
       () => agent(
         `Read this chapter as Alex (a curious 15-year-old with no domain background) and produce a clarity audit — confusion log, additive improvement requests (DEFINE/ANALOGY/BRIDGE/DIAGRAM/EXAMPLE/SEQUENCE), and any remaining blockers. Never ask to remove content. Chapter content:\n\n${chapter.content}`,
         { agentType: 'alex', phase: 'AnswerAudit', schema: AUDIT_SCHEMA, label: `audit-ch${chapter.id}` }
       ),
     ])
-    return { chapter, lucQ, sdQ, answers, audit }
+    return { chapter, lucQ, sdQ, lucAnswersRes, sdAnswersRes, audit }
   },
-  async ({ chapter, lucQ, sdQ, answers, audit }) => {
+  async ({ chapter, lucQ, sdQ, lucAnswersRes, sdAnswersRes, audit }) => {
     phase('Score')
-    // Split the student's answers back into the Luc-question slice and the
-    // sdcourse-question slice, matching the [...lucQ.questions, ...sdQ.questions]
-    // order the questions were concatenated in. Each examiner must ONLY see
-    // answers to its own questions — feeding the combined set to both examiners
-    // caused them to flag the other examiner's answers as "off-topic"/"foreign
-    // material" and tank both scores.
-    const n = lucQ.questions.length
-    const lucAnswers = answers.answers.slice(0, n)
-    const sdAnswers = answers.answers.slice(n, n + sdQ.questions.length)
-    const lucAnswerText = lucQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${lucAnswers[i] ?? '(no answer provided)'}`).join('\n\n')
-    const sdAnswerText = sdQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${sdAnswers[i] ?? '(no answer provided)'}`).join('\n\n')
+    const lucAnswerText = lucQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${lucAnswersRes.answers[i] ?? '(no answer provided)'}`).join('\n\n')
+    const sdAnswerText = sdQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${sdAnswersRes.answers[i] ?? '(no answer provided)'}`).join('\n\n')
     const [lucScore, sdScore] = await parallel([
       () => agent(
         `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). These are ONLY your questions and the student's matching answers — no other examiner's material is included.\n\n${lucAnswerText}\n\nList any gaps.`,
