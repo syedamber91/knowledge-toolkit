@@ -340,6 +340,81 @@ CH3 = """
 </div>
 """
 
+CH4 = """
+<div class="chapter">
+<div class="ch-head">
+  <div class="ch-eye">Chapter 4 of 23</div>
+  <h1>Indexing, CDC & Structured Log Data</h1>
+  <div class="ch-src">Sources: lucsystemdesign — Database Indexing, Change Data Capture (CDC) · sdcourse — Log Format Normalization and Serialization, Faceted Search and Multi-Dimensional Filtering</div>
+  <p class="ch-sum">Luc's angle is the OLTP database deciding what to pre-organize so future reads are cheap — an index, or a change stream tapped off the transaction log. sdcourse's angle is the log pipeline doing the identical trick on a different substrate — normalizing formats and pre-building inverted indexes so a billion-log search doesn't turn into a full scan. Same move, two systems.</p>
+</div>
+
+<div class="topic">
+<h2>Luc's Lens: Pre-Paying for Reads, Whether the Data Is at Rest or in Motion</h2>
+<p>Luc's starting point is that indexing is a reflex, not a decision, and reflexes are where trouble hides. "Slow queries have a reflex fix: add an index. It works often enough that teams keep doing it; until write latency creeps up, storage balloons, and the query planner starts making strange choices." The reflex works often enough to become habit, which is exactly why it needs correcting: every INSERT, UPDATE, and DELETE has to update every index on that table too, so each index is a standing write tax, paid on every future write, in exchange for cheaper reads today. B-trees are the safe default for most OLTP access patterns — equality filters, range filters, ordered reads — but "safe default" is not the same as "free." Luc is also blunt that an index existing doesn't mean it gets used: the query planner only takes the index path when its cost model estimates that path is cheaper than a table scan, and if the table's statistics are stale, that estimate can simply be wrong, silently. Knowing when to remove an index matters as much as knowing when to add one — rarely-used indexes, duplicate indexes, low-selectivity predicates, write-heavy tables, and columns wrapped in functions (which block index use entirely) are all candidates for deletion, not just addition.</p>
+<p>Change Data Capture is Luc's second half of the same move, applied to a stream instead of a lookup. CDC taps into the transaction log the database already keeps for durability and crash recovery, and turns every insert, update, and delete into an event other systems can react to within seconds. Of the three capture methods — timestamp polling, database triggers, and log-based capture — log-based capture is "the modern standard" because it's low-latency, minimally invasive to the source database, and preserves exact write order, where polling silently misses hard deletes and triggers add write-path overhead. But CDC is not a free real-time button: it demands idempotent consumers (because log-based delivery is generally at-least-once) and real observability into consumer lag, offsets, and dead-letter queues, or a stalled consumer becomes an invisible correctness bug. CDC also captures the fact that a row changed, not why — it is not an audit trail by default, and treating it as one is a category error. Luc's guidance: use CDC when the dataset is large but the daily delta is small and freshness genuinely matters — live dashboards, personalization, fraud detection — and skip it for append-only feeds, small tolerant-SLA datasets, or strict historical auditing, where the machinery costs more than the freshness is worth.</p>
+<div class="box s"><div class="box-lbl">Decision Rule</div>
+<p>Before adding an index, name the exact predicate it serves and verify with a real query plan that the optimizer actually chooses it — don't index on reflex, and periodically audit for indexes that are rarely used, duplicated, low-selectivity, or sitting on a write-heavy table, because those are pure write tax with no read payoff. Before adopting CDC, name the fraction of the dataset that changes daily and whether fresh data changes a real decision — if the delta is tiny and freshness matters (fraud, personalization, live dashboards), tap the transaction log; if the data is append-only, small, or the requirement is a durable audit trail, CDC is the wrong tool wearing a real-time costume. When NOT to use either: don't index "just in case," and don't wire up CDC because streaming sounds more modern than batch — "start small, capture what truly benefits from real-time data, prove the value, and expand gradually."</p>
+</div>
+<div class="quote" data-author="luc">"Indexes are best understood as a trade: you spend extra work on writes so reads can skip unnecessary work. Once you see that trade clearly, index tuning stops feeling like superstition and starts feeling like engineering."<cite>— Luc, lucsystemdesign</cite></div>
+</div>
+
+<div class="topic">
+<h2>sdcourse's Lens: Pre-Paying for Reads in the Log Pipeline Itself</h2>
+<p>sdcourse's log format normalization problem is the pipeline-side mirror of Luc's indexing trade-off: instead of choosing between "index everything" and "index nothing," the choice is between "force every producer onto one format" (politically impossible, technically disruptive) and "build a custom converter for every producer-consumer pair," which is N×M complexity that explodes as sources multiply. The fix is the same shape as an index — do the structuring work once, up front, so every future read is cheap. Converting every incoming format to a canonical intermediate representation first turns N×M direct converters into O(N) — one parser and one serializer per format — and sdcourse names this explicitly as decoupling: "Format normalization is a form of decoupling. Just as message queues decouple producers from consumers in time, format normalization decouples them in representation. This decoupling enables independent evolution — your analytics team can switch from JSON to Avro without coordinating with every upstream producer." Naive conversion handles about 5,000 logs/second per core; layering in object pooling, buffer management, batch processing, parallel conversion, and zero-copy passthrough pushes that past 50,000/second, at which point the bottleneck stops being CPU and becomes memory bandwidth. Production systems avoid guessing at format by trusting Content-Type headers when present, falling back to magic bytes for binary formats, and using heuristics only for text-based formats as a last resort.</p>
+<p>Faceted search is the read-side payoff of that up-front structuring, and it is functionally an index built for a different kind of query: "Traditional search requires knowing exactly what you're looking for. Faceted search flips this — it shows you what's available to explore." The mechanism is an inverted index mapping each facet value to matching document IDs, which costs 30-40% additional storage but converts an O(n) full scan into an O(k) lookup — for 1 billion logs, a 10-minute scan becomes a 50ms index lookup. That's Luc's write-tax-for-read-speed trade again, just quantified on the log side: "Inverted indexes map each facet value to document IDs... this transforms a 10-minute scan into a 50ms index lookup. The cost: write amplification. Each log ingestion updates multiple indexes — one per facet." sdcourse also names a concrete anti-pattern — caching final search results per user query, rather than caching aggregations at the dimension level (counts per facet) — and a routing strategy: filter-first when a filter is selective (under 5% of docs), aggregate-first when it's broad (over 50% of docs). At the storage layer, representing 1 million matching document IDs as a sorted integer array costs 4MB, while a compressed bitmap does the same job in 50KB with O(1) intersection. Splunk caps facets at 10,000 unique values per day to keep cardinality bounded; Netflix's cardinality-aware query planning cut search P99 latency from 8 seconds to 400ms.</p>
+<table>
+<thead><tr><th>Metric</th><th>Value</th><th>Why it matters</th></tr></thead>
+<tbody><tr><td>Direct converter complexity</td><td>N×M pairs</td><td>What canonical-format normalization replaces</td></tr>
+<tr><td>Canonical-format complexity</td><td>O(N)</td><td>One parser + one serializer per format instead</td></tr>
+<tr><td>Naive conversion throughput</td><td>~5,000 logs/sec/core</td><td>Baseline before optimization</td></tr>
+<tr><td>Optimized conversion throughput</td><td>50,000+ logs/sec</td><td>Pooling, batching, parallelism, zero-copy passthrough</td></tr>
+<tr><td>Inverted index storage overhead</td><td>30-40% extra</td><td>Cost of turning O(n) scans into O(k) lookups</td></tr>
+<tr><td>1B-log facet scan, unindexed vs. indexed</td><td>10 min → 50ms</td><td>The concrete payoff of the storage overhead above</td></tr>
+<tr><td>1M doc IDs: sorted array vs. compressed bitmap</td><td>4MB vs. 50KB</td><td>Bitmap gives O(1) intersection at a fraction of the size</td></tr>
+<tr><td>Netflix search P99 latency</td><td>8s → 400ms</td><td>Cardinality-aware query planning in production</td></tr>
+</tbody>
+</table>
+<div class="box r"><div class="box-lbl">Production Reality</div>
+<p>The anti-pattern here has the same shape as Luc's stale-statistics warning: caching final results per user query looks like it should help, but log queries have too much combinatorial variety in their filter combinations for full-result caching to get meaningful hit rates, so the cache mostly misses while still paying its maintenance cost. Caching at the dimension level — counts per facet — reuses across the many different filter combinations users actually issue, the same way a well-chosen index serves many different WHERE clauses instead of one. And write amplification is not a side effect to tolerate quietly: every log ingestion updates one inverted-index entry per facet, so a facet schema chosen carelessly multiplies write cost across every single ingested log, forever, exactly like an over-indexed OLTP table.</p>
+</div>
+<div class="quote" data-author="sdcourse">"When your system generates millions of logs per hour, finding relevant information becomes like searching for a needle in a haystack. Traditional search requires knowing exactly what you're looking for. Faceted search flips this - it shows you what's available to explore."<cite>— sdcourse</cite></div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="40" y="40" width="260" height="150" rx="12" fill="#eff6ff"/>
+    <rect x="400" y="40" width="260" height="150" rx="12" fill="#fff7ed"/>
+  </g>
+  <text x="170" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">LUC: Structure the Row Store</text>
+  <text x="170" y="75" text-anchor="middle" font-size="13" fill="#1e3a8a">Index = write tax for read speed.</text>
+  <text x="170" y="105" text-anchor="middle" font-size="13" fill="#1e3a8a">CDC taps the transaction log —</text>
+  <text x="170" y="135" text-anchor="middle" font-size="13" fill="#1e3a8a">small delta, real freshness need,</text>
+  <text x="170" y="160" text-anchor="middle" font-size="13" fill="#1e3a8a">idempotent consumers required</text>
+  <text x="530" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">SDCOURSE: Structure the Log Stream</text>
+  <text x="530" y="75" text-anchor="middle" font-size="13" fill="#7c2d12">Canonical format: O(N) not N×M.</text>
+  <text x="530" y="105" text-anchor="middle" font-size="13" fill="#7c2d12">Inverted index: 30-40% storage tax,</text>
+  <text x="530" y="135" text-anchor="middle" font-size="13" fill="#7c2d12">10min scan becomes 50ms lookup</text>
+  <text x="530" y="160" text-anchor="middle" font-size="13" fill="#7c2d12">— same trade, different substrate</text>
+</svg>
+</div>
+<div class="sketch-cap">Luc's index and sdcourse's inverted index are the same bet made twice: pay a write cost now so a future read doesn't have to scan everything.</div>
+
+<div class="box xr"><div class="box-lbl">Where They Converge / Diverge</div>
+<p><strong>Converge:</strong> Both are describing the identical trade — do structuring work up front, on every write, so a specific future read pattern becomes cheap instead of a full scan; Luc's B-tree index and sdcourse's inverted index both cost storage and write amplification, and both only pay off if the read pattern they were built for actually happens.</p>
+<p><strong>Diverge:</strong> Luc's structuring targets a single OLTP row store answering point and range queries, and CDC targets exporting that store's changes outward as a stream for other systems to consume; sdcourse's structuring targets a distributed log pipeline ingesting from many heterogeneous producers and answering exploratory, multi-dimensional facet queries over billions of events. Luc worries about the optimizer choosing not to use an index because statistics are stale; sdcourse worries about write amplification across many facets at ingestion-time scale and about caching at the wrong granularity. A team can get Luc's OLTP indexing exactly right and still watch their log-search product time out, because faceted search over a billion-event stream is a different structuring problem with its own index (inverted, bitmap-compressed) and its own anti-pattern (per-query result caching instead of per-dimension aggregation caching).</p>
+</div>
+
+<div class="recall">
+<div class="recall-head">Active Recall</div>
+<div class="q"><span class="q-n">Q1.</span> Per Luc, why can an index exist on a table and still never be used by the query planner, and what two conditions does Luc give for when CDC is worth adopting versus when it's the wrong tool?</div>
+<div class="q"><span class="q-n">Q2.</span> Per sdcourse, why does canonical-format normalization reduce N×M converters to O(N), and what specific anti-pattern turns faceted-search caching into a low-hit-rate cost center?</div>
+<div class="q"><span class="q-n">Q3.</span> Luc's index and CDC operate on a single OLTP database; sdcourse's format normalization and inverted facet index operate on a distributed log pipeline. Using the write-amplification concept from both lenses, explain why "structure data now so retrieval is fast later" produces a different failure mode in each system.</div>
+</div>
+</div>
+"""
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ASSEMBLY + GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
