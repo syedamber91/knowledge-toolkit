@@ -395,7 +395,7 @@ const results = await pipeline(
     const allQuestions = [...lucQ.questions, ...sdQ.questions]
     const [answers, audit] = await parallel([
       () => agent(
-        `You are a student who has read ONLY this chapter (no outside knowledge). Chapter content:\n\n${chapter.content}\n\nAnswer each question using only the chapter content. Questions:\n${allQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`,
+        `You are a student who has read ONLY this chapter (no outside knowledge). Chapter content:\n\n${chapter.content}\n\nAnswer EXACTLY these ${allQuestions.length} questions, in this exact order, one answer per question — your "answers" array must have exactly ${allQuestions.length} entries, entry i answering question i and nothing else. Do not merge, skip, reorder, or add questions. Use only the chapter content.\n\nQuestions:\n${allQuestions.map((q, i) => `${i + 1}. ${q}`).join('\n')}`,
         { agentType: 'justin-sung', phase: 'AnswerAudit', schema: ANSWER_SCHEMA, label: `answers-ch${chapter.id}` }
       ),
       () => agent(
@@ -407,14 +407,24 @@ const results = await pipeline(
   },
   async ({ chapter, lucQ, sdQ, answers, audit }) => {
     phase('Score')
-    const answerText = answers.answers.join('\n')
+    // Split the student's answers back into the Luc-question slice and the
+    // sdcourse-question slice, matching the [...lucQ.questions, ...sdQ.questions]
+    // order the questions were concatenated in. Each examiner must ONLY see
+    // answers to its own questions — feeding the combined set to both examiners
+    // caused them to flag the other examiner's answers as "off-topic"/"foreign
+    // material" and tank both scores.
+    const n = lucQ.questions.length
+    const lucAnswers = answers.answers.slice(0, n)
+    const sdAnswers = answers.answers.slice(n, n + sdQ.questions.length)
+    const lucAnswerText = lucQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${lucAnswers[i] ?? '(no answer provided)'}`).join('\n\n')
+    const sdAnswerText = sdQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${sdAnswers[i] ?? '(no answer provided)'}`).join('\n\n')
     const [lucScore, sdScore] = await parallel([
       () => agent(
-        `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). Your questions:\n${lucQ.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nStudent answers:\n${answerText}\n\nList any gaps.`,
+        `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). These are ONLY your questions and the student's matching answers — no other examiner's material is included.\n\n${lucAnswerText}\n\nList any gaps.`,
         { agentType: 'lucsystemdesign', phase: 'Score', schema: SCORE_SCHEMA, label: `luc-score-ch${chapter.id}` }
       ),
       () => agent(
-        `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). Your questions:\n${sdQ.questions.map((q, i) => `${i + 1}. ${q}`).join('\n')}\n\nStudent answers:\n${answerText}\n\nList any gaps.`,
+        `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). These are ONLY your questions and the student's matching answers — no other examiner's material is included.\n\n${sdAnswerText}\n\nList any gaps.`,
         { agentType: 'sdcourse', phase: 'Score', schema: SCORE_SCHEMA, label: `sd-score-ch${chapter.id}` }
       ),
     ])
