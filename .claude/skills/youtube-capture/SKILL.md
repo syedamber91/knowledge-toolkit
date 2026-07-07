@@ -86,6 +86,41 @@ Both guardrails mark the URL as seen so resume runs don't retry them.
   or use pytubefix which uses a different endpoint.
 - **SABR streaming**: Some YouTube web clients trigger SABR mode which blocks
   caption metadata entirely. Not fixable without the PO token.
+- **"The page needs to be reloaded." (info fetch)**: `yt-dlp`'s default web/tv
+  clients intermittently fail *newer* videos with this error, silently dropping
+  the most recent uploads from a channel refresh. **Fixed** in `capture.py`:
+  `_ydl` now sets `extractor_args={"youtube": {"player_client": ["android",
+  "web_safari", "tv"]}}` — the **android** client bypasses it for info
+  extraction. Verified: `fetch_info` recovers the failing videos.
+- **Rolling per-IP throttle (the real blocker on a refresh)**: after ~5 rapid
+  capture runs, YouTube rate-limits *per request* — each `fetch_info` has a
+  random chance of the reload error, and bulk channel crawls make it worse. It
+  is NOT a hard 24–48h block; a single spaced request usually succeeds. **Drain
+  strategy that works:** capture the missing videos **one URL at a time, retrying
+  each until it catches a good window** (see the loop below), rather than
+  re-crawling the whole channel. Failed `no info` fetches and `no transcript`
+  skips are **not persisted to the catalog**, so nothing is lost — a later
+  resume recovers them.
+
+```bash
+# Recover specific throttled videos: retry each until captured (or caption-less)
+for id in <VIDEO_IDS>; do
+  for attempt in 1 2 3 4 5; do
+    out=$(.venv/bin/youtube-toolkit capture "https://www.youtube.com/watch?v=$id" 2>&1 \
+          | grep -E "captured:|no info|no transcript")
+    echo "$id attempt $attempt: $out"
+    echo "$out" | grep -q "captured:"     && break
+    echo "$out" | grep -q "no transcript" && { echo "  -> genuinely caption-less"; break; }
+    sleep $((18 + RANDOM % 12))
+  done
+done
+```
+
+- **Genuinely caption-less videos**: some short uploads have no captions at all.
+  Their info fetches fine but all 3 transcript stages return `""` → correctly
+  skipped (never fabricate a transcript). Such a video always shows as "missing"
+  in a channel enumeration because it is never added to the catalog — that is
+  by design, not a capture failure.
 
 ## Verifying capture quality
 
@@ -130,11 +165,39 @@ Obsidian Vault/
     youtube-<channel>.md     # channel-level source page
 ```
 
+## Isolated vaults & catalogs (IMPORTANT — not everything goes to the default vault)
+
+The default catalog/vault above is the **unified "Obsidian Vault"**. Topic- or
+creator-specific captures use a **separate catalog + vault** via env overrides so
+they don't mix in with the unified content:
+
+| Vault | `MEDIA_CONTENT_PATH` | `MEDIA_VAULT_DIR` |
+|-------|----------------------|-------------------|
+| Unified (default) | `data/media.json` | `…/Documents/Obsidian Vault` |
+| **AI & Development** (Nate Herk + Jack Roberts) | `data/media_ai_dev.json` | `…/Documents/AI & Development` |
+
+**To refresh the AI & Development vault**, set both env vars for every command:
+
+```bash
+export MEDIA_CONTENT_PATH=data/media_ai_dev.json
+export MEDIA_VAULT_DIR="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/AI & Development"
+.venv/bin/youtube-toolkit capture "https://www.youtube.com/@nateherk/videos"
+.venv/bin/youtube-toolkit capture "https://www.youtube.com/@Itssssss_Jack/videos"
+.venv/bin/youtube-toolkit build     # appends a Log.md entry with the new-item count
+```
+
+The build writes into that vault's own `Home.md`/`topics/`/`sources/` **and its
+append-only `Log.md`** (the index+log+cross-links pattern — see root `CLAUDE.md`).
+After capture, the `/nate-herk` and `/jack-roberts` persona files can be refreshed
+from the new transcripts.
+
 ## Channel capture history
 
-| Channel | URL | Videos | Notes |
-|---------|-----|--------|-------|
-| Justin Sung | `@JustinSung/videos` | 221 | Captured 2026-06-26. Learning/productivity/note-taking content. pytubefix used as primary transcript source. |
+| Channel | URL | Videos | Vault | Notes |
+|---------|-----|--------|-------|-------|
+| Justin Sung | `@JustinSung/videos` | 221 | Obsidian Vault | Captured 2026-06-26. Learning/productivity. pytubefix primary. |
+| Nate Herk \| AI Automation | `@nateherk/videos` | 286 | AI & Development | 281 (2026-07-05) + 5 (2026-07-07 refresh). Folder `nate-herk-ai-automation`. |
+| Jack Roberts | `@Itssssss_Jack/videos` | 155 | AI & Development | 154 + 1 (2026-07-07 refresh). Folder `jack-roberts`. |
 
 ## Environment notes
 
