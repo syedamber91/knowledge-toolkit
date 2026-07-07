@@ -53,7 +53,7 @@ Mirrors the Spark / Ben Dicken packs exactly.
 
 | File | Role | Committed? |
 |------|------|-----------|
-| `scripts/generate_sdcourse_luc.py` | Generator: hardcoded CSS (copied from `generate_vutr_spark.py`, **minus** the Mermaid `<script>` tag) + `COVER` + `CH1..CH22` HTML strings → `output/sdcourse_luc.html` → headless-Chrome `--print-to-pdf` → `output/sdcourse_luc.pdf`. Content lives in the script strings. | ✅ script only |
+| `scripts/generate_sdcourse_luc.py` | Generator: hardcoded CSS (copied from `generate_vutr_spark.py`, **minus** the Mermaid `<script>` tag) + `COVER` + `CH1..CH23` HTML strings → `output/sdcourse_luc.html` → headless-Chrome `--print-to-pdf` → `output/sdcourse_luc.pdf`. Content lives in the script strings. | ✅ script only |
 | `.claude/workflows/verify-sdcourse-luc.js` | Verification `Workflow` script. Pipelines over the current phase's chapters through both examiners + Justin + Alex. Carries in-file `CHAPTERS[n].content` + `KNOWLEDGE_BY_CHAPTER`, kept in sync with the PDF. | ✅ committed (like `storm.js`) |
 | `docs/superpowers/specs/2026-07-07-sdcourse-luc-dual-lens-pack-design.md` | This design | ✅ |
 | `output/sdcourse_luc.{html,pdf}` | Rendered pack | ❌ gitignored (`output/`) |
@@ -66,55 +66,62 @@ Mirrors the Spark / Ben Dicken packs exactly.
 `scripts/gdrive_upload.py output/sdcourse_luc.pdf` to the Learning Packs folder
 (ID `1G0h8cBj9ZXDlXXv97LAj9P0esFwyk5KH`).
 
-## 4. Chapter structure — 22 chapters, 5 parts, 4 phases
+## 4. Chapter structure — 23 chapters, 5 parts, 4 phases
 
-Lens key: **[D]** dual (both voices roughly equal) · **[L]** Luc-led (sdcourse
-counterpoint sidebar) · **[S]** sdcourse-led (Luc counterpoint sidebar). Every
+Every chapter is **[D] dual** — both authors carry genuine, substantive
+content in every chapter, not a primary voice with a token sidebar. A handful
+of Luc/sdcourse topics legitimately anchor **two** chapters from a **different
+angle** each time (e.g. Rate Limiting is its own algorithm topic in Ch14 but
+"what gateways enforce at the edge" in Ch8) — marked with `*`. This mirrors
+reuse already present elsewhere in the design (Dead Letter Queues appears in
+both Ch11 and Ch15; Multi-Region Replication in both Ch2 and Ch16). Every
 chapter closes with a **"Where they converge / diverge"** callout.
 
 ### Phase 1 · Part I — Design Foundations
-| # | Chapter | Lens | Source sections |
-|---|---------|------|-----------------|
-| 1 | Quality Attributes & Trade-offs | D | Luc: quality attributes · sdcourse: production-failure framing |
-| 2 | Consistency Models: CAP, ACID vs BASE, Strong vs Eventual | D | Luc: CAP, ACID/BASE, strong-vs-eventual · sdcourse: multi-region consistency |
+| # | Chapter | Luc | sdcourse |
+|---|---------|-----|----------|
+| 1 | Quality Attributes, Trade-offs & the Production Reality Gap | Quality Attributes | Course Structure/Curriculum ("map vs shovel" gap) |
+| 2 | Consistency Models: CAP, ACID vs BASE, Strong/Eventual & Multi-Region | CAP Theorem, ACID vs BASE, Strong vs Eventual Consistency | Multi-Region Replication and Distributed Consistency* |
 
 ### Phase 1 · Part II — Data, Storage & Caching
-| # | Chapter | Lens | Source sections |
-|---|---------|------|-----------------|
-| 3 | Database Selection: SQL vs NoSQL | L | Luc: DB selection, SQL vs NoSQL |
-| 4 | Indexing, Connection Pooling & CDC | L | Luc: database indexing, connection pooling, CDC |
-| 5 | Tiered Storage & Distributed Query Engines | S | sdcourse: tiered log storage, distributed query engine & caching |
-| 6 | Caching, Redis, Consistent Hashing & Bloom Filters | D | Luc: caching strategies, Redis, consistent hashing, bloom filters · sdcourse: caching patterns, bloom filters, faceted search |
+| # | Chapter | Luc | sdcourse |
+|---|---------|-----|----------|
+| 3 | Database Selection & Distributed Query Patterns | Database Selection, SQL vs NoSQL | Distributed Query Engine and Caching Patterns* |
+| 4 | Indexing, CDC & Structured Log Data | Database Indexing, Change Data Capture (CDC) | Log Format Normalization and Serialization, Faceted Search and Multi-Dimensional Filtering* |
+| 5 | Tiered Storage & Caching Economics | Database Caching Strategies, Connection Pooling | Distributed Log Storage and Tiered Architecture |
+| 6 | Fast Access: Redis, Consistent Hashing & Bloom Filters | Redis, Consistent Hashing, Bloom Filters | Bloom Filters in Log Processing, Distributed Query Engine and Caching Patterns* |
 
 ### Phase 2 · Part III — Communication, APIs & Messaging
-| # | Chapter | Lens | Source sections |
-|---|---------|------|-----------------|
-| 7 | API Architecture: REST vs GraphQL vs gRPC & Idempotency | L | Luc: REST/GraphQL/gRPC, REST APIs, idempotency |
-| 8 | Gateways, Proxies & CDNs | L | Luc: API gateway vs LB vs reverse proxy, forward/reverse proxy, CDNs |
-| 9 | Networking & Protocols + Batching Economics | D | Luc: network protocols & layered debugging · sdcourse: network batching & throughput |
-| 10 | Real-time & Async: WebSockets, Sync/Async, Webhooks | D | Luc: WebSockets, sync-vs-async · sdcourse: webhook notifications & event routing |
-| 11 | Messaging & Event Streaming: EDA, Pub/Sub, Kafka | D | Luc: EDA, pub/sub, message queues · sdcourse: Kafka, distributed log parsing, DLQs |
-| 12 | Stream Processing & Batch: Kafka Streams, Sliding Windows, MapReduce | S | sdcourse: stream processing, MapReduce · Luc: EDA counterpoint |
+| # | Chapter | Luc | sdcourse |
+|---|---------|-----|----------|
+| 7 | API Architecture: REST, GraphQL, gRPC & Idempotency | REST vs GraphQL vs gRPC, REST APIs, gRPC, Idempotency in API Design | Webhook Notifications and Event Routing* |
+| 8 | Gateways, Proxies & CDNs | API Gateway vs LB vs Reverse Proxy, Forward/Reverse Proxy, CDNs | Rate Limiting and Sliding Window Algorithms* (edge-enforcement angle) |
+| 9 | Networking & Protocol Layers + Batching Economics | Network Protocols and Layered Debugging | Network Batching and Throughput Optimization |
+| 10 | Real-Time & Async: WebSockets, Sync/Async, Webhooks | WebSockets, Synchronous vs Asynchronous Communication, Health Checks vs Heartbeats | Webhook Notifications and Event Routing* (delivery-mechanism angle), Task Scheduling and Observability* |
+| 11 | Messaging & Event Streaming: EDA, Pub/Sub, Kafka | Event-Driven Architecture (EDA), Pub/Sub, Message Queues | Event-Driven Architecture and Apache Kafka, Distributed Log Parsing with Kafka, Dead Letter Queues* |
+| 12 | Stream Processing & Batch: Kafka Streams, Sliding Windows, MapReduce | Synchronous vs Asynchronous Communication* (streaming-as-continuous-async angle) | Stream Processing: Kafka Streams and Sliding Windows, MapReduce for Batch Log Processing |
 
 ### Phase 3 · Part IV — Scale, Reliability & Operations
-| # | Chapter | Lens | Source sections |
-|---|---------|------|-----------------|
-| 13 | Load Balancing, Auto-Scaling & Capacity Planning | D | Luc: load balancing algorithms · sdcourse: auto-scaling/self-healing, capacity planning, predictive analytics |
-| 14 | Rate Limiting & Backpressure | D | Luc: rate limiting · sdcourse: rate limiting/sliding window |
-| 15 | Resilience: Circuit Breakers, DLQs, Health Checks, Backup/Recovery | D | Luc: circuit breakers, health checks vs heartbeats · sdcourse: circuit breakers, DLQ, backup/recovery |
-| 16 | Coordination: Leader Election, Service Discovery, Multi-Region Replication | D | Luc: service discovery, strong/eventual · sdcourse: cluster coordination/leader election, multi-region replication |
-| 17 | Observability, Incident Management & BI | D | Luc: observability, health checks · sdcourse: task scheduling/observability, incident management, BI integration |
+| # | Chapter | Luc | sdcourse |
+|---|---------|-----|----------|
+| 13 | Load Balancing, Auto-Scaling & Capacity Planning | Load Balancing Algorithms | Automated Scaling and Self-Healing Infrastructure*, Capacity Planning and Infrastructure Forecasting, Predictive Analytics and Forecasting for Logs |
+| 14 | Rate Limiting & Backpressure | Rate Limiting | Rate Limiting and Sliding Window Algorithms* (algorithm angle) |
+| 15 | Resilience: Circuit Breakers, DLQs, Health Checks, Backup/Recovery | Circuit Breakers, Health Checks vs Heartbeats* | Circuit Breakers and Resilience Patterns, Dead Letter Queues* (resilience angle), Backup and Recovery for Distributed Systems |
+| 16 | Coordination: Leader Election, Service Discovery, Multi-Region | Service Discovery in Distributed Systems | Distributed Cluster Coordination and Leader Election*, Multi-Region Replication and Distributed Consistency* (coordination angle) |
+| 17 | Observability, Incident Management & BI | Observability | Task Scheduling and Observability* (ops angle), Incident Management and Automated Incident Response*, BI Integration and Business Intelligence from Logs |
 
 ### Phase 4 · Part V — Security, Architecture & Delivery
-| # | Chapter | Lens | Source sections |
-|---|---------|------|-----------------|
-| 18 | Authentication: JWT, OAuth, SSO | L | Luc: JWT, OAuth, SSO |
-| 19 | Encryption, Secrets & TLS | D | Luc: hashing/encryption/tokenization, password storage, HTTPS/TLS · sdcourse: TLS/mTLS, field-level encryption/PII |
-| 20 | Compliance & Data Governance | S | sdcourse: automated compliance reporting, retention windows |
-| 21 | Architecture Styles: Microservices & DDD | L | Luc: microservices, DDD |
-| 22 | Delivery & Infra: Docker/K8s, IaC, CI/CD, MCP + FAANG Capstone | L | Luc: Docker vs K8s, IaC, CI/CD, MCP · sdcourse: FAANG interview prep |
+| # | Chapter | Luc | sdcourse |
+|---|---------|-----|----------|
+| 18 | Authentication: JWT, OAuth, SSO | JWT Authentication, OAuth, Single Sign-On (SSO) | Incident Management and Automated Incident Response* (breach-response angle) |
+| 19 | Encryption, Secrets & TLS | HTTPS and TLS | TLS Encryption and Security, Field-Level Encryption and PII Protection |
+| 20 | Compliance & Data Governance | Hashing vs Encryption vs Tokenization, Password Storage Security | Automated Compliance Reporting |
+| 21 | Architecture Styles: Microservices & DDD | Microservices, Domain-Driven Design (DDD) | Distributed Cluster Coordination and Leader Election* (many-instances angle) |
+| 22 | Delivery & Infra: Docker/K8s, IaC, CI/CD, MCP | Docker vs Kubernetes, Infrastructure as Code (IaC), CI/CD Pipelines, Model Context Protocol (MCP) | Automated Scaling and Self-Healing Infrastructure* (infra-executes-this angle) |
+| 23 | **FAANG Capstone: Decision Frameworks Under Interview Pressure** *(split out from Ch22)* | Synthesis — the reframe-then-decide method applied as a review lens across the pack's key decision points (DB selection, load balancing, consistency, API styles) | FAANG System Design Interview Preparation |
 
-This covers the full topic inventory of both personas.
+This covers the full topic inventory of both personas, with every chapter
+genuinely dual.
 
 ### Per-chapter shape (same as the Spark pack)
 
@@ -203,7 +210,7 @@ and keeps each pass tractable.
 | 1 | Ch 1–6 | I + II |
 | 2 | Ch 7–12 | III |
 | 3 | Ch 13–17 | IV |
-| 4 | Ch 18–22 | V |
+| 4 | Ch 18–23 | V |
 
 The single `output/sdcourse_luc.pdf` grows each phase; the generator and
 workflow accumulate chapters.
@@ -228,7 +235,7 @@ workflow accumulate chapters.
 
 ## 8. Success criteria
 
-- All 22 chapters score ≥9.0 on accuracy **and** coverage from **both**
+- All 23 chapters score ≥9.0 on accuracy **and** coverage from **both**
   examiners.
 - Quad-agent sign-off (Luc + sdcourse + Justin + Alex) passes for every phase.
 - The single `output/sdcourse_luc.pdf` renders cleanly end-to-end.
