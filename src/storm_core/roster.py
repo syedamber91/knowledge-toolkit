@@ -11,6 +11,9 @@ from storm_core import config
 _FM = re.compile(r"^---\s*\n(.*?)\n---", re.S)
 _NAME = re.compile(r"^name:\s*(.+?)\s*$", re.M)
 _DESC = re.compile(r"^description:\s*(.+?)\s*$", re.M)
+_TITLE = re.compile(r"^title:\s*(.+?)\s*$", re.M)
+_INDUSTRY = re.compile(r"^industry:\s*(.+?)\s*$", re.M)
+_SCALE = re.compile(r"^scale:\s*(.+?)\s*$", re.M)
 
 
 class Persona(BaseModel):
@@ -33,8 +36,18 @@ def discover_roster(roster_dir: Optional[Path] = None) -> List[Persona]:
         text = md.read_text(encoding="utf-8")
         fm_match = _FM.search(text)
         fm = fm_match.group(1) if fm_match else ""
-        name = _field(_NAME, fm) or md.stem
+        title = _field(_TITLE, fm)
+        if title:
+            title = re.sub(r"\s*\(Business Persona\)\s*$", "", title)
+        name = _field(_NAME, fm) or title or md.stem
         desc = _field(_DESC, fm)
+        if not desc:
+            industry = _field(_INDUSTRY, fm)
+            scale = _field(_SCALE, fm)
+            if industry or scale:
+                desc = industry
+                if scale:
+                    desc = f"{desc} (scale: {scale})" if desc else f"(scale: {scale})"
         people.append(Persona(name=name, slug=md.stem, description=desc))
     people.sort(key=lambda p: p.name)
     return people

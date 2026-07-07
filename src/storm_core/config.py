@@ -19,6 +19,11 @@ HTML_OUT_DIR = Path(
     os.environ.get("STORM_HTML_DIR", _ROOT / "output" / "storm")
 ).expanduser()
 
+_PERSONAS = Path(
+    "~/Library/Mobile Documents/iCloud~md~obsidian/Documents/"
+    "Business Personas/Personas"
+).expanduser()
+
 ROSTER_DIR = Path(
-    os.environ.get("STORM_ROSTER_DIR", _ROOT / ".claude" / "agents")
+    os.environ.get("STORM_ROSTER_DIR", _PERSONAS)
 ).expanduser()

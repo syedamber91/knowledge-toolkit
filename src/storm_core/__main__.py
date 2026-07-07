@@ -6,6 +6,8 @@ import re
 import sys
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from storm_core import config
 from storm_core.html_render import render_html
 from storm_core.models import StormReport
@@ -27,7 +29,15 @@ def _cmd_roster(_args) -> int:
 
 
 def _cmd_build(args) -> int:
-    report = StormReport.model_validate_json(Path(args.report).read_text(encoding="utf-8"))
+    try:
+        report = StormReport.model_validate_json(Path(args.report).read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        print(f"error: report file not found: {args.report}", file=sys.stderr)
+        return 1
+    except ValidationError as e:
+        print(f"error: report JSON does not match StormReport schema: {e.error_count()} error(s)",
+              file=sys.stderr)
+        return 1
     reports_dir = Path(args.reports_dir) if args.reports_dir else config.REPORTS_DIR
     html_dir = Path(args.html_dir) if args.html_dir else config.HTML_OUT_DIR
     reports_dir.mkdir(parents=True, exist_ok=True)

@@ -39,3 +39,12 @@ def test_build_writes_note_and_html(tmp_path):
     assert (reports / "zakat-advisory.md").exists()
     assert (html / "zakat-advisory.html").exists()
     assert "zakat-advisory.md" in out.stdout
+
+
+def test_build_bad_report_exits_1_with_message(tmp_path):
+    bad = tmp_path / "bad.json"
+    bad.write_text('{"not":"a storm report"}', encoding="utf-8")
+    out = _run(["build", "--report", str(bad), "--reports-dir", str(tmp_path),
+                "--html-dir", str(tmp_path)])
+    assert out.returncode == 1
+    assert "error:" in out.stderr
