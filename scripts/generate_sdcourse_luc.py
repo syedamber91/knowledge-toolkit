@@ -487,6 +487,80 @@ CH5 = """
 </div>
 """
 
+CH6 = """
+<div class="chapter">
+<div class="ch-head">
+  <div class="ch-eye">Chapter 6 of 23</div>
+  <h1>Fast Access: Redis, Consistent Hashing &amp; Bloom Filters</h1>
+  <div class="ch-src">Sources: lucsystemdesign — Redis, Consistent Hashing, Bloom Filters · sdcourse — Bloom Filters in Log Processing, Distributed Query Engine and Caching Patterns</div>
+  <p class="ch-sum">Both authors independently reach for the same trick: before you pay full price for an answer, ask a cheap, approximate gatekeeper first. Luc names the general-purpose toolkit — an in-RAM store, a stable way to spread keys across it, and a probabilistic filter that says "definitely not" for free. sdcourse shows what happens when that toolkit is wired into one real, high-volume pipeline: exact latency numbers, exact hit-ratio floors, exact TTLs.</p>
+</div>
+
+<div class="topic">
+<h2>Luc's Lens: RAM, a Ring, and a Bit Array — Three Ways to Skip Work</h2>
+<p>Luc's Redis section starts from a correction, not a feature list: Redis is not a general-purpose database replacement, it's a performance layer that solves specific problems extremely well. Everything is stored in RAM as key-value pairs, but the values support richer structures than a plain cache would need — Strings, Hashes, Lists, Sets, and Sorted Sets. A structural detail does a lot of Luc's explanatory work: Redis uses a single-threaded event loop, meaning one command executes at a time, which avoids locking and keeps operations atomic without the coordination overhead a multi-threaded store would need. But the same section is just as clear about when Redis is the wrong tool: don't reach for it when the dataset is large and cold (RAM is expensive), when you need complex queries, when you need strong durability (financial transactions, medical records), or when the workload is stateless and simple enough that a cache buys nothing. "The problem often isn't the database itself. It's that you're asking it to answer the same questions, over and over, thousands of times a second" — Redis exists to absorb that repetition, not to replace the database being asked.</p>
+<p>Consistent hashing is Luc's answer to a different question: once you've decided to spread keys across multiple Redis (or cache, or shard) nodes, how do you keep that mapping stable as nodes come and go? Naive hashing — shard = hash(key) % N — looks simple until N changes: the moment a node is added or removed, the entire mapping shifts with it, causing a full cache reset. Consistent hashing fixes this by mapping both keys and servers into the same hash space, a ring, and walking clockwise from a key's position until you hit the first server. When a node is added or removed, only the keys between the new position and the previous node need to move; everything else stays exactly where it was. In practice that means when a cluster grows, only about 1/N of the keys move, so caches stay warm and rebalancing is light — and multiple virtual nodes per physical server spread that load more evenly across the ring. Bloom filters close out Luc's trio by attacking a different kind of waste entirely: most systems spend more time proving what isn't there than what is — every cache miss, every 404, every "not found" query costs real CPU, I/O, and bandwidth. A Bloom filter answers "could this exist?" using a bit array and multiple hash functions, without storing the item itself. It never gives false negatives — if you inserted it, it will always return "maybe" — but it can give false positives; if any queried bit is 0 the item definitely doesn't exist, and if all are 1 it might exist. The false positive rate is tunable by the number of hash functions, and Luc is explicit about where not to use one: exact answers (billing, access control, authentication), frequent deletions, or unpredictably growing data.</p>
+<div class="box s"><div class="box-lbl">Decision Rule</div>
+<p>Reach for Redis when the same question is being asked repeatedly and RAM cost is justified by request volume — not as a default data layer. Once you're sharding that cache (or any keyed store) across multiple nodes, use consistent hashing instead of modulo hashing the moment node count is expected to change, because consistent hashing trades perfect balance for predictable, bounded churn: only ~1/N of keys move per topology change, not all of them. Put a Bloom filter in front of any expensive "does this exist?" check with a high miss rate — it can only ever save you a lookup (definite no) or cost you one wasted check (false positive maybe), never return a wrong "yes" for something absent. None of the three replace the system of record; all three exist to reduce how often that system of record gets asked.</p>
+</div>
+<div class="quote" data-author="luc">"Redis is best understood as a performance multiplier, not a database replacement. Used correctly, Redis turns slow paths into fast ones and fragile systems into responsive ones. Used blindly, it becomes an expensive, leaky abstraction."<cite>— Luc, lucsystemdesign</cite></div>
+</div>
+
+<div class="topic">
+<h2>sdcourse's Lens: The Same Gatekeeper, Wired Into a Log Pipeline</h2>
+<p>sdcourse's Bloom filter section is Luc's "definitely not / probably present" idea with the numbers attached. In log processing, a Bloom filter answers "definitely not present" or "probably present" — zero false negatives, tunable false positives typically in the 1-5% range — and the payoff is concrete: without a Bloom filter, an existence query costs 50-200ms; with one, it costs 0.1-1ms, alongside a roughly 95% memory reduction compared to hash-based lookups. sdcourse treats this as more than a speed trick: "Bloom filters transform expensive 'does this exist?' questions into instant responses with minimal memory overhead. They're not just performance optimizations - they're architectural game-changers that enable entirely new query patterns in distributed systems." The operational detail that separates this from Luc's general description is scope discipline — different log types (errors, access logs, security events) each maintain their own separate Bloom filter, rather than one shared filter across categories, because the acceptable false-positive cost differs by log type and mixing them would blur that tuning. The asymmetric payoff is the same logic Luc describes, restated for a pipeline: "if bloom filter says 'error might exist,' you can check the actual storage. But if it says 'error definitely doesn't exist,' you save an expensive lookup entirely."</p>
+<p>The fast-access half of sdcourse's caching section is where consistent hashing's underlying goal — spread load across nodes without a full reshuffle on every topology change — shows up as a concrete Redis deployment rather than an abstract ring. The three-tier Redis caching scheme for log queries is tuned to how those queries actually arrive: a query result cache with a 5-minute TTL, an aggregation cache with a 1-hour TTL, and a hot data cache for the last 15 minutes with a 30-second TTL. Because log queries exhibit strong temporal locality, cache hit ratios above 95% are achievable with this tiering — the same "ask the fast layer first" instinct behind both Redis and Bloom filters, just measured as a hit-ratio percentage instead of a latency number. sdcourse is equally blunt about the failure mode at this speed and scale: never implement write-through caching for high-velocity log data, because the cache invalidation overhead negates the performance benefit and creates consistency nightmares during failure scenarios — a warning that rhymes with Luc's own list of when not to reach for Redis (strong durability needs, complex queries) even though the two lists don't overlap term-for-term.</p>
+<table>
+<thead><tr><th>Mechanism</th><th>Value</th><th>Why it matters</th></tr></thead>
+<tbody><tr><td>Bloom filter query time without filter</td><td>50-200ms</td><td>Cost of a raw existence check against storage</td></tr>
+<tr><td>Bloom filter query time with filter</td><td>0.1-1ms</td><td>Sub-millisecond target once the filter screens the request</td></tr>
+<tr><td>Bloom filter memory reduction</td><td>~95% vs. hash-based lookups</td><td>Bit array is far cheaper than storing full keys</td></tr>
+<tr><td>Bloom filter false positive rate</td><td>Configurable, typically 1-5%</td><td>Tunable cost of the "maybe" answer</td></tr>
+<tr><td>Query result cache TTL</td><td>5 minutes</td><td>Top tier of the three-tier Redis scheme</td></tr>
+<tr><td>Hot data cache TTL</td><td>30 seconds, last 15 min</td><td>Shortest TTL, covers the highest-churn recent window</td></tr>
+<tr><td>Achievable cache hit ratio</td><td>&gt;95%</td><td>Driven by temporal locality — most log queries hit recent data</td></tr>
+</tbody>
+</table>
+<div class="box r"><div class="box-lbl">Production Reality</div>
+<p>Separate Bloom filters per log type is the detail a general description of the data structure would never surface: it exists because a single shared filter would force every log category into the same false-positive tolerance, when in practice a security-event filter and an access-log filter can justify very different tuning. And the write-through anti-pattern is what happens when a team applies Luc's Redis caching instinct without his own "when NOT to use Redis" caveat about complex, high-durability workloads — high-velocity log writes plus synchronous cache invalidation is exactly the kind of workload where the coordination cost swamps the benefit.</p>
+</div>
+<div class="quote" data-author="sdcourse">"Key Insight: False positives are acceptable in many log processing scenarios. If bloom filter says 'error might exist,' you can check the actual storage. But if it says 'error definitely doesn't exist,' you save an expensive lookup entirely."<cite>— sdcourse</cite></div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="40" y="40" width="260" height="150" rx="12" fill="#eff6ff"/>
+    <rect x="400" y="40" width="260" height="150" rx="12" fill="#fff7ed"/>
+  </g>
+  <text x="170" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">LUC: Three General Tools</text>
+  <text x="170" y="75" text-anchor="middle" font-size="13" fill="#1e3a8a">Redis for repeated questions,</text>
+  <text x="170" y="105" text-anchor="middle" font-size="13" fill="#1e3a8a">consistent hashing so only ~1/N</text>
+  <text x="170" y="135" text-anchor="middle" font-size="13" fill="#1e3a8a">of keys move, Bloom filter to</text>
+  <text x="170" y="160" text-anchor="middle" font-size="13" fill="#1e3a8a">skip proving absence</text>
+  <text x="530" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">SDCOURSE: One Wired Pipeline</text>
+  <text x="530" y="75" text-anchor="middle" font-size="13" fill="#7c2d12">Bloom filter: 50-200ms to 0.1-1ms,</text>
+  <text x="530" y="105" text-anchor="middle" font-size="13" fill="#7c2d12">95% memory saved, per log type.</text>
+  <text x="530" y="135" text-anchor="middle" font-size="13" fill="#7c2d12">3-tier Redis TTLs, &gt;95% hit ratio,</text>
+  <text x="530" y="160" text-anchor="middle" font-size="13" fill="#7c2d12">never write-through</text>
+</svg>
+</div>
+<div class="sketch-cap">Luc names the gatekeeper pattern once, generically; sdcourse deploys all three tools — fast store, spread load, cheap "no" — inside one log pipeline with numbers attached to each.</div>
+
+<div class="box xr"><div class="box-lbl">Where They Converge / Diverge</div>
+<p><strong>Converge:</strong> Bloom filters are the clean 1:1 match — both authors describe the identical mechanism (bit array, multiple hash functions, zero false negatives, tunable false positives) and reach the same conclusion in nearly the same words: Luc says a fast "maybe" is all you need when most of your system's time goes to proving nothing exists; sdcourse says the exact same trade pays off as a 50-200ms-to-0.1-1ms latency win. Both also treat "ask cheap before you ask expensive" as the underlying principle behind Redis/consistent hashing and the three-tier cache alike, not just behind Bloom filters specifically.</p>
+<p><strong>Diverge:</strong> Luc's three tools stay general-purpose and independent — Redis, consistent hashing, and Bloom filters are each introduced with their own "when NOT to use" list, as building blocks a reader picks among per problem. sdcourse fuses two of those same tools into one concrete deployment: a three-tier Redis TTL scheme (the caching half) sitting alongside per-log-type Bloom filters (the existence-check half), inside a single system where the exact numbers — TTL values, hit-ratio floor, memory reduction percentage — are the point, not the general mechanism. Luc never quotes a specific latency number for Redis or a specific 1/N fraction beyond "about"; sdcourse's value only exists once bolted into a real pipeline with SLAs attached.</p>
+</div>
+
+<div class="recall">
+<div class="recall-head">Active Recall</div>
+<div class="q"><span class="q-n">Q1.</span> Per Luc, why does Redis's single-threaded event loop avoid the need for locking, and what four conditions does he give for when NOT to reach for Redis?</div>
+<div class="q"><span class="q-n">Q2.</span> Per sdcourse, what is the measured latency swing a Bloom filter produces on an existence query (with numbers), and why does the pipeline maintain a separate Bloom filter per log type instead of one shared filter?</div>
+<div class="q"><span class="q-n">Q3.</span> Bloom filters are the one topic both authors describe almost identically. Using consistent hashing (Luc) and the three-tier Redis TTL scheme (sdcourse) as evidence, explain how the two authors diverge once the topic moves from "what is this data structure" to "how do I deploy fast-access tools at scale."</div>
+</div>
+</div>
+"""
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ASSEMBLY + GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
