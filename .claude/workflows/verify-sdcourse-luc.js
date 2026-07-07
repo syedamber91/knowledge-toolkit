@@ -356,7 +356,17 @@ const SIGNOFF_SCHEMA = {
   required: ['pass', 'notes'],
 }
 
-const chapterIds = args.chapterIds
+// NOTE: the Workflow `args` global arrives EMPTY in this environment (a known
+// gotcha — a passed object silently becomes {}, same as the STORM engine's
+// documented workaround). So chapterIds is NOT read from `args`; the controller
+// writes it to this fixed run-config file before invoking the workflow, and this
+// setup step reads it via an agent (scripts have no filesystem access).
+const RUN_CFG = '/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/heuristic-mclaren-37718f/output/sdcourse_luc/_run.json'
+const runCfg = await agent(
+  `Read the JSON file at ${RUN_CFG} and report its exact contents.`,
+  { schema: { type: 'object', properties: { chapterIds: { type: 'array', items: { type: 'integer' } } }, required: ['chapterIds'] }, label: 'read-run-cfg' }
+)
+const chapterIds = runCfg.chapterIds
 const chapters = CHAPTERS.filter(c => chapterIds.includes(c.id))
 
 if (chapters.length !== chapterIds.length) {
