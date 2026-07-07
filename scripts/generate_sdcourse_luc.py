@@ -266,6 +266,80 @@ CH2 = """
 </div>
 """
 
+CH3 = """
+<div class="chapter">
+<div class="ch-head">
+  <div class="ch-eye">Chapter 3 of 23</div>
+  <h1>Database Selection & Distributed Query Patterns</h1>
+  <div class="ch-src">Sources: lucsystemdesign — Database Selection, SQL vs NoSQL · sdcourse — Distributed Query Engine and Caching Patterns</div>
+  <p class="ch-sum">Luc supplies the decision framework for picking a store in the first place — stop asking "which database is best" and start asking "what is the hardest question my system asks, every day, under load." sdcourse supplies the production reality of answering that hardest question fast, at scale, on historical data, without the storage bill or the cache exploding.</p>
+</div>
+
+<div class="topic">
+<h2>Luc's Lens: It's a Question Problem, Not a Schema Problem</h2>
+<p>Luc's central reframe is that choosing a database feels like a schema problem — rows and columns versus documents versus key-value pairs — but it usually isn't. It's a question problem. The core decision rule: pick the database that is built for the hardest question you ask most often. No single database answers every hard question well, and that's not a flaw to engineer around — it's the reason the ecosystem has this many categories. Relational databases give ACID guarantees plus rich SQL joins but scale up more naturally than they scale out. Distributed SQL keeps the same SQL-plus-ACID promise while spreading data across nodes, and you pay for that with network latency and operational complexity. Document databases store each record as a self-contained JSON-like document with no fixed schema, using embedding to cut down on joins. A key-value store is, in Luc's words, basically a distributed dictionary — no schemas, no joins, no complex queries, just fast lookups by key. In-memory databases trade RAM cost and volatility risk for extremely low latency; wide-column stores demand careful up-front modeling because you don't get relational joins for free; time-series databases lean on append-only writes, time partitioning, compression, and downsampling; search engines are usually eventually consistent and were never meant to be your transactional source of truth; and vector databases use approximate nearest-neighbor indexes, which means the speed comes from approximation — you trade perfect accuracy for low latency by design, not by accident.</p>
+<p>This is why Luc sees most production systems settle on a primary-plus-secondary pattern rather than a single winner: a primary database chosen for correctness, and secondary databases chosen for access pattern — SQL for transactions, Search for retrieval, Cache for speed, Vector for semantic discovery. The SQL-vs-NoSQL debate is the same question restated at a coarser grain. SQL databases enforce a defined schema and consistent relationships; NoSQL databases relax those rules to handle data that is rapidly changing, wildly varied, or simply massive. SQL scales vertically first and favors strong ACID guarantees; NoSQL scales horizontally through partitioning and replication and often trades strict consistency for availability and speed, favoring the BASE approach — Basically Available, Soft State, Eventually Consistent. Luc's guidance is intentionally plain: choose SQL when data is structured, you need strong consistency, and queries are complex; choose NoSQL when data is flexible, you need horizontal scale, and the application evolves fast. And crucially, many systems use both — SQL for transactions and analytics, NoSQL for caching, sessions, or event data — because the primary-plus-secondary pattern and the SQL-vs-NoSQL choice are really the same underlying move at two different zoom levels.</p>
+<div class="box s"><div class="box-lbl">Decision Rule</div>
+<p>Before picking a store, write down the single hardest question your system asks most often under load — not the easiest one, not the one in the demo. Pick the database built for that question, then add secondary stores for the other access patterns instead of forcing one database to be good at everything. When NOT to use this rule as an excuse: "just use the database we always use" is how many systems paint themselves into a corner — reaching for a familiar default without asking the question is a decision, just an unexamined one. Pick intentionally, design for your future scale, and let your data — not trends, not habit — drive the choice.</p>
+</div>
+<div class="quote" data-author="luc">"Choosing a database feels like a schema problem. It usually isn't. It's a question problem."<cite>— Luc, lucsystemdesign</cite></div>
+</div>
+
+<div class="topic">
+<h2>sdcourse's Lens: Answering the Hardest Question Fast, at Scale, on a Budget</h2>
+<p>sdcourse's angle picks up exactly where Luc's decision rule leaves off: once you know the hardest question your system asks — for a log processing platform, that's usually "give me a sub-second answer over historical data without me paying to keep all of it hot" — the architecture has to separate how you write from how you read. CQRS is the mechanism: the write side is a high-throughput Kafka ingestion path, and the read side is an optimized query structure with pre-computed aggregations, so reads and writes scale independently instead of contending for the same resources. The cost of that separation is eventual consistency — query results might be 100–500ms behind real-time events — and the payoff is the ability to handle roughly 10x more concurrent queries than a system that reads and writes against the same live table. sdcourse is explicit that this trade only makes sense once you've named the hard question, echoing Luc's framing from the other direction: the architecture follows the query, not the other way around.</p>
+<p>Caching is where sdcourse gets most concrete, and most willing to name an anti-pattern outright: never implement write-through caching for high-velocity log data, because the cache invalidation overhead negates the performance benefit and creates consistency nightmares during failure scenarios. Instead, sdcourse lays out a three-tier Redis caching scheme tuned to how log queries actually behave — a query result cache with a 5-minute TTL, an aggregation cache with a 1-hour TTL, and a hot data cache for the last 15 minutes with a 30-second TTL. Because log queries exhibit strong temporal locality — most queries hit recent data — cache hit ratios above 95% are achievable with this tiering. On the storage side, sdcourse names the point at which the naive approach collapses: traditional log tables become unusable beyond 10 million records without a proper indexing strategy, which is the concrete, numeric version of Luc's abstract warning that no single database answers every hard question well.</p>
+<table>
+<thead><tr><th>Layer</th><th>Value</th><th>Why it matters</th></tr></thead>
+<tbody><tr><td>CQRS query capacity gain</td><td>~10x concurrent queries</td><td>Read/write separation lets each side scale independently</td></tr>
+<tr><td>CQRS staleness window</td><td>100–500ms</td><td>The eventual-consistency cost of decoupling reads from writes</td></tr>
+<tr><td>Query result cache TTL</td><td>5 minutes</td><td>Top tier of the three-tier Redis scheme</td></tr>
+<tr><td>Aggregation cache TTL</td><td>1 hour</td><td>Pre-computed rollups change slowly, so they can live longer</td></tr>
+<tr><td>Hot data cache TTL</td><td>30 seconds, last 15 min</td><td>Shortest TTL, covers the highest-churn recent window</td></tr>
+<tr><td>Achievable cache hit ratio</td><td>&gt;95%</td><td>Driven by temporal locality — most log queries hit recent data</td></tr>
+<tr><td>Naive log table failure point</td><td>&gt;10M records</td><td>Traditional tables become unusable without proper indexing beyond this</td></tr>
+</tbody>
+</table>
+<div class="box r"><div class="box-lbl">Production Reality</div>
+<p>The anti-pattern sdcourse warns against isn't a style preference — it's a failure mode with a specific shape. Write-through caching on high-velocity log data means every write pays a cache-invalidation cost on the hot path, and when that invalidation logic hits a partial failure — a network blip between the write path and the cache layer — you're left with a cache that disagrees with the source of truth and no clean way to reconcile it under load. The three-tier TTL scheme sidesteps this entirely by never trying to keep the cache perfectly in sync with writes; it accepts staleness in fixed, bounded windows (30s / 5min / 1hr) instead, which is a deliberate design choice, not an oversight.</p>
+</div>
+<div class="quote" data-author="sdcourse">"Anti-Pattern Warning: Never implement write-through caching for high-velocity log data. The cache invalidation overhead will negate performance benefits and create consistency nightmares during failure scenarios."<cite>— sdcourse</cite></div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="40" y="40" width="260" height="150" rx="12" fill="#eff6ff"/>
+    <rect x="400" y="40" width="260" height="150" rx="12" fill="#fff7ed"/>
+  </g>
+  <text x="170" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">LUC: Name the Hardest Question</text>
+  <text x="170" y="75" text-anchor="middle" font-size="13" fill="#1e3a8a">Not "which DB is best" —</text>
+  <text x="170" y="105" text-anchor="middle" font-size="13" fill="#1e3a8a">"what question, under load,</text>
+  <text x="170" y="135" text-anchor="middle" font-size="13" fill="#1e3a8a">every day?" Primary for</text>
+  <text x="170" y="160" text-anchor="middle" font-size="13" fill="#1e3a8a">correctness, secondaries for access</text>
+  <text x="530" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">SDCOURSE: Answer It in &lt;1s</text>
+  <text x="530" y="75" text-anchor="middle" font-size="13" fill="#7c2d12">CQRS splits read/write —</text>
+  <text x="530" y="105" text-anchor="middle" font-size="13" fill="#7c2d12">10x query capacity, 100-500ms lag</text>
+  <text x="530" y="135" text-anchor="middle" font-size="13" fill="#7c2d12">3-tier cache, never write-through —</text>
+  <text x="530" y="160" text-anchor="middle" font-size="13" fill="#7c2d12">95%+ hit ratio</text>
+</svg>
+</div>
+<div class="sketch-cap">Luc tells you which store answers your hardest question; sdcourse shows what it takes to keep answering it in under a second once the data no longer fits in one machine's memory.</div>
+
+<div class="box xr"><div class="box-lbl">Where They Converge / Diverge</div>
+<p><strong>Converge:</strong> Both reject a single default as an answer — Luc insists "just use the database we always use" is how systems paint themselves into a corner, and sdcourse insists the naive single-table, write-through-cache approach becomes unusable past a specific, named scale (10M records, or any high-velocity write path); both push the reader toward an intentional, workload-driven choice over a habitual one.</p>
+<p><strong>Diverge:</strong> Luc's unit of analysis is the store itself — pick the right category of database for the hardest question, primary plus secondaries, SQL vs NoSQL by data shape and consistency need — while sdcourse's unit of analysis is the query path around whichever store you picked — CQRS to decouple read and write scaling, a tiered cache with named TTLs to keep 95%+ of queries out of the database entirely. A team can correctly apply Luc's framework and choose the right database category, and still get paged because nobody built the CQRS split or the tiered cache that keeps that correct database answering in under a second at 10x the load.</p>
+</div>
+
+<div class="recall">
+<div class="recall-head">Active Recall</div>
+<div class="q"><span class="q-n">Q1.</span> Per Luc's decision rule, what single question should you ask before picking a database, and why does "just use the database we always use" count as a decision rather than a neutral default?</div>
+<div class="q"><span class="q-n">Q2.</span> Per sdcourse, why is write-through caching an anti-pattern specifically for high-velocity log data, and what three TTL tiers does the alternative Redis scheme use instead?</div>
+<div class="q"><span class="q-n">Q3.</span> Luc frames database selection as picking the store built for your hardest recurring question; sdcourse frames it as keeping that store fast once real query volume arrives. Using CQRS and the 10M-record indexing cliff as evidence, explain how a team could pass Luc's test but still fail sdcourse's.</div>
+</div>
+</div>
+"""
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ASSEMBLY + GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
