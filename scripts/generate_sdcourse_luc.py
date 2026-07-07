@@ -106,7 +106,12 @@ COVER = """
   <div class="rule"></div>
   <div class="cover-desc">Every chapter carries both voices: Luc reframes the misconception and gives a decision rule ("when NOT to use it"); sdcourse grounds the same domain in production failure modes and exact benchmarks. Each chapter closes with an explicit convergence/divergence synthesis.</div>
   <div class="cover-toc">
-    <!-- TOC items appended here, one per phase, as chapters land -->
+    <div class="toc-item"><span class="toc-n">Ch 1</span><span>Quality Attributes, Trade-offs & the Production Reality Gap</span></div>
+    <div class="toc-item"><span class="toc-n">Ch 2</span><span>Consistency Models: CAP, ACID vs BASE, Strong/Eventual & Multi-Region</span></div>
+    <div class="toc-item"><span class="toc-n">Ch 3</span><span>Database Selection & Distributed Query Patterns</span></div>
+    <div class="toc-item"><span class="toc-n">Ch 4</span><span>Indexing, CDC & Structured Log Data</span></div>
+    <div class="toc-item"><span class="toc-n">Ch 5</span><span>Tiered Storage & Caching Economics</span></div>
+    <div class="toc-item"><span class="toc-n">Ch 6</span><span>Fast Access: Redis, Consistent Hashing & Bloom Filters</span></div>
   </div>
 </div>
 """
@@ -574,6 +579,12 @@ HTML_CONTENT = f"""<!DOCTYPE html>
 </head>
 <body>
 {COVER}
+{CH1}
+{CH2}
+{CH3}
+{CH4}
+{CH5}
+{CH6}
 </body>
 </html>"""
 
