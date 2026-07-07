@@ -192,6 +192,81 @@ CH1 = """
 """
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CHAPTER 2 — Consistency Models: CAP, ACID vs BASE, Strong vs Eventual & Multi-Region
+# ─────────────────────────────────────────────────────────────────────────────
+CH2 = """
+<div class="chapter">
+<div class="ch-head">
+  <div class="ch-eye">Chapter 2 of 23</div>
+  <h1>Consistency Models: CAP, ACID vs BASE, Strong vs Eventual & Multi-Region</h1>
+  <div class="ch-src">Sources: lucsystemdesign — CAP Theorem, ACID vs BASE, Strong vs Eventual Consistency · sdcourse — Multi-Region Replication and Distributed Consistency</div>
+  <p class="ch-sum">Luc supplies the decision framework for consistency — CAP is not a permanent trade-off but a question of what happens when the network splits, and ACID/BASE and strong/eventual are the same question asked at the data-model and read-path layers. sdcourse supplies the number that makes the framework operational: what lag is acceptable, measured in seconds, across real regions.</p>
+</div>
+
+<div class="topic">
+<h2>Luc's Lens: One Question, Asked Three Times</h2>
+<p>Luc's core reframe of the CAP theorem is that "pick two of three" is catchy but misleading. CAP is not about permanently giving something up — during normal operation, when nodes can talk to each other reliably, a system can have both consistency and availability at once. The trade-off only appears the moment the network actually breaks. CP systems respond to that moment by refusing or delaying operations rather than risk returning something wrong; AP systems respond by continuing to serve, accepting that some responses may be stale. Luc's decision rule collapses this into one question: what hurts your product more — returning incorrect data, or returning no data at all? If incorrect data hurts more, choose CP. If no data hurts more, choose AP. Most real systems don't answer this once for the whole system — they carry a small CP core for writes that must be correct, wrapped in AP layers that serve and cache data quickly across regions.</p>
+<p>ACID vs BASE is the same fork restated at the data-model layer. ACID and BASE sit on opposite ends of a spectrum shaped by CAP: ACID favors consistency and correctness even if it means refusing or delaying requests during failures, while BASE favors availability and scale even if it means serving temporarily inconsistent data. The catch Luc flags is that BASE's weakness shows up exactly where it hurts most — "this must never happen" rules, like double-spend, are hard to enforce in real time under an eventually-consistent model. The resolution is the same pattern as CAP: keep a small ACID core for operations that must always be correct, and use BASE layers to serve that data quickly across regions. ACID and BASE aren't rivals to be argued about in the abstract; they're tools suited to different failure modes and different expectations of the reader.</p>
+<p>Strong vs eventual consistency is the same fork again, now asked at the read path. Strong consistency guarantees every read reflects the most recent successful write, no matter which replica answers — enforced through quorum confirmation and consensus algorithms like Paxos or Raft. Eventual consistency drops that guarantee: all replicas will converge to the same state over time, using conflict resolution strategies like last-write-wins or version vectors, but a read in the meantime may return outdated data. Luc's guidance is the same CP/AP question in different clothes: use strong consistency when accuracy is non-negotiable — financial transactions, stock levels, systems that coordinate scarce resources — and use eventual consistency when responsiveness and uptime matter most — user feeds, caching, globally distributed services. A banking system can't risk showing a stale balance, so it stops serving until replicas agree; a social app can't freeze every time replicas lose connection, so it shows "good enough" data and syncs later. Notice one important distinction Luc draws explicitly: CAP consistency (every read returns the most recent write across nodes) and ACID consistency (a transaction leaves the database in a valid state per defined rules) are different guarantees that happen to share a word — conflating them is a common source of muddled design conversations.</p>
+<div class="box s"><div class="box-lbl">Decision Rule</div>
+<p>Whichever layer you're deciding at — CAP, ACID/BASE, or strong/eventual — ask the same question: what hurts your product more, returning wrong data or returning no data? If wrong data hurts more, choose the consistent side (CP, ACID, strong). If no data hurts more, choose the available side (AP, BASE, eventual). When NOT to force a single global answer: most real systems need both — a small strongly-consistent core for the operations that must never be wrong, wrapped in an eventually-consistent, highly-available layer for everything else. Treating consistency as one system-wide setting instead of a per-operation decision is the mistake.</p>
+</div>
+<div class="quote" data-author="luc">"The common summary is 'pick two of three.' It's catchy, but misleading. CAP is not about permanently giving something up. It's about what happens when the network splits."<cite>— Luc, lucsystemdesign</cite></div>
+</div>
+
+<div class="topic">
+<h2>sdcourse's Lens: Consistency Is a Number You Measure, Not a State You Achieve</h2>
+<p>sdcourse's angle on consistency starts from a premise that sounds fatalistic but is meant to be operational: network partitions are inevitable, replication lag is normal, and chasing zero lag is a waste of engineering effort because zero lag is impossible. The right move is not to eliminate lag but to design for partition tolerance with eventual consistency, then measure and optimize for an acceptable lag level — a number with an owner and an alert threshold, not an aspiration. That framing turns Luc's CP/AP decision rule into a concrete operational target: once you've decided a subsystem is AP, the next question sdcourse forces is "how stale is too stale, in seconds?"</p>
+<p>For a log processing system specifically, sdcourse argues active-active multi-region is almost always the right call, for a reason grounded in the shape of the workload: logs are append-only, high-volume, and latency-sensitive, so the deduplication cost of merging two regions after a split is far less than the cost of dropping events during an outage. The stakes of getting this wrong are concrete — a single-region log system is an availability bet, and delayed logs are nearly as dangerous as missing logs because they break the correlation windows used for incident diagnosis. Ordering compounds the difficulty: physical timestamps fail across regions because of clock skew, which is why sdcourse reaches for vector clocks to track logical event ordering instead of trusting wall-clock time. On the operational side, Kafka's MirrorMaker 2 is the concrete mechanism sdcourse points to for cross-region replication, using topic-offset translation specifically to prevent replication loops between regions.</p>
+<table>
+<thead><tr><th>Metric</th><th>Value</th><th>Why it matters</th></tr></thead>
+<tbody><tr><td>MirrorMaker 2 added latency</td><td>50–200ms</td><td>Depends on network distance between regions; a floor, not a target</td></tr>
+<tr><td>Replication lag alert threshold</td><td>&gt;10 seconds behind</td><td>Region B's consumer offset falling &gt;10s behind Region A's producer offset means you're approaching your RPO budget</td></tr>
+<tr><td>Ordering guarantee</td><td>None from physical clocks</td><td>Clock skew across regions defeats timestamp ordering — use vector clocks instead</td></tr>
+<tr><td>Loop prevention</td><td>Topic-offset translation</td><td>MirrorMaker 2's mechanism to stop replicated events from replicating back and forth forever</td></tr>
+</tbody>
+</table>
+<div class="box r"><div class="box-lbl">Production Reality</div>
+<p>Replication lag is the single most important operational metric in a multi-region log pipeline — not uptime, not throughput. The concrete threshold sdcourse gives is that if Region B's consumer offset falls more than 10 seconds behind Region A's producer offset, you are approaching your RPO budget, which means the "acceptable lag" from the decision to go eventually-consistent has stopped being acceptable and has become an incident. This is what separates a team that has merely chosen AP from a team that has operationalized it: the AP choice is a design decision made once, but the lag threshold is a number watched every minute.</p>
+</div>
+<div class="quote" data-author="sdcourse">"Replication lag is the single most important operational metric: if Region B's consumer offset falls more than 10 seconds behind Region A's producer offset, you are approaching your RPO budget."<cite>— sdcourse</cite></div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="40" y="40" width="260" height="150" rx="12" fill="#eff6ff"/>
+    <rect x="400" y="40" width="260" height="150" rx="12" fill="#fff7ed"/>
+  </g>
+  <text x="170" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">LUC: One Question, 3 Layers</text>
+  <text x="170" y="75" text-anchor="middle" font-size="13" fill="#1e3a8a">CAP / ACID·BASE / strong·eventual —</text>
+  <text x="170" y="105" text-anchor="middle" font-size="13" fill="#1e3a8a">wrong data or no data?</text>
+  <text x="170" y="135" text-anchor="middle" font-size="13" fill="#1e3a8a">Small consistent core,</text>
+  <text x="170" y="160" text-anchor="middle" font-size="13" fill="#1e3a8a">available layer around it</text>
+  <text x="530" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">SDCOURSE: Put a Number On It</text>
+  <text x="530" y="75" text-anchor="middle" font-size="13" fill="#7c2d12">Zero lag is impossible —</text>
+  <text x="530" y="105" text-anchor="middle" font-size="13" fill="#7c2d12">alert past 10s behind</text>
+  <text x="530" y="135" text-anchor="middle" font-size="13" fill="#7c2d12">Vector clocks, not timestamps;</text>
+  <text x="530" y="160" text-anchor="middle" font-size="13" fill="#7c2d12">active-active for logs</text>
+</svg>
+</div>
+<div class="sketch-cap">Luc tells you which side of the trade-off to stand on; sdcourse tells you the second count at which standing there stops being fine.</div>
+
+<div class="box xr"><div class="box-lbl">Where They Converge / Diverge</div>
+<p><strong>Converge:</strong> Both reject the idea that consistency is ever fully "solved" — Luc insists you cannot avoid partitions by trusting your infrastructure, only reduce their frequency, and sdcourse insists network partitions are inevitable and zero replication lag is impossible; both treat the failure mode as permanent background weather to design for, not a bug to eliminate.</p>
+<p><strong>Diverge:</strong> Luc's unit of decision is qualitative and made once per operation — CP or AP, ACID or BASE, strong or eventual, chosen by asking which failure hurts more — while sdcourse's unit of decision is quantitative and continuously monitored — a 10-second replication-lag threshold and a 50–200ms MirrorMaker 2 floor; a team can correctly choose "AP, eventual consistency, active-active" using Luc's framework and still get paged at 3am because nobody wired the alert sdcourse says the choice requires.</p>
+</div>
+
+<div class="recall">
+<div class="recall-head">Active Recall</div>
+<div class="q"><span class="q-n">Q1.</span> Using Luc's decision rule, a checkout service's inventory count and a social app's "likes" counter need different consistency models. Which question does Luc say you should ask for each, and what answer points to CP/ACID/strong vs AP/BASE/eventual?</div>
+<div class="q"><span class="q-n">Q2.</span> Per sdcourse, why does a single-region log system count as "an availability bet," and what specific operational metric and threshold tells you your multi-region replication has crossed from acceptable lag into an RPO problem?</div>
+<div class="q"><span class="q-n">Q3.</span> Luc and sdcourse both treat network partitions as inevitable rather than avoidable. Explain how their responses to that shared premise diverge — one gives a decision you make once, the other gives a number you watch continuously — and why a team could pass Luc's test but still fail sdcourse's.</div>
+</div>
+</div>
+"""
+
+# ─────────────────────────────────────────────────────────────────────────────
 # ASSEMBLY + GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
 HTML_CONTENT = f"""<!DOCTYPE html>
