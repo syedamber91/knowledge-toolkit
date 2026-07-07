@@ -288,6 +288,14 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   dispatches an Opus-tier subagent to synthesize the answer from only those
   routed notes. Use for ad-hoc questions against any captured vault that
   don't warrant a dedicated persona.
+- `storm` (`/storm`) — STORM multi-perspective business-research engine:
+  casts expert lenses (auto best-fit from the dynamic persona roster + Mufti
+  halal gate), maps their contradictions, adversarially fact-checks, and
+  renders a graded vault note + HTML briefing. Thin skill → the
+  `storm-business-research` workflow (`.claude/workflows/storm.js`) →
+  `storm_core` CLI (`python -m storm_core`). See
+  `docs/superpowers/specs/2026-07-06-storm-business-research-design.md`. MVP is
+  `idea` mode; `gap`/`rescore`/`research` are designed but not yet built.
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer`, `instagram-capturer` (capture orchestrators); `justin-sung`,
