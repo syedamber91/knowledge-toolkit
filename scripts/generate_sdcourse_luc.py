@@ -415,6 +415,78 @@ CH4 = """
 </div>
 """
 
+CH5 = """
+<div class="chapter">
+<div class="ch-head">
+  <div class="ch-eye">Chapter 5 of 23</div>
+  <h1>Tiered Storage & Caching Economics</h1>
+  <div class="ch-src">Sources: lucsystemdesign — Database Caching Strategies, Connection Pooling · sdcourse — Distributed Log Storage and Tiered Architecture</div>
+  <p class="ch-sum">Luc's angle is the decision framework: which caching strategy, and how many pooled connections, does this workload actually need. sdcourse's angle is that same question scaled to a distributed log pipeline, where the answer becomes a physical hot/warm/cold tier assignment for every byte you store. Same underlying question — where does this data live, and at what cost — asked at two different altitudes.</p>
+</div>
+
+<div class="topic">
+<h2>Luc's Lens: Deciding What Lives Close and What Waits</h2>
+<p>Luc treats caching as a correctness decision wearing a performance-optimization costume. "Caching is not just a performance optimization. It is part of your system's correctness model." Done poorly, it introduces stale reads, hidden consistency bugs, and memory waste that only shows up in production — the bug doesn't announce itself at cache-miss time, it waits for an eviction, a deployment, or an incident to expose it. Luc lays out five named strategies, each trading consistency for speed differently: Cache-Aside (application checks cache first, falls through to DB on miss, then populates the cache itself), Write-Through (cache and database updated synchronously on every write — strong consistency, higher write latency, possible cache pollution), Write-Behind/Write-Back (cache updated first, database flushed later in the background — fast writes and high throughput, but data loss risk if the cache node crashes before the flush), Read-Through (the cache itself owns the miss-fetch from the DB, giving cleaner application code at the cost of a cold-start penalty), and Write-Around (writes bypass the cache entirely and go straight to the database, with data entering cache only on a later read). None of these is universally correct; the choice has to be driven by read-vs-write ratio, consistency requirements, and how much operational complexity the team can actually own.</p>
+<p>Connection pooling is Luc's second half of the same "what stays warm and ready vs. what gets fetched cold" argument, just applied to database connections instead of query results. Every fresh connection to a database pays a TCP handshake, TLS negotiation, and authentication round trip before a single query can run — without pooling, every request starts cold, and that repeated cold-start tax shows up as extra latency, server strain, connection churn, and eventual throughput collapse under load. A pool manages the creation, checkout, release, validation, and cleanup of a standing set of connections so that cost is paid once and amortized, not paid per request. But sizing the pool is its own decision problem, structurally identical to picking a caching strategy: oversized pools can quietly throttle the database's own capacity, while undersized pools leave threads waiting on a connection instead of serving users — and a healthy pool can even mask a deeper problem, since queries that are actually maxing out CPU or I/O still create bottlenecks no amount of pooling fixes. The target isn't "as many connections as possible," it's exactly enough to keep the system steady at peak efficiency.</p>
+<div class="box s"><div class="box-lbl">Decision Rule</div>
+<p>Pick a caching strategy by naming the read/write ratio and the consistency budget first, not by reaching for whichever one is easiest to bolt on: strong consistency and tolerable write latency point to Write-Through; high write throughput with an accepted small data-loss window points to Write-Behind; simple application code with an accepted cold-start cost points to Read-Through; a write-heavy path that's rarely re-read points to Write-Around. Size a connection pool the same way — against measured peak concurrency, not intuition — and treat "the pool is healthy" as no proof that the underlying queries are cheap; check CPU and I/O separately. In both cases: "Match your caching strategy to your access patterns, failure tolerance, and consistency needs; and your system will scale calmly instead of nervously."</p>
+</div>
+<div class="quote" data-author="luc">"Caching is not just a performance optimization. It is part of your system's correctness model."<cite>— Luc, lucsystemdesign</cite></div>
+</div>
+
+<div class="topic">
+<h2>sdcourse's Lens: Hot, Warm, Cold — Caching's Decision Framework at Storage Scale</h2>
+<p>sdcourse's tiered architecture is Luc's caching decision applied to an entire storage system rather than a single lookup path. "Most engineers think log storage is solved by 'just use Elasticsearch' or 'dump everything to S3,' but the real complexity emerges when you need sub-second query performance on historical data while maintaining cost-effective storage for compliance retention." The resolution is a three-tier storage design: Hot (Redis, sub-millisecond, last 24h) → Warm (PostgreSQL, sub-second, 30 days) → Cold (file-based, cost-optimized, compliance retention). That's a physical, per-byte version of Luc's cache-strategy choice — Hot tier behaves like an aggressively warmed cache tuned for latency, Cold tier behaves like Luc's Write-Around: data that isn't worth keeping close because it's rarely re-read, only retained because something (compliance) requires it to exist somewhere. sdcourse is explicit that age alone is the wrong axis to tier on: "The key insight: storage tier decisions should be driven by business value, not just age." A log that's two years old but tied to an active compliance investigation may need to move back toward the warm tier regardless of its timestamp — the tiering logic has to be adaptive to value, not a fixed TTL clock.</p>
+<p>That adaptivity has a measured payoff: adaptive rotation reduces storage costs by 60-70% compared to naive time-based rotation, because naive rotation keeps paying hot-tier prices for data nobody is querying anymore. The mirror-image failure mode is a caching problem in the Luc sense, not a storage problem: cache hit ratio below 85% indicates either wrong data being cached or TTL too aggressive — which is precisely Luc's warning that the wrong caching strategy quietly accumulates risk rather than announcing itself. And sdcourse flags a specific operational trap unique to this domain: the monitoring system watching the tiered storage pipeline can itself become the largest log producer. "The monitoring system often generates more log data than the applications it's monitoring. This recursive complexity requires careful design to avoid monitoring loops and resource exhaustion." A tiering and caching layer that doesn't account for its own observability traffic can end up filling its hot tier with metrics about the hot tier.</p>
+<table>
+<thead><tr><th>Metric</th><th>Value</th><th>Why it matters</th></tr></thead>
+<tbody><tr><td>Hot tier</td><td>Redis, sub-millisecond, last 24h</td><td>Aggressively warmed, latency-optimized — Luc's Read-/Write-Through territory</td></tr>
+<tr><td>Warm tier</td><td>PostgreSQL, sub-second, 30 days</td><td>Middle ground: still queryable, not free</td></tr>
+<tr><td>Cold tier</td><td>File-based, cost-optimized, compliance retention</td><td>Rarely re-read, kept because required — Luc's Write-Around analog</td></tr>
+<tr><td>Adaptive vs. naive time-based rotation</td><td>60-70% storage cost reduction</td><td>Payoff of tiering by business value, not just age</td></tr>
+<tr><td>Cache hit ratio floor</td><td>Below 85%</td><td>Signals wrong data cached or TTL too aggressive</td></tr>
+</tbody>
+</table>
+<div class="box r"><div class="box-lbl">Production Reality</div>
+<p>The same wrong-strategy risk Luc describes for application caches shows up here as a hit-ratio number you can actually watch: a cache hit ratio dropping below 85% is the tiered-storage equivalent of Luc's "quietly accumulates risk until a cache eviction, deployment, or incident exposes it" — except here it's directly measurable, so there's no excuse for it to stay hidden. The monitoring-loop trap is the sharper production reality: a tiering system has to budget hot-tier capacity for its own telemetry, or the system meant to keep storage costs down becomes the thing inflating them, consuming the same sub-millisecond Redis capacity it was supposed to be protecting for real query traffic.</p>
+</div>
+<div class="quote" data-author="sdcourse">"The key insight: storage tier decisions should be driven by business value, not just age."<cite>— sdcourse</cite></div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="40" y="40" width="260" height="150" rx="12" fill="#eff6ff"/>
+    <rect x="400" y="40" width="260" height="150" rx="12" fill="#fff7ed"/>
+  </g>
+  <text x="170" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">LUC: Pick the Strategy</text>
+  <text x="170" y="75" text-anchor="middle" font-size="13" fill="#1e3a8a">5 caching strategies, sized by</text>
+  <text x="170" y="105" text-anchor="middle" font-size="13" fill="#1e3a8a">read/write ratio + consistency need.</text>
+  <text x="170" y="135" text-anchor="middle" font-size="13" fill="#1e3a8a">Pool connections to just enough,</text>
+  <text x="170" y="160" text-anchor="middle" font-size="13" fill="#1e3a8a">not as many as possible</text>
+  <text x="530" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">SDCOURSE: Assign the Tier</text>
+  <text x="530" y="75" text-anchor="middle" font-size="13" fill="#7c2d12">Hot/Warm/Cold by business value,</text>
+  <text x="530" y="105" text-anchor="middle" font-size="13" fill="#7c2d12">not age — 60-70% cost cut vs. naive.</text>
+  <text x="530" y="135" text-anchor="middle" font-size="13" fill="#7c2d12">Hit ratio below 85% = wrong data</text>
+  <text x="530" y="160" text-anchor="middle" font-size="13" fill="#7c2d12">cached or TTL too aggressive</text>
+</svg>
+</div>
+<div class="sketch-cap">Luc's caching-strategy choice and sdcourse's hot/warm/cold tier are the same "what stays close, what waits" decision — one made per query, one made per byte at storage scale.</div>
+
+<div class="box xr"><div class="box-lbl">Where They Converge / Diverge</div>
+<p><strong>Converge:</strong> Both frameworks reject a single default: Luc insists the caching strategy must match access pattern, consistency needs, and failure tolerance rather than being picked by habit, and sdcourse insists tier placement must be driven by business value rather than by age alone — both are "decide deliberately or the wrong choice will quietly cost you" arguments, and both name a measurable early-warning signal (Luc's masked CPU/I/O bottleneck behind a "healthy" pool; sdcourse's sub-85% hit ratio) for when the choice has already gone wrong.</p>
+<p><strong>Diverge:</strong> Luc's unit of decision is a single cache or a single connection pool serving one service's access pattern; sdcourse's unit of decision is an entire storage system's worth of data, physically routed across three distinct storage engines (Redis, PostgreSQL, file-based) with different durability and compliance guarantees. Luc's failure mode is stale reads or a pool that silently throttles the database; sdcourse's failure mode is a monitoring system that recursively floods its own hot tier with telemetry about itself — a problem that has no equivalent at the single-cache scale Luc is describing, because it only emerges once you're operating a whole tiered pipeline with its own observability surface.</p>
+</div>
+
+<div class="recall">
+<div class="recall-head">Active Recall</div>
+<div class="q"><span class="q-n">Q1.</span> Per Luc, name the five caching strategies and the one factor he says should never be the deciding one for connection pool sizing (i.e., what is the actual sizing target instead of "as many connections as possible")?</div>
+<div class="q"><span class="q-n">Q2.</span> Per sdcourse, what are the three storage tiers and their latency/retention characteristics, and what specific hit-ratio number signals that a tier's caching is misconfigured?</div>
+<div class="q"><span class="q-n">Q3.</span> Luc's caching-strategy decision operates on a single cache serving one access pattern; sdcourse's hot/warm/cold tiering operates on a whole storage system with its own observability traffic. Explain why the "monitoring system generates more log data than the applications it's monitoring" failure has no direct equivalent at Luc's single-cache scale.</div>
+</div>
+</div>
+"""
+
 # ─────────────────────────────────────────────────────────────────────────────
 # ASSEMBLY + GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
