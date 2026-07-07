@@ -116,6 +116,82 @@ COVER = """
 # ─────────────────────────────────────────────────────────────────────────────
 
 # ─────────────────────────────────────────────────────────────────────────────
+# CHAPTER 1 — Quality Attributes, Trade-offs & the Production Reality Gap
+# ─────────────────────────────────────────────────────────────────────────────
+CH1 = """
+<div class="chapter">
+<div class="ch-head">
+  <div class="ch-eye">Chapter 1 of 23</div>
+  <h1>Quality Attributes, Trade-offs & the Production Reality Gap</h1>
+  <div class="ch-src">Sources: lucsystemdesign — System Design Quality Attributes · sdcourse — Course Structure and Curriculum Design</div>
+  <p class="ch-sum">Luc supplies the vocabulary for what "good" even means in a system — attributes, pillars, tactics — and the discipline to admit you cannot maximize all of it at once. sdcourse supplies the reason that vocabulary alone will not save you: there is a gap between knowing the trade-offs and having actually built something that survives them.</p>
+</div>
+
+<div class="topic">
+<h2>Luc's Lens: Attributes Are Goals, Not Features</h2>
+<p>Most system design failures are not caused by a missing feature. They are caused by a system that cannot hold up once real traffic, real failure rates, and real attackers show up. Luc's framing starts there: slow requests, flaky uptime, tangled code, and weak security are the actual killers, and none of them show up on a feature checklist. Quality attributes — availability, consistency, latency, scalability, reliability, security — are the properties that determine whether a system survives contact with production, and Luc insists they be treated as first-class requirements gathered and negotiated up front, not bolted on after the "real" features are built.</p>
+<p>The second half of the lens is a discipline about honesty: you cannot maximize everything simultaneously. Availability competes with cost. Strong consistency competes with global latency. Flexibility competes with simplicity. Every one of these is a dial, and turning one dial up turns another down — there is no configuration where all dials sit at maximum. Luc separates the vocabulary into three layers so the trade-off is easier to reason about: attributes are the goals ("this system should be highly available"), pillars are the strategies that get you there (modularity, redundancy, fault tolerance), and tactics are the concrete mechanisms that implement a pillar (caching, sharding, circuit breakers). Skipping straight to tactics without naming the attribute and pillar behind them is how teams end up with a cache that solves the wrong problem.</p>
+<p>Vague targets compound the problem. Saying a system should be "highly available" or "scalable" gives an engineer nothing to design against — it is not falsifiable and it does not survive a design review. Luc's fix is the attribute scenario: a specific what-if statement ("if the payments region goes down, checkout must fail over within 30 seconds with no data loss") that turns an adjective into a testable requirement. Scalability itself gets the same specificity treatment — a scalable system handles more traffic by adding resources, not by rewriting code, and statelessness is what makes that horizontal add-more-boxes move possible in the first place. Reliability, likewise, is reframed away from "it doesn't crash" toward something sharper: predictable behavior under unpredictable conditions. And security is reframed away from a checklist item toward an embedded assumption — secure systems are designed expecting breaches, and the design's job is to constrain the blast radius, not pretend the breach won't happen.</p>
+<div class="box s"><div class="box-lbl">Decision Rule</div>
+<p>Before choosing a tactic, name the attribute it serves and the pillar it implements — and name what you are giving up. If you cannot state the competing attribute you are trading away (cost, latency, simplicity), you have not made a design decision, you have made a guess. When NOT to use a tactic: when you cannot yet write the attribute scenario it is supposed to satisfy — reaching for caching, sharding, or circuit breakers before the requirement is falsifiable just adds complexity in search of a problem.</p>
+</div>
+<div class="quote" data-author="luc">"Many systems fail not because a feature is missing, but because the system buckles under real-world pressure: slow requests, flaky uptime, tangled code, or weak security."<cite>— Luc, lucsystemdesign</cite></div>
+</div>
+
+<div class="topic">
+<h2>sdcourse's Lens: The Gap Between the Map and the Shovel</h2>
+<p>sdcourse's angle is not about naming attributes — it is about what it actually costs to build a system that satisfies them. The curriculum this examiner grounds itself in is a 254-lesson roadmap spanning Days 1–270, building one continuous artifact: a complete distributed log processing system called LogStream, with a Java/Spring Boot track running in parallel with a Python/JavaScript track over the same material. The course is 80% coding, and the hardware bar is explicit — 16GB RAM required, 8GB minimum "but you'll suffer." None of that detail is decoration; it is sdcourse's way of insisting that quality attributes are not learned by reading about them, they are learned by hitting the failure mode they describe.</p>
+<p>That insistence is aimed squarely at a specific failure sdcourse has watched repeatedly: engineers who can recite "CAP theorem," "availability vs. consistency," or "circuit breaker" fluently in an interview but have never built the thing that makes those trade-offs real. Knowing the vocabulary from Luc's lens is necessary but not sufficient — sdcourse's whole curriculum design exists to close the gap between the two. The predictors of who actually closes that gap are concrete and unglamorous: run the code instead of just reading it, treat the GitHub reference repo as a checkpoint rather than a shortcut to copy from, and show up in Discord — of the three, Discord activity is the single best predictor of who finishes.</p>
+<table>
+<thead><tr><th>Signal</th><th>Finisher behavior</th><th>Lurker behavior</th></tr></thead>
+<tbody><tr><td>Code execution</td><td>Runs every day's code, hits real errors, debugs them</td><td>Reads the lesson, never executes it</td></tr>
+<tr><td>Reference repo</td><td>Uses it as a checkpoint to compare against</td><td>Copies from it as a shortcut</td></tr>
+<tr><td>Discord activity</td><td>Active — best single predictor of completion</td><td>Absent</td></tr>
+<tr><td>Hardware</td><td>16GB RAM (course-recommended)</td><td>8GB minimum — "but you'll suffer"</td></tr>
+<tr><td>Timeline</td><td>270 days, treated as a reference, not a race</td><td>Falls behind and drops rather than resuming</td></tr>
+</tbody>
+</table>
+<div class="box r"><div class="box-lbl">Production Reality</div>
+<p>A student who can define "availability vs. consistency" from a flashcard has not yet paid the cost that makes the definition mean anything. The course is structured around 254 lessons of hands-on output specifically because the failure mode it is designed against is passive consumption — someone who nods along to Luc's attribute/pillar/tactic framework but has never had a tactic fail on them at 2am. sdcourse's answer to "how do I actually learn quality attributes" is not more reading; it is building LogStream day by day and falling behind on purpose, because falling behind and resuming is what the 270-day timeline is built to tolerate.</p>
+</div>
+<div class="quote" data-author="sdcourse">"There is a massive gap between 'knowing' system design for an interview and 'building' a system that survives a production workload. Most courses give you the map, but they don't give you the shovel."<cite>— sdcourse</cite></div>
+</div>
+
+<div class="sketch">
+<svg viewBox="0 0 700 260" xmlns="http://www.w3.org/2000/svg" font-family="Caveat, cursive">
+  <g filter="url(#squig1)" fill="none" stroke="#1c1c2e" stroke-width="2.6" stroke-linecap="round">
+    <rect x="40" y="40" width="260" height="150" rx="12" fill="#eff6ff"/>
+    <rect x="400" y="40" width="260" height="150" rx="12" fill="#fff7ed"/>
+  </g>
+  <text x="170" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#1e3a8a">LUC: Name the Trade-off</text>
+  <text x="170" y="75" text-anchor="middle" font-size="13" fill="#1e3a8a">Attribute → Pillar → Tactic</text>
+  <text x="170" y="105" text-anchor="middle" font-size="13" fill="#1e3a8a">You can't max everything —</text>
+  <text x="170" y="130" text-anchor="middle" font-size="13" fill="#1e3a8a">write the attribute scenario</text>
+  <text x="170" y="160" text-anchor="middle" font-size="13" fill="#1e3a8a">before picking the tactic</text>
+  <text x="530" y="30" text-anchor="middle" font-size="15" font-weight="700" fill="#7c2d12">SDCOURSE: Build the Thing</text>
+  <text x="530" y="75" text-anchor="middle" font-size="13" fill="#7c2d12">254 lessons, 270 days,</text>
+  <text x="530" y="105" text-anchor="middle" font-size="13" fill="#7c2d12">one system: LogStream</text>
+  <text x="530" y="130" text-anchor="middle" font-size="13" fill="#7c2d12">Map ≠ Shovel — run the</text>
+  <text x="530" y="160" text-anchor="middle" font-size="13" fill="#7c2d12">code, hit the errors</text>
+</svg>
+</div>
+<div class="sketch-cap">Luc hands you the map of trade-offs; sdcourse hands you the shovel to find out what the map didn't show.</div>
+
+<div class="box xr"><div class="box-lbl">Where They Converge / Diverge</div>
+<p><strong>Converge:</strong> Both reject vague competence — Luc rejects vague attribute targets like "highly available" in favor of falsifiable scenarios, and sdcourse rejects passive reading in favor of falsifiable execution (run it, hit the error, debug it); each is demanding proof instead of a claim.</p>
+<p><strong>Diverge:</strong> Luc's unit of rigor is a sentence — an attribute scenario you can write down before you build anything — while sdcourse's unit of rigor is elapsed time and executed code across 270 days; one is a pre-design discipline, the other is a post-design endurance test, and a team can ace the first while still failing the second.</p>
+</div>
+
+<div class="recall">
+<div class="recall-head">Active Recall</div>
+<div class="q"><span class="q-n">Q1.</span> A teammate proposes adding a Redis cache to "improve performance." Using Luc's attribute → pillar → tactic decision rule, what two questions must be answered before this tactic is approved?</div>
+<div class="q"><span class="q-n">Q2.</span> According to sdcourse's curriculum data, what is the single best predictor of whether a student finishes the 254-lesson LogStream course, and why does that beat "reads every lesson"?</div>
+<div class="q"><span class="q-n">Q3.</span> Explain the difference between the kind of rigor Luc's attribute scenarios enforce and the kind of rigor sdcourse's 270-day build enforces — why could a team pass one and still fail the other?</div>
+</div>
+</div>
+"""
+
+# ─────────────────────────────────────────────────────────────────────────────
 # ASSEMBLY + GENERATION
 # ─────────────────────────────────────────────────────────────────────────────
 HTML_CONTENT = f"""<!DOCTYPE html>
