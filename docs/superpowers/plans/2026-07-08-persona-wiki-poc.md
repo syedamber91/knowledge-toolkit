@@ -881,9 +881,9 @@ def build_derive_prompt(persona: str, topic: str, source_text: str, existing_not
     revise = ""
     if existing_note:
         revise = (
-            "\nYou are REVISING an existing note. Here is its current content — "
-            "preserve what still holds, integrate the new source, do not drop "
-            "correct prior material:\n<<<EXISTING\n" + existing_note + "\nEXISTING\n"
+            "\nYou are revising an existing note (REVISE mode). Here is its current "
+            "content — preserve what still holds, integrate the new source, do not "
+            "drop correct prior material:\n<<<EXISTING\n" + existing_note + "\nEXISTING\n"
         )
     return (
         f"You are building research-memory derivatives for the '{persona}' persona "
