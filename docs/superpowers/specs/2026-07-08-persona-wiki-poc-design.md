@@ -60,14 +60,28 @@ author's corpus, already a clean, self-contained unit.
 ## Placement
 
 `learning-vault` is its own git repo (the `de-toolkit` project, at the iCloud Obsidian
-path). This repo (`knowledge-toolkit` / SOIC_Scraper) is where the personas live. The two
-are kept in their established roles:
+path). **The POC code lives in the learning-vault repo** (decision confirmed in review),
+alongside `de-toolkit`, rather than in this `knowledge-toolkit` / SOIC_Scraper repo.
 
 | Concern | Location | Rationale |
 |---|---|---|
-| POC **code** | `src/persona_wiki/` in **this** repo | Mirrors `media_core`: code lives here, writes Obsidian notes into an external configurable vault dir. |
+| POC **code** | `src/persona_wiki/` inside the **learning-vault repo** | Keeps code and its Obsidian output in one repo; sits beside the existing `de-toolkit` toolkit and the `wiki/` layer it writes to. |
 | Derivative **output** | `learning-vault/wiki/personas/vutr/` | Reuses the learning-vault's existing empty `wiki/` synthesized-layer namespace, honoring its read-only contract (never touches the authored course, `data/`, or `src/de_toolkit/`). |
-| Vault dir config | env var (e.g. `PERSONA_WIKI_DIR`) | Same override pattern as `MEDIA_VAULT_DIR`. |
+| Vault dir config | env var (e.g. `PERSONA_WIKI_DIR`), default `wiki/personas/` | Same override pattern as `MEDIA_VAULT_DIR`. |
+
+### Cross-repo input: the bootstrap source
+
+The persona snapshot to bootstrap from (`vutr.md`) lives in **this** repo at
+`.claude/agents/vutr.md`. Since the POC code lives in the learning-vault repo, `vutr.md`
+must be brought in as an **input**, not read across repos at runtime:
+
+- Copy `vutr.md` into the learning-vault repo as a committed seed input, e.g.
+  `data/personas/vutr.md` (a snapshot, versioned with the POC).
+- The bootstrap step (see below) reads that copied file — it does **not** reach back into
+  the SOIC_Scraper repo path. This keeps the learning-vault repo self-contained and the POC
+  reproducible.
+- Later refreshes of the persona snapshot re-copy the file; this is a manual, deliberate
+  step for the POC (not automated).
 
 Nothing is deleted. The authored dbt course and the existing `wiki/` scaffolding
 (`index.md`, `log.md`, `hot.md`) stay intact; `wiki/personas/` is a net-new subtree.
@@ -93,7 +107,17 @@ these; it captures nothing new. This is the article's immutable `raw/` layer.
 An LLM reads the raw source(s) for a topic plus the current derivative notes (if any) and
 writes/revises research-memory derivatives in Vu Trinh's grounded positions. Produces the
 article's five kinds, stored per the **atomic storage model** below. No teaching
-scaffolding. The LLM call sits behind an injectable seam (see Testing).
+scaffolding. The LLM is invoked by **shelling out to the local `claude` CLI** (no API key
+needed), matching `de-toolkit`'s `teach.py` pattern; the shell-out sits behind an
+injectable seam so tests run offline (see Testing).
+
+### Step 2a — Bootstrap (one-time seed)
+Before incremental updates can run, the persona's *existing* knowledge is migrated so it is
+not stranded. The bootstrap reads the copied `data/personas/vutr.md` snapshot and, via the
+same `claude` CLI shell-out, splits its per-topic sections (Airflow, Spark, Kafka, …) into
+the atomic storage model: `topics/<topic>.md` + `entities/*.md` + `concepts/*.md`, seeding
+`index.yaml` and writing the first (backfill-worded) `log.md` entry. After bootstrap, all
+further changes flow through steps 1–7 incrementally.
 
 ### Step 3 — Change detection / CDC (new)
 `match_topics()` (reused from `media_core`/`substack_toolkit` — deterministic keyword
@@ -251,15 +275,12 @@ Following this repo's offline-first convention (no login/network in unit tests):
 - **QC tests:** a canned overreaching claim is flagged `qc: failed`; a grounded one passes.
 - **Path-guard test:** a write targeting outside `wiki/personas/` is rejected.
 
-## Open questions for spec review
+## Resolved decisions (from spec review)
 
-1. **Placement confirmation** — code in this repo, output in learning-vault (as above). If
-   you want the POC code itself inside the learning-vault repo instead, that changes the
-   module home.
-2. **Persona source of truth for the *bootstrap*** — seed `wiki/personas/vutr/` by having
-   the LLM split the existing `vutr.md` sections into atomic notes (preserves current
-   knowledge), vs. start empty and only grow from newly captured sources. Recommendation:
-   bootstrap-split, so existing knowledge isn't stranded.
-3. **Which LLM entrypoint** — reuse the local `claude` CLI shell-out pattern (as
-   `de-toolkit`'s `teach.py` does, no API key), vs. a direct API call. Recommendation:
-   `claude` CLI shell-out, consistent with the sibling repo.
+1. **Placement** — POC code lives **inside the learning-vault repo** (`src/persona_wiki/`),
+   not in this repo. `vutr.md` is copied in as a committed seed input
+   (`data/personas/vutr.md`). See Placement § above.
+2. **Bootstrap** — **split the existing `vutr.md` into atomic notes** (step 2a), so current
+   persona knowledge is preserved, not stranded.
+3. **LLM entrypoint** — **shell out to the local `claude` CLI** (no API key), consistent
+   with `de-toolkit`'s `teach.py`.
