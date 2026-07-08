@@ -687,23 +687,5 @@ with open('output/sdcourse_luc.html', 'w') as f:
     f.write(HTML_CONTENT)
 print('Written: output/sdcourse_luc.html')
 
-try:
-    import subprocess
-    chrome = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-    pdf_path = "output/sdcourse_luc.pdf"
-    html_path = "output/sdcourse_luc.html"
-    result = subprocess.run(
-        [chrome, "--headless", "--disable-gpu",
-         f"--print-to-pdf={pdf_path}",
-         "--print-to-pdf-no-header", html_path],
-        capture_output=True, text=True
-    )
-    if "bytes written" in result.stderr or "written to file" in result.stderr:
-        size = os.path.getsize(pdf_path)
-        print(f"PDF written: {pdf_path} ({size:,} bytes)")
-    else:
-        print("Chrome output:", result.stderr[-200:])
-        print(f"HTML is ready at {html_path} — open in browser and Print → Save as PDF")
-except Exception as e:
-    print(f"PDF generation error: {e}")
-    print(f"HTML is ready at output/sdcourse_luc.html")
+from _pdf_export import render_pdf
+render_pdf('output/sdcourse_luc.html', 'output/sdcourse_luc.pdf')

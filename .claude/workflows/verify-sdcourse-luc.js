@@ -384,11 +384,17 @@ const SIGNOFF_SCHEMA = {
 // NOTE: the Workflow `args` global arrives EMPTY in this environment (a known
 // gotcha — a passed object silently becomes {}, same as the STORM engine's
 // documented workaround). So chapterIds is NOT read from `args`; the controller
-// writes it to this fixed run-config file before invoking the workflow, and this
-// setup step reads it via an agent (scripts have no filesystem access).
-const RUN_CFG = '/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/heuristic-mclaren-37718f/output/sdcourse_luc/_run.json'
+// writes it to a fixed run-config file (output/sdcourse_luc/_run.json, relative
+// to the repo root) before invoking the workflow, and this setup step reads it
+// via an agent (scripts have no filesystem access).
+//
+// The path is resolved at RUN TIME from the current git checkout rather than
+// hardcoded to one worktree — a hardcoded absolute path (the pattern this repo's
+// storm.js used) goes stale the moment the branch is merged, cloned elsewhere,
+// or worked from a different worktree, and storm.js's own REPO constant is
+// already stale proof of exactly that failure mode in this repo today.
 const runCfg = await agent(
-  `Read the JSON file at ${RUN_CFG} and report its exact contents.`,
+  `Find the repository root of the current git checkout (e.g. via \`git rev-parse --show-toplevel\`), then read the JSON file at "<repo-root>/output/sdcourse_luc/_run.json" and report its exact contents.`,
   { schema: { type: 'object', properties: { chapterIds: { type: 'array', items: { type: 'integer' } } }, required: ['chapterIds'] }, label: 'read-run-cfg' }
 )
 const chapterIds = runCfg.chapterIds
@@ -443,15 +449,17 @@ const results = await pipeline(
   },
   async ({ chapter, lucQ, sdQ, lucAnswersRes, sdAnswersRes, audit }) => {
     phase('Score')
-    const lucAnswerText = lucQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${lucAnswersRes.answers[i] ?? '(no answer provided)'}`).join('\n\n')
-    const sdAnswerText = sdQ.questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${sdAnswersRes.answers[i] ?? '(no answer provided)'}`).join('\n\n')
+    const formatQA = (questions, answers) =>
+      questions.map((q, i) => `Q${i + 1}: ${q}\nA${i + 1}: ${answers[i] ?? '(no answer provided)'}`).join('\n\n')
+    const scorePrompt = (qaText) =>
+      `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). These are ONLY your questions and the student's matching answers — no other examiner's material is included.\n\n${qaText}\n\nList any gaps.`
     const [lucScore, sdScore] = await parallel([
       () => agent(
-        `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). These are ONLY your questions and the student's matching answers — no other examiner's material is included.\n\n${lucAnswerText}\n\nList any gaps.`,
+        scorePrompt(formatQA(lucQ.questions, lucAnswersRes.answers)),
         { agentType: 'lucsystemdesign', phase: 'Score', schema: SCORE_SCHEMA, label: `luc-score-ch${chapter.id}` }
       ),
       () => agent(
-        `Score the student's answers to YOUR questions on accuracy (0-10) and coverage (0-10). These are ONLY your questions and the student's matching answers — no other examiner's material is included.\n\n${sdAnswerText}\n\nList any gaps.`,
+        scorePrompt(formatQA(sdQ.questions, sdAnswersRes.answers)),
         { agentType: 'sdcourse', phase: 'Score', schema: SCORE_SCHEMA, label: `sd-score-ch${chapter.id}` }
       ),
     ])

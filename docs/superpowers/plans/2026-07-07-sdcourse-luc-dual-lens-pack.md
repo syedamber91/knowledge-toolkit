@@ -132,6 +132,23 @@ EOF
 
 Expected: `syntax OK` then `CH{n} structural check: PASS`.
 
+**Additionally, whenever a chapter reuses a source citation range another chapter
+already used** (the plan marks these with `*` in the chapter tables — 14 pairs
+across Chapters 6–23, e.g. Ch8/Ch14 both citing Rate Limiting, Ch16/Ch21 both
+citing Leader Election), run:
+
+```bash
+python3 scripts/check_chapter_overlap.py
+```
+
+Expected: `No verbatim sentence overlap found across N chapters.` A reported
+sentence shared between the two chapters citing the same range means the newer
+chapter copy-pasted rather than re-synthesized — reword it before moving on.
+This is the exact bug class that hit Chapter 6 (reusing Chapter 3's exact
+sentences for the same `sdcourse.md:236-250` citation, fixed in commit
+`25510a4`); this script catches it offline instead of waiting for the live
+verification loop to flag it a fix-and-reverify cycle later.
+
 ---
 
 ## Task 1: Generator scaffold (CSS + cover + empty assembly + PDF smoke test)
