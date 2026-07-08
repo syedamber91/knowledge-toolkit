@@ -550,6 +550,7 @@ git commit -m "feat(persona-wiki): local whole-word match_topics vocabulary"
   - `save_index(root: Path, index: WikiIndex) -> Path`
   - `register_topic(index, slug, sources_count, stamp) -> None`
   - `register_atomic(index, kind, slug, topic, stamp) -> None` (`kind` ∈ {"entity","concept"}; merges `topic` into back-refs, dedup)
+  - `atomic_dir(kind) -> str` ("entity"→"entities", "concept"→"concepts")
   - `has_topic(index, slug) -> bool`, `has_atomic(index, kind, slug) -> bool`
 
 - [ ] **Step 1: Write the failing test**
@@ -581,6 +582,14 @@ def test_register_atomic_merges_topic_backrefs():
     register_atomic(idx, "entity", "lsm-tree", "spark", "2026-07-09")
     assert has_atomic(idx, "entity", "lsm-tree")
     assert idx.entities["lsm-tree"].topics == ["kafka", "spark"]  # deduped, ordered
+
+
+def test_register_atomic_uses_entities_dir_not_entitys():
+    idx = WikiIndex()
+    register_atomic(idx, "entity", "lsm-tree", "kafka", "2026-07-08")
+    register_atomic(idx, "concept", "log-compaction", "kafka", "2026-07-08")
+    assert idx.entities["lsm-tree"].file == "entities/lsm-tree.md"
+    assert idx.concepts["log-compaction"].file == "concepts/log-compaction.md"
 
 
 def test_index_roundtrip_on_disk(tmp_path):
@@ -616,6 +625,13 @@ from .models import AtomicEntry, TopicEntry, WikiIndex
 
 INDEX_NAME = "index.yaml"
 
+_ATOMIC_DIR = {"entity": "entities", "concept": "concepts"}
+
+
+def atomic_dir(kind: str) -> str:
+    """Folder for an atomic note kind ('entity' -> 'entities', 'concept' -> 'concepts')."""
+    return _ATOMIC_DIR[kind]
+
 
 def load_index(root: Path) -> WikiIndex:
     path = root / INDEX_NAME
@@ -644,7 +660,7 @@ def register_atomic(index: WikiIndex, kind: str, slug: str, topic: str, stamp: s
     bucket = index.entities if kind == "entity" else index.concepts
     entry = bucket.get(slug)
     if entry is None:
-        entry = AtomicEntry(file=f"{kind}s/{slug}.md", topics=[], last_updated=stamp)
+        entry = AtomicEntry(file=f"{atomic_dir(kind)}/{slug}.md", topics=[], last_updated=stamp)
         bucket[slug] = entry
     if topic and topic not in entry.topics:
         entry.topics.append(topic)
@@ -1007,7 +1023,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import List
 
-from .index import register_atomic, register_topic
+from .index import atomic_dir, register_atomic, register_topic
 from .models import DerivativeBundle, NoteFrontmatter, WikiIndex
 from .storage import write_note
 
@@ -1040,7 +1056,7 @@ def apply_bundle(
                 persona=persona, kind=kind, slug=item.slug, sources=sources,
                 last_updated=stamp, topics=[topic],
             )
-            written.append(write_note(root, f"{kind}s/{item.slug}.md", fm, item.body))
+            written.append(write_note(root, f"{atomic_dir(kind)}/{item.slug}.md", fm, item.body))
             register_atomic(index, kind, item.slug, topic, stamp)
 
     topic_fm = NoteFrontmatter(
