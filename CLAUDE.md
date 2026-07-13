@@ -268,6 +268,36 @@ Upload: `python3 scripts/gdrive_upload.py output/vutr_spark.pdf output/ben_dicke
 
 See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md).
 
+## Learning Vault AI (Nate Herk & Jack Roberts)
+
+The **AI/automation twin** of the `learning-vault` (data-engineering/vutr) hub —
+same `persona-wiki` pipeline, second source. Hub lives outside this repo at
+`~/Documents/Learning Vault AI/` (its own git repo; data only, reuses the
+`persona-wiki` package from the `learning-vault` repo via `--vault-dir`).
+Grounded in the captured YouTube transcripts of **Nate Herk** (`@nateherk`,
+286 notes) and **Jack Roberts** (`@Itssssss_Jack`, 155 notes) in the
+`AI & Development` Obsidian vault. Ingest is source-agnostic — the same
+`persona_wiki/ingest.py` that feeds the Substack hub copies these YouTube
+`.md` notes into `raw/<topic>/` unchanged.
+
+**Mentors vs examiners — do not confuse:**
+- **Mentors** — `.claude/agents/{nate-herk,jack-roberts}.md` — free-form
+  teaching, no scoring. Untouched by this pipeline.
+- **Examiners** — `.claude/agents/{nate-herk,jack-roberts}-examiner.md` —
+  generate questions + score accuracy/coverage, derived from the mentor's
+  grounded positions plus vutr-style scoring scaffolding (`ROLE IN
+  VERIFICATION LOOP` / `SCORING STANDARDS` / `QUESTION GENERATION GUIDELINES`
+  / `INVOCATION`). These gate this hub's packs.
+
+**Dual-lens verification** — `.claude/workflows/verify-lvai.js` runs both
+examiners over one pack per topic (Questions → AnswerAudit → Score → SignOff,
+`pass = all four scores ≥9.0`), reading `output/packs/<topic>/chapters.json`
+directly (no CHAPTERS mirror to drift, unlike hand-authored packs).
+
+Topics: `ai-agents` (pilot) · `n8n-automation` · `ai-agency` · `rag-vector-db`.
+
+See `docs/superpowers/specs/2026-07-13-learning-vault-ai-personas-design.md`.
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
@@ -282,6 +312,9 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 - `nate-herk-persona`, `jack-roberts-persona` — direct-mentor personas grounded
   in captured YouTube transcripts (`/nate-herk`, `/jack-roberts` triggers); see
   `docs/superpowers/specs/2026-07-05-nate-herk-jack-roberts-persona-design.md`.
+- `nate-herk-examiner-persona`, `jack-roberts-examiner-persona` — the examiner
+  counterparts (`/nate-herk-examiner`, `/jack-roberts-examiner` triggers) that
+  gate Learning Vault AI packs; see "Learning Vault AI" above.
 - `vault-ask` (`/vault-ask <question>`) — the "presentation" half of the
   index + log + cross-links pattern below: routes a question to the right
   notes cheaply (grep over `Home.md`/`topics/*.md`/`sources/*.md`), then
@@ -299,8 +332,9 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer`, `instagram-capturer` (capture orchestrators); `justin-sung`,
-`ben-dicken`, `vutr`, `lucsystemdesign`, `sdcourse`, `alex` (verification/
-examiner personas); `nate-herk`, `jack-roberts` (direct-mentor personas). Note:
+`ben-dicken`, `vutr`, `lucsystemdesign`, `sdcourse`, `alex`,
+`nate-herk-examiner`, `jack-roberts-examiner` (verification/examiner
+personas); `nate-herk`, `jack-roberts` (direct-mentor personas). Note:
 agent files reference an absolute project root from the author's machine —
 paths there are illustrative, not this repo's path.
 
