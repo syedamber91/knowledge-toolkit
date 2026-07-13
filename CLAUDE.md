@@ -309,4 +309,7 @@ paths there are illustrative, not this repo's path.
 - [`README.md`](README.md) — user-facing guide (mind the command drift above).
 - [`docs/END_TO_END_PLAN.md`](docs/END_TO_END_PLAN.md) — full runbook & data model.
 - [`docs/PORTAL_NOTES.md`](docs/PORTAL_NOTES.md) — Learnyst portal reconnaissance.
+- [`docs/CLOUD_VAULT_SYNC.md`](docs/CLOUD_VAULT_SYNC.md) — reach the Obsidian vault
+  from a cloud session (git-backed mirror; `scripts/vault_sync.py`) when the
+  laptop is off. iCloud is not reachable from Linux — a private vault repo is.
 - [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md) — persona verification loop.
