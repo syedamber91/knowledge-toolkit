@@ -288,6 +288,33 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   dispatches an Opus-tier subagent to synthesize the answer from only those
   routed notes. Use for ad-hoc questions against any captured vault that
   don't warrant a dedicated persona.
+- `vault-ask-learning` (`/vault-ask-learning <question>`) — the sibling of
+  `vault-ask` for the *synthesized* `/learn-topic` hubs (`concepts/<slug>.md`,
+  not raw captures): `learning-vault` (data engineering, `vutr`), `Learning
+  Vault AI` (AI-automation, `nate-herk` + `jack-roberts`),
+  `learning-vault-systemdesign` (system design, `lucsystemdesign` +
+  `sdcourse`), and `Learning Vault Invest` (investing, `soic`, Phase 1
+  pilot — has a real built wiki now, not just a POC). All four hubs are
+  local-first now (GitHub is fallback-only), then it dispatches an Opus-tier
+  subagent to answer at the `/explain-simple` 12-year-old standard with
+  inline ASCII diagrams. **For fast, low-token routing, check the routing
+  table and topic manifest backed up at
+  [github.com/syedamber91/claude-memory](https://github.com/syedamber91/claude-memory)
+  before reading any hub's `index.yaml` directly** — `main` + `develop`:
+  - `vault-ask-learning-topic-manifest.md` — one small file mapping every
+    hub/persona/topic to a concept count, so hub+topic selection is usually
+    one grep instead of walking 6 different `index.yaml` files (`vutr`'s
+    alone is 2600+ lines).
+  - `vault-ask-learning-hub-routing.md` — the full routing table (exact
+    paths, personas, GitHub repos, build status), plus a corrections log
+    from a 2026-07-17 audit that found real drift (stale concept counts,
+    a hub wrongly documented as GitHub-only/placeholder when it now has a
+    local built wiki, inconsistent folder naming, non-routable
+    `wiki/personas/alex/` and stray duplicate directories).
+  Treat this repo as the fallback source of truth if the live skill file
+  (`~/.claude/skills/vault-ask-learning/SKILL.md`) is ever missing,
+  out of sync, or you need to re-verify a hub's current state — re-audit
+  against disk rather than trusting stale numbers when precision matters.
 - `storm` (`/storm`) — STORM multi-perspective business-research engine:
   casts expert lenses (auto best-fit from the dynamic persona roster + Mufti
   halal gate), maps their contradictions, adversarially fact-checks, and
