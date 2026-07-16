@@ -294,9 +294,13 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   Vault AI` (AI-automation, `nate-herk` + `jack-roberts`),
   `learning-vault-systemdesign` (system design, `lucsystemdesign` +
   `sdcourse`), and `Learning Vault Invest` (investing, `soic`, Phase 1
-  pilot — has a real built wiki now, not just a POC). All four hubs are
-  local-first now (GitHub is fallback-only), then it dispatches an Opus-tier
-  subagent to answer at the `/explain-simple` 12-year-old standard with
+  pilot — has a real built wiki now, not just a POC). All four hubs have a
+  GitHub remote (`learning-vault-systemdesign` was the last to get one,
+  2026-07-17 — private repo `learning-vault-systemdesign`), so a cloud/remote
+  Claude session with `gh` access can answer against any of them without the
+  local Mac being reachable; local-first is a latency optimization, not a
+  hard requirement. It dispatches an Opus-tier subagent to answer at the
+  `/explain-simple` 12-year-old standard with
   inline ASCII diagrams. **For fast, low-token routing, check the routing
   table and topic manifest backed up at
   [github.com/syedamber91/claude-memory](https://github.com/syedamber91/claude-memory)
