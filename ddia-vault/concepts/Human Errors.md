@@ -6,14 +6,14 @@ tags: [ddia, reliability, human-error, operations]
 ---
 # Human Errors
 
-## Recap — Where We Just Were   (bridge from [[Software Errors]])
+## Recap — Where We Just Were
 
 In [[Software Errors]] we looked at bugs — mistakes baked *into* the code before
 it ever runs. But there's a sneakier source of trouble: the mistakes humans make
 while *operating* a live system — changing a setting, running a command, pushing
 an update. This note is about those, and how good systems survive them.
 
-## Level 1 — The Big Idea   (analogy + ONE mermaid diagram)
+## Level 1 — The Big Idea
 
 Imagine a spotless commercial kitchen. The equipment is top-notch and never
 breaks. Yet most nights something still goes wrong — because a tired cook grabs
@@ -35,7 +35,7 @@ graph LR
     C --> D[Recover fast]
 ```
 
-## Level 2 — How It Actually Works   (the defenses from the note, step by step + ONE mermaid diagram)
+## Level 2 — How It Actually Works
 
 Good systems don't rely on one safeguard. They stack several, so a mistake that
 slips past one layer gets caught by the next.
@@ -71,7 +71,7 @@ graph TD
     E[Monitor everything] --> F
 ```
 
-## Level 3 — See It With Real Numbers   (a concrete scenario)
+## Level 3 — See It With Real Numbers
 
 Here's the fact that should reshape how you think. A study of large internet
 services asked what actually causes their outages (times the service goes down).
@@ -94,7 +94,7 @@ Only 1% of users saw anything, for about four minutes. Same mistake without
 canary rollout and fast rollback could have taken down *everyone* for an hour.
 The mistake didn't change — the blast radius did.
 
-## Level 4 — In the Real World and Common Traps   (named example + misconceptions)
+## Level 4 — In the Real World and Common Traps
 
 The internet-services outage study is the anchor example: config errors #1,
 hardware only 10–25%. And the model for good monitoring comes from rocketry —
@@ -115,7 +115,7 @@ A few things people get wrong:
   helps if it's genuinely representative — full-featured and filled with real
   data. A fake, half-built sandbox teaches false confidence.
 
-## Check Yourself   (memory hook + 3 Q/A)
+## Check Yourself
 
 **Memory hook:** *People break more than hardware — so err small and recover
 fast.*

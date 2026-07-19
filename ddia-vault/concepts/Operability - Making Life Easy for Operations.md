@@ -6,10 +6,10 @@ tags: [ddia, maintainability, operability, monitoring]
 ---
 # Operability - Making Life Easy for Operations
 
-## Recap — Where We Just Were   (bridge from [[Approaches for Coping with Load]])
+## Recap — Where We Just Were
 In [[Approaches for Coping with Load]] we asked how a system survives *more* traffic — scaling up, scaling out, and reshaping the architecture as load grows. But building a system is only day one. After that, someone has to *keep it running* for years. That daily care is called **operations**. This lesson is about making their job easy. That quality is called **operability**.
 
-## Level 1 — The Big Idea   (what operations/ops is + analogy)
+## Level 1 — The Big Idea
 **Operations** (or "ops") is the team that keeps a live system healthy — watching it, patching it, and fixing it when it breaks.
 
 There's a famous observation from an engineer named Jay Kreps: a great ops team can often work around bad or half-finished software. But even great software falls apart under bad operations. So how easy a system is to *operate* really matters.
@@ -25,7 +25,7 @@ graph LR
   C --> D[Stays healthy for years]
 ```
 
-## Level 2 — How It Actually Works   (what good operability provides)
+## Level 2 — How It Actually Works
 A good ops team does a lot: they **monitor health** and restore service fast, trace *why* things fail or slow down, keep software patched (including security), spot risky changes before they cause damage, plan capacity ahead of time, run deployments and migrations, and keep knowledge about the system alive even when people leave.
 
 The system's side of the deal is **good operability** — making those routine tasks easy. A well-behaved data system should:
@@ -47,7 +47,7 @@ graph TD
   A --> F[Predictable behavior]
 ```
 
-## Level 3 — See It With Real Numbers   (a concrete scenario)
+## Level 3 — See It With Real Numbers
 Two systems have the same bug: a background job silently stops running. What differs is the monitoring.
 
 **System A — no visibility.** Nobody notices until users complain that data looks stale.
@@ -62,8 +62,8 @@ Two systems have the same bug: a background job silently stops running. What dif
 
 Same bug. The fix took the same 20 minutes both times. The huge difference — 6+ hours versus 30 minutes — came entirely from **time to detect**. Good monitoring didn't prevent the bug. It made the system *tell on itself* early, which is most of the win. (Numbers are illustrative, but the shape is real.)
 
-## Level 4 — In the Real World and Common Traps   (named example + misconceptions)
-Named example: **James Hamilton's playbook for internet-scale services** (sometimes tied to the LISA framework). It lists the ops duties above and argues that operability must be *designed in*, not bolted on. This is where DDIA's operability checklist comes from.
+## Level 4 — In the Real World and Common Traps
+Named example: **James Hamilton's paper "On Designing and Deploying Internet-Scale Services"** — a real playbook presented at the 2007 LISA conference (LISA is a long-running systems-administration conference, not a "framework"). It lists the ops duties above and argues that operability must be *designed in*, not bolted on. This is where DDIA's operability checklist comes from.
 
 Common traps:
 
@@ -71,7 +71,7 @@ Common traps:
 - **People think** locking everything down keeps a system safe. **Actually** good defaults help most users, but if experts can't override them, the system becomes frustrating and people fight it. Defaults should guide, not imprison.
 - **People think** losing the one engineer who understood the system is just an HR problem. **Actually** it's an operability failure. A system only one departed person could run is a design flaw — knowledge should live in docs and predictable behavior, not one head.
 
-## Check Yourself   (memory hook + 3 Q/A)
+## Check Yourself
 **Memory hook:** *A good system tells on itself.* Visibility, sane defaults, predictable behavior — all so ops can see trouble early and act.
 
 **Q:** Jay Kreps' observation contrasts two things — what wins in the long run, good software or good operations?

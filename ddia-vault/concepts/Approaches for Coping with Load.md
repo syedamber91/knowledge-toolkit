@@ -6,13 +6,13 @@ tags: [ddia, scalability, vertical, horizontal, shared-nothing]
 ---
 # Approaches for Coping with Load
 
-## Recap — Where We Just Were   (bridge from [[Describing Performance]])
+## Recap — Where We Just Were
 
 In [[Describing Performance]] you learned how to *measure* a system: pick a load parameter, watch response times, and use percentiles (p50, p99 — the response time that 99 out of 100 requests beat) instead of averages.
 
 But measuring is only step one. Once you know load is climbing, the real question shows up: how do you keep performance good as the numbers grow? That is what this note is about.
 
-## Level 1 — The Big Idea   (scaling up vs out)
+## Level 1 — The Big Idea
 
 There are basically two ways to handle more load.
 
@@ -27,7 +27,7 @@ graph LR
   Load --> Out[Scale Out Many Small Machines]
 ```
 
-## Level 2 — How It Actually Works   (vertical vs horizontal, shared-nothing, elasticity)
+## Level 2 — How It Actually Works
 
 **Vertical (scale up)** is *simpler*. One machine means one thing to reason about. The catch: top-end hardware gets disproportionately expensive — doubling the power can far more than double the price. So heavy workloads usually get pushed toward scaling out whether you like it or not.
 

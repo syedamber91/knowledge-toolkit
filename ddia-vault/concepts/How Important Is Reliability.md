@@ -6,10 +6,10 @@ tags: [ddia, reliability, trade-offs, business]
 ---
 # How Important Is Reliability
 
-## Recap — Where We Just Were   (bridge from [[Human Errors]])
+## Recap — Where We Just Were
 We just saw that most outages trace back to people, not machines — and that good systems are built to absorb those mistakes. But that raises a fair question: how hard should we even try? Building all those safety nets costs time and money. When is reliability worth paying for, and when is it okay to let some slip? That is exactly what this lesson is about.
 
-## Level 1 — The Big Idea   (analogy + ONE mermaid diagram)
+## Level 1 — The Big Idea
 It is tempting to think reliability is only for scary things — nuclear plants, air traffic control. This chapter pushes back hard: **ordinary apps matter too.**
 
 Think of a bike helmet. A racing driver obviously needs a full crash cage. But you still wear a helmet to ride to school — the stakes are lower, not zero. Skipping it is a choice, and you should make that choice on purpose, not by forgetting.
@@ -24,7 +24,7 @@ graph LR
     C --> D
 ```
 
-## Level 2 — How It Actually Works   (cost of unreliability vs cost of reliability + ONE mermaid diagram)
+## Level 2 — How It Actually Works
 The chapter frames reliability as a **balance between two costs**.
 
 On one side is the **cost of being unreliable**. Bugs waste people's time. Wrong numbers in business software can create legal trouble — imagine reporting the wrong figures to a regulator. An online store that goes down loses sales that hour, and, worse, loses trust that takes far longer to rebuild.
@@ -42,7 +42,7 @@ graph TD
     D --> E[State What You Sacrificed]
 ```
 
-## Level 3 — See It With Real Numbers   (a concrete cost scenario)
+## Level 3 — See It With Real Numbers
 The note does not give exact dollar figures, so here is a labelled illustration to feel the shape of it.
 
 Picture a small online store that makes about **$2,000 in sales every hour**.
@@ -52,7 +52,7 @@ Picture a small online store that makes about **$2,000 in sales every hour**.
 
 Now the human side, which has *no* price tag at all. A parent stores every photo and video of their kids in your app. If the database silently corrupts that data ("corrupts" = quietly scrambles it), the loss is **irreplaceable** — and would that parent even know how to restore a backup? Some failures cannot be measured in money because what is lost cannot be bought back.
 
-## Level 4 — In the Real World and Common Traps   (named example + misconceptions)
+## Level 4 — In the Real World and Common Traps
 **Named example — the family-photos app.** This is the chapter's emblem of trust in "noncritical" software. Nobody calls a photo app critical. Yet it may hold the only copy of a memory that can never be recreated. That is why "noncritical" is a dangerous label.
 
 **People think:** Reliability is only for safety-critical systems like planes and power plants.
@@ -64,7 +64,7 @@ Now the human side, which has *no* price tag at all. A parent stores every photo
 **People think:** If we skip reliability work, we can just fix it if it ever breaks.
 **Actually:** The danger is drifting into cut corners *unconsciously*. The problem is not the sacrifice — it is not knowing you made one.
 
-## Check Yourself   (memory hook + EXACTLY 3 Q/A)
+## Check Yourself
 **Memory hook:** *Cut corners on purpose, never by accident.*
 
 **Q:** Is reliability only important for safety-critical systems?
@@ -82,5 +82,5 @@ Now the human side, which has *no* price tag at all. A parent stores every photo
 - [[Approaches for Coping with Load]] — the parallel argument about premature scaling
 - [[Ch01 - Reliable, Scalable, Maintainable Applications]] — the chapter this sits in
 
-## Coming Up Next   ([[Describing Load]])
+## Coming Up Next
 We have settled *why* systems should keep working. Now we ask what happens when many more people show up at once — so we turn from reliability to scalability, starting with [[Describing Load]], which gives us the vocabulary to measure how much work a system is being asked to do.

@@ -6,13 +6,13 @@ tags: [ddia, maintainability, simplicity, abstraction, complexity]
 ---
 # Simplicity - Managing Complexity
 
-## Recap — Where We Just Were   (bridge from [[Operability - Making Life Easy for Operations]])
+## Recap — Where We Just Were
 
 Last time we looked at **operability** — making the humans who run a system have an easy life. A big part of that was making the system *understandable*, so operators can see what it is doing.
 
 Now we go one level deeper. If understandability helps operators, why is it so hard to build understandable software in the first place? The answer is **complexity** — and this note is about where complexity comes from and how to fight it.
 
-## Level 1 — The Big Idea   (accidental vs essential complexity + analogy + ONE mermaid diagram)
+## Level 1 — The Big Idea
 
 Small software projects can be delightfully clear. But as they grow, they tend to rot into what Foote and Yoder called a **big ball of mud** — a tangled mess where every change is slow and scary.
 
@@ -29,7 +29,7 @@ graph TD
   C --> D[The enemy we remove]
 ```
 
-## Level 2 — How It Actually Works   (symptoms of complexity from the note; abstraction as the antidote + ONE mermaid diagram)
+## Level 2 — How It Actually Works
 
 First, how do you *spot* accidental complexity? By its symptoms:
 
@@ -52,7 +52,7 @@ graph LR
   B --> C[Messy details hidden below]
 ```
 
-## Level 3 — See It With Real Numbers   (a concrete before/after scenario)
+## Level 3 — See It With Real Numbers
 
 Let's make "special cases" concrete with an illustrative example.
 
@@ -68,9 +68,9 @@ Same feature. The essential complexity (dates really are different across countr
 
 These numbers are illustrative, but the shape is real: good abstractions turn many special cases into one path plus data.
 
-## Level 4 — In the Real World and Common Traps   (named example + misconceptions)
+## Level 4 — In the Real World and Common Traps
 
-**Named example:** SQL is the star. Millions of programs share this one abstraction, so a speed or safety improvement inside a database engine quietly benefits all of them at once. That is abstraction paying off twice.
+**Named example:** SQL is the star. Countless programs share this one abstraction, so a speed or safety improvement inside a database engine quietly benefits all of them at once. That is abstraction paying off twice.
 
 Now the traps:
 
@@ -80,7 +80,7 @@ Now the traps:
 
 - **People think "simple" is the same as "easy" or "small."** Actually simple implementation and a simple user interface are *different targets*. A system can be simple inside while presenting a rich interface outside, or vice versa. Don't confuse the two.
 
-## Check Yourself   (memory hook + 3 Q/A)
+## Check Yourself
 
 **Memory hook:** *Essential complexity is the mountain. Accidental complexity is the mud you tracked in. Abstraction is the mop.*
 

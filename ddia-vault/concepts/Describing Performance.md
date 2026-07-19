@@ -6,10 +6,10 @@ tags: [ddia, scalability, percentiles, tail-latency, sla]
 ---
 # Describing Performance
 
-## Recap — Where We Just Were   (bridge from [[Describing Load]])
+## Recap — Where We Just Were
 In [[Describing Load]] we learned to put a *number* on how busy a system is — requests per second, reads per write, followers per user. Those are load parameters. But knowing the load only sets up the real question: when the load grows, what happens to the *quality* of the system? Does it slow down, and by how much? To answer honestly we need good ways to measure performance. That is this lesson.
 
-## Level 1 — The Big Idea   (response time vs throughput)
+## Level 1 — The Big Idea
 There are two main ways to measure performance, and they answer different questions.
 
 - **Throughput** — how *much* work gets done per unit of time. Records processed per second, or the total time to finish a big job. Batch systems (systems that chew through huge piles of data all at once) care about this.
@@ -26,7 +26,7 @@ graph LR
   Server -->|sends reply| Client
 ```
 
-## Level 2 — How It Actually Works   (why percentiles beat the average)
+## Level 2 — How It Actually Works
 Here is the trap. Send the *exact same* request many times and you get a *different* response time every time. Why? Background noise: the CPU switching between tasks, a lost network packet being resent, a garbage-collection pause (the system briefly stopping to clean up memory), even a rack of servers vibrating. So response time is not one number. It is a **distribution** — a spread of values.
 
 That means the **average** (mean) is a bad summary. The average tells you nothing about *how many* users had a bad time. A few very fast requests can hide a lot of slow ones.
@@ -52,7 +52,7 @@ Suppose ten requests came back with these response times, in milliseconds:
 
 The **average** is 187.5 ms. That sounds sluggish — but almost nobody actually waited that long. One unlucky request at 900 ms dragged it up.
 
-The **median (p50)** is fairer. Sort the list and look at the middle: it sits between 100 and 110, so about **105 ms** — the real typical experience.
+The **median (p50)** is fairer. Sort the list and look at the middle. With an even count of ten values, the two middle numbers are 100 and 110, so the exact median is their average, **105 ms** — the real typical experience.
 
 For the **p99**, pick the value at the 99% position. Here is the tiny idea in Python:
 
@@ -64,11 +64,11 @@ def percentile(values, p):
     return s[index]                 # 3. pick that value
 
 times = [80, 90, 95, 100, 100, 110, 120, 130, 150, 900]
-print(percentile(times, 0.50))  # 110  -> the median-ish middle
+print(percentile(times, 0.50))  # 110  -> nearest-rank pick for p50
 print(percentile(times, 0.99))  # 900  -> the tail shows up
 ```
 
-See what happened? The average (187 ms) *hid* the 900 ms straggler by blending it in. The p99 (900 ms) *exposes* it. That straggler is exactly the customer having a bad day — and the average pretended they did not exist.
+This simple "nearest-rank" method just picks one stored value, so for p50 it lands on **110** (the sixth of ten) rather than the exact **105 ms** median we computed above — close enough for spotting the tail, and real percentile libraries handle the in-between case for you. See what happened? The average (187 ms) *hid* the 900 ms straggler by blending it in. The p99 (900 ms) *exposes* it. That straggler is exactly the customer having a bad day — and the average pretended they did not exist.
 
 ## Level 4 — In the Real World and Common Traps
 The book's key example: **Amazon watches p999** — the slowest 1 in 1,000 requests. Why such a rare slice? Because the slowest requests usually belong to customers with the *most* data in their account — the biggest, most valuable buyers. Amazon found +100 ms of response time cut sales by about 1%; elsewhere a 1-second slowdown cut a satisfaction score by 16%. But they stopped at p999 and did *not* chase p9999 — out at that extreme, random noise dominates and the returns stop being worth it.

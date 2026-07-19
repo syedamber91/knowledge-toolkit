@@ -6,10 +6,10 @@ tags: [ddia, maintainability, evolvability, agility]
 ---
 # Evolvability - Making Change Easy
 
-## Recap — Where We Just Were   (bridge from [[Simplicity - Managing Complexity]])
+## Recap — Where We Just Were
 Last time, in [[Simplicity - Managing Complexity]], we saw that a system stays healthy when we fight off *accidental complexity* — the tangled mess that piles up over time and isn't part of the actual problem. We do that with good **abstractions** (an abstraction is a clean handle that hides messy details behind it). Now we cash in that work. Why do we bother keeping systems simple? Because tomorrow we will have to change them. This lesson is about that: making change easy. Kleppmann calls it **evolvability**.
 
-## Level 1 — The Big Idea   (why change is constant + analogy + ONE mermaid diagram)
+## Level 1 — The Big Idea
 Here is the uncomfortable truth: a system's requirements almost never stay fixed. Something always shifts. You learn a new fact. A use case nobody imagined shows up. The business changes its priorities. Users demand features. A platform you depend on gets replaced. A new law or regulation lands. And growth itself forces you to rebuild parts of the system.
 
 So a system that is hard to change becomes a **liability** — a burden that costs you — no matter how fast or reliable it is today.
@@ -25,7 +25,7 @@ graph LR
     R --> E[System must adapt]
 ```
 
-## Level 2 — How It Actually Works   (how simplicity and abstraction make change easy; agility at data-system scale, from the note + ONE mermaid diagram)
+## Level 2 — How It Actually Works
 So how do you get evolvability? Two levels matter, and they are different.
 
 **Local level (small scale).** The Agile world — a way of working that expects constant change — gives us technical tools like **TDD** (test-driven development: write the test first, then the code) and **refactoring** (reshaping code without changing what it does). These are great, but they usually operate on a few source files inside *one* application.
@@ -41,7 +41,7 @@ graph TD
     C[Complex system] --> B[Break when changed]
 ```
 
-## Level 3 — See It With Real Numbers   (a concrete change scenario, e.g. adding a feature that touches a schema; illustrative labelled example is fine)
+## Level 3 — See It With Real Numbers
 Let's make "change is hard at system scale" concrete with the book's own example: Twitter's home timeline.
 
 Recall from [[Describing Load]] that Twitter had two designs. **Approach 1** merges tweets at read time. **Approach 2** does the work at write time: when you tweet, it fans your tweet out into every follower's precomputed timeline. Now imagine migrating from Approach 1 to Approach 2 while running.
@@ -53,7 +53,7 @@ Illustrative numbers:
 
 That last point is the lesson. This is **not** a "rename this function" refactor. It is a live rearchitecting of data flows under production load. TDD and a tidy codebase help, but they don't hand you this for free. This is the kind of change an evolvable system has to *permit* — and why system-level agility is its own hard problem.
 
-## Level 4 — In the Real World and Common Traps   (named example + 2-3 misconceptions as: People think X. Actually Y.)
+## Level 4 — In the Real World and Common Traps
 **Named example:** The Twitter timeline migration (Approach 1 to Approach 2) is the book's flagship case of a *system-scale refactoring* — reshaping data flow across services, not editing one file.
 
 **People think evolvability is just a nicer word for good code.** Actually it is a distinct, first-class design goal, and Kleppmann deliberately names it — over alternatives like *extensibility*, *modifiability*, or *plasticity* — because it describes agility at the whole-system level, not clean code in one place.
@@ -62,7 +62,7 @@ That last point is the lesson. This is **not** a "rename this function" refactor
 
 **People think building perfectly for today's requirements is the smart move.** Actually optimizing purely for today bakes in assumptions that tomorrow invalidates — the same trap as scaling an architecture built on wrong load assumptions. Since requirements always change, leaving room to change is the smart move.
 
-## Check Yourself   (memory hook + EXACTLY 3 **Q:**/**A:**)
+## Check Yourself
 **Memory hook:** *Simple bends, complex breaks — and requirements never stop changing.*
 
 **Q:** What does evolvability mean, and why the special word?
@@ -74,11 +74,11 @@ That last point is the lesson. This is **not** a "rename this function" refactor
 **Q:** Why is migrating Twitter's timeline design not just "refactoring"?
 **A:** It re-plumbs how data flows across a live system serving millions of users, not a rename inside one codebase. It is a system-scale change that only an evolvable system permits.
 
-## Connects To   (wikilinks from allowed list — this closes the Chapter 1 concepts, so also link back to [[Ch01 - Reliable, Scalable, Maintainable Applications]])
+## Connects To
 - [[Simplicity - Managing Complexity]] — simplicity is evolvability's precondition.
 - [[Operability - Making Life Easy for Operations]] — the third pillar of maintainability.
 - [[Describing Load]] — the Twitter timeline migration referenced here.
 - [[Ch01 - Reliable, Scalable, Maintainable Applications]] — this closes the Chapter 1 concepts.
 
-## Coming Up Next   (point to [[Ch02 - Data Models and Query Languages]] and say Chapter 2's concepts come next)
+## Coming Up Next
 That wraps Chapter 1's ideas. Next up is [[Ch02 - Data Models and Query Languages]] — Chapter 2's concepts come next, where we look at *how* we shape and query the data itself.

@@ -6,11 +6,11 @@ tags: [ddia, scalability, load-parameters, fan-out]
 ---
 # Describing Load
 
-## Recap — Where We Just Were   (bridge from [[How Important Is Reliability]])
+## Recap — Where We Just Were
 
 Last time we asked how much a system should fight to keep working when parts of it break — that was reliability. But there's a second question a growing system has to answer: what happens when *more people show up*? A system can be perfectly reliable at 1,000 users and fall over at 1,000,000. Before we can even talk about growth, we need a way to describe how busy a system is right now. That's what this lesson is about.
 
-## Level 1 — The Big Idea   (what a load parameter is + analogy)
+## Level 1 — The Big Idea
 
 Imagine your friend asks, "Will your bike hold up if the load doubles?" You can't answer that until you know what "load" means. Twice as many bags? Twice the distance? Twice the passengers? Each one stresses a different part of the bike.
 
@@ -25,7 +25,7 @@ graph LR
   C --> D[Now the question is answerable]
 ```
 
-## Level 2 — How It Actually Works   (Twitter fan-out, write-path vs read-path)
+## Level 2 — How It Actually Works
 
 The book's worked example is Twitter. Twitter has two core operations. **Posting a tweet** writes something once. **Reading your home timeline** — the merged feed of everyone you follow — happens far more often. You'd think posting volume is the hard part, but it isn't. The hard part is **fan-out**.
 
@@ -55,7 +55,7 @@ These are Twitter's figures from November 2012.
 | Posting a tweet (peak) | above 12,000 requests/sec |
 | Reading home timelines | 300,000 requests/sec |
 
-Notice the gap: reads (300k/sec) beat writes (4.6k/sec) by nearly two orders of magnitude — roughly 100 times more. That's *why* moving the work to write-time pays off. You do the extra work on the rare event (posting) so the common event (reading) stays fast.
+Notice the gap: reads (300k/sec) beat writes (4.6k/sec) by nearly two orders of magnitude — about 65 times more (300,000 ÷ 4,600 ≈ 65). That's *why* moving the work to write-time pays off. You do the extra work on the rare event (posting) so the common event (reading) stays fast.
 
 But approach 2 has a cost. Each tweet must be copied into every follower's cache. At about **75 followers per average tweet**, the write load explodes:
 
@@ -63,14 +63,14 @@ But approach 2 has a cost. Each tweet must be copied into every follower's cache
 4,600 tweets/sec  ×  ~75 followers  ≈  345,000 timeline-cache writes/sec
 ```
 
-That's write **amplification** — one action multiplied into hundreds. And 75 is only the *average*. Some accounts have **over 30 million followers**, so a single celebrity tweet can trigger **30 million or more** cache writes — and Twitter aims to deliver tweets within about **5 seconds**. That single tweet is a monster hiding inside a calm-looking average.
+That's write **amplification** — one action multiplied into dozens (about 75 times here). And 75 is only the *average*. Some accounts have **over 30 million followers**, so a single celebrity tweet can trigger **30 million or more** cache writes — and Twitter aims to deliver tweets within about **5 seconds**. That single tweet is a monster hiding inside a calm-looking average.
 
 ## Level 4 — In the Real World and Common Traps
 
 Twitter's real answer is a **hybrid**. Most users get write-time fan-out (approach 2). But a handful of celebrities are *exempted* — their tweets are fetched and merged at read time (approach 1) instead of being blasted into 30 million mailboxes. Each user gets the design that suits them.
 
 - **People think** the load parameter is "tweets per second." **Actually** the decisive parameter is the *distribution of followers per user*, weighted by how often they tweet. The raw rate hides the celebrity spike that actually breaks things.
-- **People think** more writes is always worse than more reads. **Actually** it depends on the ratio: because reads outnumbered writes ~100 to 1, deliberately *adding* write work to save read work was the smart trade.
+- **People think** more writes is always worse than more reads. **Actually** it depends on the ratio: because reads outnumbered writes by roughly 65 to 1, deliberately *adding* write work to save read work was the smart trade.
 - **People think** an average tells you the whole story. **Actually** averages can hide huge skew. A 30-million-follower account and a 10-follower account both count as "one tweet," but they are not remotely the same load.
 
 ## Check Yourself
@@ -81,7 +81,7 @@ Twitter's real answer is a **hybrid**. Most users get write-time fan-out (approa
 **A:** A concrete number that describes how busy a system is (like requests/sec or read/write ratio), chosen so it captures the real bottleneck.
 
 **Q:** Why did Twitter shift work from read time to write time?
-**A:** Timeline reads (300k/sec) outnumbered tweet posts (4.6k/sec) by roughly 100×, so doing the merging once at write time makes the far-more-common read cheap.
+**A:** Timeline reads (300k/sec) outnumbered tweet posts (4.6k/sec) by about 65×, so doing the merging once at write time makes the far-more-common read cheap.
 
 **Q:** Why is "followers per user" a better load parameter than "tweets per second"?
 **A:** Because fan-out cost depends on followers, and follower counts are wildly skewed — a 30M-follower celebrity tweet creates 30M+ writes that a simple tweet rate completely hides.
