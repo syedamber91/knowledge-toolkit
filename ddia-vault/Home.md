@@ -44,7 +44,7 @@ graph TD
 
 ## Part I — Foundations of Data Systems
 
-- [[Ch01 - Reliable, Scalable, Maintainable Applications]] — the scorecard for every system.
+- [[Ch01 - Reliable, Scalable, Maintainable Applications]] — the scorecard for every system. *(also broken into 10 bite-size [[Ch01 - Concept Map|concept lessons]])*
 - [[Ch02 - Data Models and Query Languages]] — relational vs document vs graph.
 - [[Ch03 - Storage and Retrieval]] — LSM-trees, B-trees, OLTP vs OLAP.
 - [[Ch04 - Encoding and Evolution]] — changing your data format without breaking things.

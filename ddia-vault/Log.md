@@ -12,6 +12,10 @@ Unlike [[Home]] (which shows only the *current* state), this log records *when*
 things changed. Newest entries go at the top. The count in parentheses is the
 running total of chapter lessons in the vault.
 
+- **2026-07-19** — 10 new concept lesson(s) captured for Chapter 1, grounded in the
+  source wiki notes (Reliability, Scalability, Maintainability sub-topics), plus a
+  [[Ch01 - Concept Map]] index. The chapter-by-chapter concept build starts here.
+  **(22 total)**
 - **2026-07-18** — 12 chapter lesson(s) already in vault (log started here). Backfill
   entry: the DDIA course was built in one pass — Phase 0 methodology, Phase 1 roadmap,
   and one laddered lesson for each of the 12 chapters of *Designing Data-Intensive

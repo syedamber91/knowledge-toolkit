@@ -136,6 +136,7 @@ Memory hook: RSM = the report card of every data system.
 
 ## Connects To
 
+- [[Ch01 - Concept Map]] — this chapter broken into 10 bite-size concept lessons (grounded in the source notes).
 - [[01 - Roadmap]] — where this chapter sits in the whole course.
 - [[Home]] — the vault index.
 - [[Ch05 - Replication]] — redundancy, a core reliability tactic, in depth.
