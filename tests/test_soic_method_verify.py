@@ -1,5 +1,5 @@
 from soic_method.models import Citation, LessonRecord, Rule, Span, ValueRange
-from soic_method.verify import verify_rule
+from soic_method.verify import _extract_numbers, verify_rule
 
 BODY = (
     "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
@@ -543,3 +543,150 @@ def test_threshold_rule_with_operator_none_still_rejected_as_unhandled():
     res = verify_rule(_rule(kind="threshold", operator=None, value=18), _lessons())
     assert not res.ok
     assert any("unhandled operator" in x for x in res.reasons)
+
+
+# --- Regression tests for task-5-review.md round 4, Critical-1 --------------
+# Round 4's own diagnosis: the bare `-?\d+...` in `_NUMBER_RE` always reads a
+# leading "-" as a sign, so a dash-separated range ("15-20%") has its second
+# number parsed as -20.0 instead of +20.0 -- the dash is consumed as part of
+# the second number instead of read as a range separator. Corpus-confirmed at
+# ~3,300+ occurrences (percent/crore/"times" ranges), the single most common
+# numeric shape in this corpus. Fixed with `(?<!\d)` on the sign so it only
+# fires when NOT directly preceded by a digit (i.e. when it cannot be a range
+# separator between two digit-runs).
+
+RANGE_DASH_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[01:10:00] we want to see growth of 15-20% for compounders every single year\n"
+    "[01:10:20] anyway moving on to the next topic entirely.\n"
+)
+RANGE_DASH_QUOTE = "we want to see growth of 15-20% for compounders every single year"
+
+
+def _range_dash_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=RANGE_DASH_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _range_dash_span():
+    s = RANGE_DASH_BODY.index(RANGE_DASH_QUOTE)
+    return Span(start=s, end=s + len(RANGE_DASH_QUOTE))
+
+
+def test_extract_numbers_reads_dash_range_as_two_positive_numbers():
+    # Direct unit check of the regex fix: "15-20%" must extract as
+    # [15.0, 20.0], not [15.0, -20.0].
+    assert set(_extract_numbers("growth of 15-20% for compounders")) == {15.0, 20.0}
+
+
+def test_extract_numbers_still_reads_standalone_negative_correctly():
+    # Companion no-regression check: round 3's genuine standalone negative
+    # ("fell to -5%") must still parse as -5.0, not be broken by the new
+    # lookbehind (the "-" here is preceded by a space, not a digit, so the
+    # sign reading must still apply).
+    assert _extract_numbers("fell to -5% for the quarter") == [-5.0]
+
+
+def test_graded_range_rule_citing_real_dash_range_now_passes():
+    # The exact scenario task-5-review.md round 4 built and reproduced as
+    # failing: a graded-tier value_range={min:15,max:20} rule citing a real
+    # span containing "15-20%". Pre-fix this was rejected with "range bound
+    # 20 absent from span" because 20 was never extracted (only -20 was).
+    r = _rule(
+        tier="graded", kind="range", operator=None, value=None,
+        value_range=ValueRange(min=15, max=20),
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="01:10:00",
+                            span=_range_dash_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _range_dash_lessons())
+    assert res.ok
+
+
+def test_scalar_value_as_second_bound_of_dash_range_now_passes():
+    # Same defect, scalar-value call site: a rule claiming the SECOND number
+    # of a spoken dash range (value=20 against "...15-20%...") was also
+    # falsely rejected pre-fix, because that number only ever existed in
+    # extracted form as -20.0. Uses operator="eq" (no directional language
+    # in the span either way) so this isolates the value check, matching
+    # the pattern of the other scalar-value regression tests above.
+    r = _rule(
+        operator="eq", value=20,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="01:10:00",
+                            span=_range_dash_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _range_dash_lessons())
+    assert res.ok
+
+
+# --- Regression tests for task-5-review.md round 4, Critical-2 --------------
+# spec-design.md:344 requires Gate 1's value check to accept "digits or
+# spelled form"; `_NUMBER_RE` only ever matched digit literals. Corpus-
+# confirmed at 500+ occurrences of single-word spelled numbers directly
+# adjacent to percent/crore/lakh/times. Fixed with a narrow word-number
+# lexicon (`_WORD_NUMBERS`/`_extract_word_numbers`) feeding the same
+# float-comparison logic as digit extraction.
+
+SPELLED_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[01:20:00] we would never touch a business with less than eighteen percent ROC frankly\n"
+    "[01:20:20] anyway moving on to the next topic entirely.\n"
+)
+SPELLED_QUOTE = "we would never touch a business with less than eighteen percent ROC frankly"
+
+
+def _spelled_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=SPELLED_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _spelled_span():
+    s = SPELLED_BODY.index(SPELLED_QUOTE)
+    return Span(start=s, end=s + len(SPELLED_QUOTE))
+
+
+def test_extract_numbers_reads_spelled_out_number():
+    # Direct unit check: "eighteen" must extract as 18.0 alongside any
+    # digit-form numbers in the same span.
+    assert 18.0 in _extract_numbers("less than eighteen percent roc frankly")
+
+
+def test_claimed_value_against_spelled_out_number_now_passes():
+    # The exact scenario task-5-review.md round 4 built and reproduced as
+    # failing: value=18 against a real span whose ONLY textual evidence is
+    # the spelled-out word "eighteen". Pre-fix this was rejected with
+    # "value 18 absent from span" even though the citation is genuine.
+    r = _rule(
+        operator="lte", value=18,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="01:20:00",
+                            span=_spelled_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _spelled_lessons())
+    assert res.ok
+
+
+def test_extract_numbers_reads_hundred_thousand_compounds():
+    # The narrow lexicon's only multi-word case: a number word directly
+    # followed by "hundred"/"thousand" composes into one value.
+    assert _extract_numbers("we raised one hundred crore last year") == [100.0]
+    assert _extract_numbers("issued two thousand shares to staff") == [2000.0]
+
+
+def test_extract_numbers_does_not_compose_beyond_hundred_thousand():
+    # Documented scope boundary: "sixty three hundred" (tens + ones +
+    # multiplier, the review's own corpus example) is a three-word compound
+    # the narrow lexicon deliberately does not attempt to read as 6300 -- it
+    # only composes a SINGLE number word with an immediately-following
+    # multiplier. "sixty" extracts standalone (60.0); "hundred" attaches to
+    # the word directly before it ("three"), giving 300.0 -- two separate
+    # values, neither of which is the spoken 6300.
+    nums = _extract_numbers("gross block of sixty three hundred crores")
+    assert 60.0 in nums and 300.0 in nums
+    assert 6300.0 not in nums

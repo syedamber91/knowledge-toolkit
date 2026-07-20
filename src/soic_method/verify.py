@@ -62,11 +62,98 @@ def _value_forms(value: float) -> List[str]:
 # (thousand-grouping -- the real corpus routinely writes crore/lakh
 # figures this way, e.g. "1,020 crore", "2,428 crores"), and an optional
 # decimal tail (e.g. "18.5"). Commas are stripped before ``float()``.
-_NUMBER_RE = re.compile(r"-?\d+(?:,\d+)*(?:\.\d+)?")
+#
+# The leading `-?` is guarded by `(?<!\d)` (task-5-review.md round 4,
+# Critical-1): a bare `-?\d+...` unconditionally reads a `-` as a sign,
+# which is wrong for the corpus's single most common numeric shape --
+# dash-separated ranges ("15-20%", "15-20 times", "20-25 crore", ~3,300+
+# occurrences). Without the guard, "15-20%" extracts as [15.0, -20.0]:
+# the dash between the two digit-runs is consumed as the second number's
+# sign instead of read as a range separator, so a genuinely-cited
+# `value_range={min:15,max:20}` rule is falsely rejected because +20.0
+# was never actually extracted. `(?<!\d)` fires the sign reading only
+# when the `-` is NOT immediately preceded by a digit -- i.e. only when
+# it cannot be a range separator between two digit-runs. A standalone
+# negative like "fell to -5%" is unaffected: the character before that
+# `-` is a space, not a digit, so the lookbehind still allows the sign.
+# Verified directly for the range/negative/mixed cases the review named:
+#   "15-20%"      -> [15.0, 20.0]   (dash = range separator)
+#   "-5%"         -> [-5.0]         (dash = genuine sign)
+#   "18,000"      -> [18000.0]      (round 3, comma grouping unaffected)
+# Known residual (documented, not required by this round's task, and out
+# of the explicit `(?<!\d)` scope the review specified): "20%-25%" still
+# extracts the second bound as -25.0, because that dash is preceded by
+# `%`, not a digit, so the lookbehind doesn't catch it. Corpus-rare next
+# to the digit-adjacent case (~35 vs ~3,300+ occurrences) -- see
+# task-5-report.md residual-limitations section.
+_NUMBER_RE = re.compile(r"(?<!\d)-?\d+(?:,\d+)*(?:\.\d+)?")
+
+# Narrow, explicit spelled-out-number lexicon (task-5-review.md round 4,
+# Critical-2 / spec-design.md:344 "digits or spelled form"). Deliberately
+# scoped to what the task calls for and no further: the cardinals one
+# through twenty, the round tens, and hundred/thousand ONLY when directly
+# following one of those words ("one hundred", "two thousand"). This is
+# NOT a general natural-language number parser -- see the "Do NOT
+# attempt" list in the module-level extraction helpers below and the
+# residual-limitations section of task-5-report.md for what is
+# deliberately left out (fractions, half/double/triple, lakh/crore as
+# multipliers, and multi-word compounds beyond a single number+multiplier
+# pair such as "twenty five" or "sixty three hundred").
+_ONES_TEENS_TWENTY: Dict[str, int] = {
+    "one": 1, "two": 2, "three": 3, "four": 4, "five": 5,
+    "six": 6, "seven": 7, "eight": 8, "nine": 9, "ten": 10,
+    "eleven": 11, "twelve": 12, "thirteen": 13, "fourteen": 14,
+    "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18,
+    "nineteen": 19, "twenty": 20,
+}
+_ROUND_TENS: Dict[str, int] = {
+    "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60,
+    "seventy": 70, "eighty": 80, "ninety": 90,
+}
+_WORD_NUMBERS: Dict[str, int] = {**_ONES_TEENS_TWENTY, **_ROUND_TENS}
+_MULTIPLIER_WORDS: Dict[str, int] = {"hundred": 100, "thousand": 1000}
+
+# `\b` on both ends of the number-word group. Python's `re` backtracks on
+# alternation, so a prefix relationship between two alternatives (e.g.
+# "seven" is a literal prefix of "seventeen") is still resolved correctly
+# regardless of listing order: matching "seven" inside "seventeen" fails
+# the trailing `\b` (no boundary between the "n" of "seven" and the "t" of
+# "teen"), so the engine backtracks and tries "seventeen" instead. The
+# optional trailing multiplier also requires its own `\b`, so "hundreds"
+# (plural) does not get folded into the multiplier -- only the exact word.
+_WORD_NUMBER_RE = re.compile(
+    r"\b(" + "|".join(_WORD_NUMBERS) + r")\b(?:\s+(hundred|thousand)\b)?"
+)
+
+
+def _extract_word_numbers(norm: str) -> List[float]:
+    """Spelled-out cardinal numbers in ``norm``, parsed to float.
+
+    Feeds the same float-comparison logic as ``_extract_numbers`` below,
+    per the round-4 task brief ("combine these into a number the same way
+    `_extract_numbers` currently extracts digit literals"). Deliberately
+    does NOT require adjacency to a unit word (percent/crore/lakh/...) --
+    this mirrors the existing digit-extraction behaviour, which also
+    matches a bare digit anywhere in the span with no unit-adjacency
+    requirement. That symmetry does carry a modest false-accept risk this
+    round does not attempt to close: common English words like "one",
+    "two", "six", "ten" can appear as ordinary language (not a numeric
+    claim at all), so a low-integer rule value could in principle match a
+    coincidental, non-numeric occurrence of its word form. Digit literals
+    don't have this problem (a bare "18" in prose is already a number).
+    See task-5-report.md residual-limitations section.
+    """
+    out: List[float] = []
+    for m in _WORD_NUMBER_RE.finditer(norm):
+        base = _WORD_NUMBERS[m.group(1)]
+        mult = m.group(2)
+        out.append(float(base * _MULTIPLIER_WORDS[mult]) if mult else float(base))
+    return out
 
 
 def _extract_numbers(norm: str) -> List[float]:
-    """Every complete numeric literal in ``norm``, parsed to float.
+    """Every complete numeric literal in ``norm`` -- digit or spelled-out
+    form -- parsed to float.
 
     Structural fix (task-5-review.md round 3) replacing boundary-anchored
     substring search (`(?<![\\d.])<form>(?![\\d.])`) with number
@@ -85,6 +172,10 @@ def _extract_numbers(norm: str) -> List[float]:
     surrounds it. Exact float equality is deliberate and sufficient here
     -- these are transcript numbers being matched against a claimed
     citation value, not computed results with rounding error.
+
+    Round 4 adds ``_extract_word_numbers`` alongside the digit regex so a
+    claimed value can match either surface form the design spec requires
+    (spec-design.md:344, "digits or spelled form").
     """
     out: List[float] = []
     for m in _NUMBER_RE.finditer(norm):
@@ -92,6 +183,7 @@ def _extract_numbers(norm: str) -> List[float]:
             out.append(float(m.group(0).replace(",", "")))
         except ValueError:
             continue
+    out.extend(_extract_word_numbers(norm))
     return out
 
 
