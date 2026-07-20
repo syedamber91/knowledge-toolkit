@@ -80,8 +80,14 @@ def extract_rules(
     except (ValueError, TypeError):
         return []
 
+    if not isinstance(payload, dict):
+        return []
+    raw_rules = payload.get("rules")
+    if not isinstance(raw_rules, list):
+        return []
+
     out: List[Rule] = []
-    for raw in payload.get("rules", []) or []:
+    for raw in raw_rules:
         try:
             start, end = int(raw["start"]), int(raw["end"])
         except (KeyError, TypeError, ValueError):

@@ -84,3 +84,19 @@ def test_rule_key_inside_the_vocabulary_is_kept():
         "start": s, "end": s + len(QUOTE),
     }]}), rule_keys=["screen.roc.floor"])
     assert rules[0].rule_key == "screen.roc.floor"
+
+
+def test_extract_returns_empty_when_llm_returns_bare_json_array():
+    assert extract_rules(_lesson(), _cand(), lambda p: "[]") == []
+
+
+def test_extract_returns_empty_when_llm_returns_json_null():
+    assert extract_rules(_lesson(), _cand(), lambda p: "null") == []
+
+
+def test_extract_returns_empty_when_rules_key_is_not_a_list_int():
+    assert extract_rules(_lesson(), _cand(), lambda p: '{"rules": 123}') == []
+
+
+def test_extract_returns_empty_when_rules_key_is_not_a_list_bool():
+    assert extract_rules(_lesson(), _cand(), lambda p: '{"rules": true}') == []
