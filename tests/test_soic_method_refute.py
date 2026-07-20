@@ -78,6 +78,18 @@ def test_fails_closed_when_no_citations():
     assert refute(rule, _lessons(), lambda p: json.dumps({"refuted": False})) is False
 
 
+def test_fails_closed_when_llm_callback_raises():
+    # The llm() call itself can fail (API timeout, rate limit, provider SDK
+    # error) -- a realistic production failure mode, arguably more likely
+    # than the model returning syntactically-broken JSON. refute() must not
+    # let that exception propagate; it must fail closed like every other
+    # malformed/ambiguous response.
+    def _raising_llm(prompt):
+        raise RuntimeError("simulated API failure")
+
+    assert refute(_rule(), _lessons(), _raising_llm) is False
+
+
 # --- Walmart "ten years / over 30 times" construction ---------------------
 # Carried forward from task-5-review.md (Round 6) / progress.md's explicit
 # "CARRY FORWARD TO TASK 8" note: a real, hash-verified span from the lesson

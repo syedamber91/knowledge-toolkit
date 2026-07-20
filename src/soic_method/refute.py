@@ -78,7 +78,11 @@ def refute(
     if lesson is None:
         return False
     try:
-        payload = json.loads(llm(build_refute_prompt(rule, lesson)))
+        raw = llm(build_refute_prompt(rule, lesson))
+    except Exception:
+        return False           # fail closed: the llm call itself failed
+    try:
+        payload = json.loads(raw)
     except (ValueError, TypeError):
         return False           # fail closed
     if not isinstance(payload, dict) or "refuted" not in payload:
