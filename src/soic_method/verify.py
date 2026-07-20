@@ -56,14 +56,23 @@ def _value_forms(value: float) -> List[str]:
 def _value_present(value: float, norm: str) -> bool:
     """Whether any surface form of ``value`` appears as its own token.
 
-    Same \\b-boundary fix as `_direction_present`/router.py's
-    `_METRIC_PATTERNS`: digits are `\\w` characters, so a plain substring
-    check (`"8" in "18%"`) would wrongly treat a short claimed value as
-    present just because it happens to be a digit-substring of the real
-    number in the span.
+    Boundary excludes adjacent digits AND decimal points on both sides
+    (task-5-review.md New-Critical-2, second round). A plain `\\b`
+    boundary treats "." as a valid boundary character (it is non-`\\w`),
+    so a claimed integer value that is a true digit-*prefix* of a real
+    decimal number in the span -- e.g. claimed 18 against a real span
+    saying "18.5 times earnings" -- would still match `\\b18\\b` (the
+    transition from "8" to "." is a `\\w`-to-non-`\\w` boundary). Using
+    `(?<![\\d.])`/`(?![\\d.])` instead rejects a digit *or* a decimal
+    point immediately adjacent, so "18" embedded in "18.5" or "118" is
+    correctly excluded, while a genuine standalone "18" -- including
+    followed by "%" or a space -- still matches. This is deliberately
+    NOT applied to `_direction_present`'s word-token matching above,
+    which is about words, not numbers, and isn't affected by this
+    decimal-adjacency issue.
     """
     return any(
-        re.search(r"\b" + re.escape(form) + r"\b", norm)
+        re.search(r"(?<![\d.])" + re.escape(form) + r"(?![\d.])", norm)
         for form in _value_forms(value)
     )
 
@@ -127,11 +136,39 @@ def verify_rule(rule: Rule, lessons: Dict[str, LessonRecord]) -> VerifyResult:
                     "malformed rule: kind %r has neither value nor value_range" % rule.kind
                 )
 
-            # 4. comparative direction must match the operator
-            if rule.operator in DIRECTION_TOKENS:
+            # 4. comparative direction must match the operator. Explicit
+            # allow-list decision (task-5-review.md New-Critical-1), not
+            # implicit dict-membership fallthrough: the old
+            # `if rule.operator in DIRECTION_TOKENS:` silently skipped this
+            # entire check -- no reason emitted either way -- for any
+            # operator the dict didn't cover, and "eq" (a first-class,
+            # model-valid value in `models.OPERATORS`) was exactly such an
+            # operator, so every eq-operator rule got zero directional
+            # verification for free.
+            if rule.operator == "eq":
+                # Equality has no natural "wrong direction" the way
+                # lte/gte do -- a wrong eq value is just a wrong value,
+                # already caught by the value-presence check above. This
+                # is a deliberate, explicit exemption, NOT a fallthrough:
+                # it exists because we decided eq needs no directional
+                # language, not because "eq" happens to be absent from
+                # DIRECTION_TOKENS.
+                pass
+            elif rule.operator in DIRECTION_TOKENS:
                 if not _direction_present(rule.operator, norm):
                     reasons.append(
                         "direction mismatch: no %s token in span" % rule.operator
                     )
+            else:
+                # Any operator that is neither "eq" nor a DIRECTION_TOKENS
+                # key -- unknown, malformed, or a future addition to
+                # Rule.OPERATORS this dict hasn't been taught -- must FAIL
+                # CLOSED rather than silently pass with no directional
+                # verification. This closes the whole "unhandled case
+                # silently falls through" bug class, not just today's "eq"
+                # instance.
+                reasons.append(
+                    "unhandled operator %r: no direction check defined" % rule.operator
+                )
 
     return VerifyResult(ok=not reasons, reasons=reasons)

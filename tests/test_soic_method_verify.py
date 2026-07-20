@@ -1,4 +1,4 @@
-from soic_method.models import Citation, LessonRecord, Rule, Span
+from soic_method.models import Citation, LessonRecord, Rule, Span, ValueRange
 from soic_method.verify import verify_rule
 
 BODY = (
@@ -198,3 +198,181 @@ def test_rejects_when_lesson_hash_is_empty():
     lessons["1"] = lessons["1"].model_copy(update={"text_hash": ""})
     res = verify_rule(_rule(), lessons)
     assert not res.ok and any("hash" in x for x in res.reasons)
+
+
+# --- Regression tests for task-5-review.md New-Critical-1 -------------------
+# operator="eq" is a valid model OPERATORS value (models.py) but has no
+# DIRECTION_TOKENS entry. The old `if rule.operator in DIRECTION_TOKENS:`
+# gate silently skipped check 4 entirely for "eq" -- zero directional
+# verification, no reason emitted either way. Fixed with an explicit
+# three-way branch: eq is deliberately exempted (no natural "wrong
+# direction" for equality), any OTHER unhandled operator now explicitly
+# rejects instead of falling through.
+
+def test_eq_operator_with_matching_value_passes():
+    # "eq" is deliberately exempted from directional-token matching (no
+    # natural "wrong direction" for equality) -- but the value check must
+    # still apply and still pass for a genuine match. Span says "18% ROC"
+    # (no equality language at all); claimed value=18, operator=eq should
+    # still pass overall because direction checking is N/A for eq, not
+    # because it was silently skipped due to a missing dict key.
+    res = verify_rule(_rule(operator="eq", value=18), _lessons())
+    assert res.ok
+
+
+def test_unhandled_operator_is_rejected_not_silently_passed():
+    # Any operator that is neither "eq" nor a DIRECTION_TOKENS key must
+    # FAIL CLOSED, proving the fallback branch fires rather than silently
+    # passing the way the pre-fix code did for every non-DIRECTION_TOKENS
+    # operator (including "eq"). Rule.operator isn't constrained by a
+    # pydantic Literal/validator to models.OPERATORS, so this exercises
+    # the fallback with a value outside that tuple -- standing in for any
+    # future operator this dict hasn't been taught yet. The claimed value
+    # (18) is genuinely present, isolating this to the direction/operator
+    # branch.
+    res = verify_rule(_rule(operator="ne", value=18), _lessons())
+    assert not res.ok
+    assert any("unhandled operator" in x for x in res.reasons)
+
+
+# --- Regression tests for task-5-review.md New-Critical-2 -------------------
+# The round-1 \b-boundary fix treats "." as a valid boundary character
+# (non-\w), so a claimed integer value that is a true digit-*prefix* of a
+# real decimal number in the span (e.g. claimed 18 vs real "18.5") still
+# matched `\b18\b`. Fixed with `(?<![\d.])`/`(?![\d.])` lookaround, which
+# also excludes an adjacent decimal point, not just an adjacent digit.
+
+DECIMAL_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[00:15:00] we would never buy a business trading above 18.5 times earnings okay\n"
+    "[00:15:20] anyway moving on to the next topic entirely.\n"
+)
+DECIMAL_QUOTE = (
+    "we would never buy a business trading above 18.5 times earnings okay"
+)
+
+
+def _decimal_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=DECIMAL_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _decimal_span():
+    s = DECIMAL_BODY.index(DECIMAL_QUOTE)
+    return Span(start=s, end=s + len(DECIMAL_QUOTE))
+
+
+def test_rejects_value_that_is_decimal_prefix_of_real_number():
+    # Span genuinely says "18.5 times earnings" (true value 18.5, not 18).
+    # Claimed value=18 is a true digit-prefix separated only by ".", which
+    # the round-1 \b fix wrongly treated as a valid boundary. Operator
+    # stays a real DIRECTION_TOKENS key ("gte", matching "above") so this
+    # isolates the value check specifically.
+    r = _rule(
+        operator="gte", value=18,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:15:00",
+                            span=_decimal_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _decimal_lessons())
+    assert not res.ok and any("value 18" in x for x in res.reasons)
+
+
+RANGE_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[00:20:00] historically we've paid between 15.2 and 25.9 times earnings for compounders\n"
+    "[00:20:20] anyway moving on to the next topic entirely.\n"
+)
+RANGE_QUOTE = (
+    "historically we've paid between 15.2 and 25.9 times earnings for compounders"
+)
+
+
+def _range_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=RANGE_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _range_span():
+    s = RANGE_BODY.index(RANGE_QUOTE)
+    return Span(start=s, end=s + len(RANGE_QUOTE))
+
+
+def test_rejects_value_range_bounds_that_are_decimal_prefixes():
+    # Same construction against the value_range bound-checking path (which
+    # calls the same `_value_present` helper): claimed bounds (15, 25) are
+    # digit-prefixes of the real decimals (15.2, 25.9) in the span.
+    r = _rule(
+        kind="range", operator=None, value=None,
+        value_range=ValueRange(min=15, max=25),
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:20:00",
+                            span=_range_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _range_lessons())
+    assert not res.ok
+    assert any("range bound 15" in x for x in res.reasons)
+    assert any("range bound 25" in x for x in res.reasons)
+
+
+def test_rejects_value_digit_adjacent_to_larger_integer_still_works():
+    # Confirms the ORIGINAL round-1 digit-adjacency fix still holds for a
+    # two-digit claimed value after the New-Critical-2 regex change: "18"
+    # embedded inside "118" (leading-digit adjacency, no decimal point
+    # involved) must still be rejected. Uses operator="eq" so only the
+    # value check is under test (direction is N/A for eq).
+    body = (
+        "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+        "[00:30:00] the promoter pledged 118 crore worth of shares last quarter\n"
+        "[00:30:20] anyway moving on to the next topic entirely.\n"
+    )
+    quote = "the promoter pledged 118 crore worth of shares last quarter"
+    s = body.index(quote)
+    lessons = {
+        "1": LessonRecord(lesson_id="1", course_title="c", module_title="m",
+                          title="t", url="u", body_text=body, text_hash=HASH,
+                          eligible=True)
+    }
+    r = _rule(
+        operator="eq", value=18,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:30:00",
+                            span=Span(start=s, end=s + len(quote)), text_hash=HASH)],
+    )
+    res = verify_rule(r, lessons)
+    assert not res.ok and any("value 18" in x for x in res.reasons)
+
+
+def test_standalone_percent_value_still_passes_no_regression():
+    # No-regression check: a genuine standalone "18%" (existing QUOTE/
+    # _lessons fixture) must still pass after tightening the boundary
+    # regex to also exclude adjacent decimal points.
+    assert verify_rule(_rule(value=18), _lessons()).ok
+
+
+def test_standalone_percent_word_value_still_passes_no_regression():
+    # Same, for the "18 percent" word form (space before "percent", no
+    # "%" sign, no decimal point anywhere nearby).
+    body = (
+        "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+        "[00:40:00] we want promoter pledge below 18 percent of holding always\n"
+        "[00:40:20] anyway moving on to the next topic entirely.\n"
+    )
+    quote = "we want promoter pledge below 18 percent of holding always"
+    s = body.index(quote)
+    lessons = {
+        "1": LessonRecord(lesson_id="1", course_title="c", module_title="m",
+                          title="t", url="u", body_text=body, text_hash=HASH,
+                          eligible=True)
+    }
+    r = _rule(
+        operator="lte", value=18,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:40:00",
+                            span=Span(start=s, end=s + len(quote)), text_hash=HASH)],
+    )
+    assert verify_rule(r, lessons).ok
