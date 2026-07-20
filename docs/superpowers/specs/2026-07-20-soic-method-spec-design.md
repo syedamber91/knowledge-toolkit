@@ -1,7 +1,8 @@
 # SOIC Method Spec — Design
 
 **Date:** 2026-07-20
-**Status:** Approved, ready for planning
+**Revision:** 3 (post-Fable adversarial review; empirical claims re-verified against corpus)
+**Status:** Approved in shape, pending final read
 **Stage:** 0 of 5 in the SOIC Investment Desk program
 **Repos:** built in `SOIC_Scraper`; published into `stock_analyzer`
 
@@ -11,440 +12,511 @@
 
 The goal is a SOIC-persona-driven **investment desk**: sector-first, running the
 full funnel from sector call → screen → shortlist → deep dive → tracked
-watchlist. That is far too large for one spec, so it decomposes into five
-stages. This document specifies **stage 0 only**.
-
-### The five stages, and what already exists
+watchlist. Too large for one spec; it decomposes into five stages. This
+document specifies **stage 0 only**.
 
 | Stage | Status in `stock_analyzer` |
 |---|---|
-| **0. The method itself** — what SOIC actually teaches | **Nothing.** 563 captured lessons unmined. `gem_33-36` are a second-hand approximation. |
-| **1. Sector map + sector call** (SOIC L6) | Rich plumbing (cycle, peer-comparison, competitive-intel, time-machine, sector gems), **no verdict layer**. |
-| **2. Screen → shortlist** (L5) | **Zero.** No screening surface exists anywhere. |
-| **3. Deep dive → verdict** (L2/L3) | Most mature: `tvgp_flow`, DCF engine, `overview_kpi` reconcile. Fidelity is the open question, not existence. |
-| **4. Hold/buy/sell monitoring** (L4) | Inputs exist (quarterly board, daily `price_recompute`, company intel). No watchlist object, no thesis-break triggers. |
+| **0. The method itself** | **Nothing.** 563 captured lessons unmined. `gem_33-36` are a second-hand approximation. |
+| **1. Sector map + sector call** (L6) | Rich plumbing, **no verdict layer**. |
+| **2. Screen → shortlist** (L5) | **Zero.** No screening surface exists. |
+| **3. Deep dive → verdict** (L2/L3) | Most mature: `tvgp_flow`, DCF engine, `overview_kpi` reconcile. |
+| **4. Hold/buy/sell monitoring** (L4) | Inputs exist; no watchlist object, no thesis-break triggers. |
 
 Stage 0 gates every other stage. Skipping it repeats the failure documented in
-`stock_analyzer`'s `docs/reviews/POLYCAB-GEM-OUTPUTS-SOIC-REVIEW.md`: a
-vibes-level version of SOIC encoded into prompts, discovered only downstream
-when the pillars contradict each other (`gem_35` printed five different current
-P/E values, three verdicts, and two mutually exclusive peak-earnings calls in a
-single document).
+`stock_analyzer`'s `docs/reviews/POLYCAB-GEM-OUTPUTS-SOIC-REVIEW.md`.
 
-### Source corpus
+**Note what kind of failure POLYCAB was:** "a vibes-level version of SOIC
+encoded into prompts" — a **rubric**-class failure, not a threshold-class one.
+Revision 3 corrects a serious imbalance in revisions 1–2, which gated the
+artifact that hadn't failed and left ungated the one that had. See
+*Rubric gates*.
+
+### Why this program is worth doing at all
+
+`poc/soic/POC_VERDICT.md` (verdict **GO**) lists among its honest limits:
+*"No valuation/market data — the notebook holds company filings, not price"*
+and *"No scuttlebutt / peer-node comparison."* `stock_analyzer` has exactly
+those: live prices in `stock_prices`, screener.in fundamentals in
+`quarterly_financials`, and a sector peer-comparison API surface.
+
+**The POC has the method and is blind to price; the platform has the price and
+is weak on method.** That complementarity is the case for the program, and it
+is why `binding` (below) matters more than it looks.
+
+`learning-vault-invest`'s CLAUDE.md already declares a Phase 2 "tracked in the
+`stock_analyzer` repo" (2a: upgrade `gems/*.md`; 2b: a `/soic` analyst agent).
+The five-stage desk *is* that Phase 2. Reconcile the naming during planning so
+two roadmaps do not diverge.
+
+---
+
+## Source corpus — and its defects
 
 `SOIC_Scraper/data/content.json` — 563 lessons, 14 courses, **~25M chars of
 transcript (~6.2M tokens)** in `body_text`, plus a **~2.9M char `ai_summary`
-layer** (one per lesson).
+layer**.
 
-| Course | Lessons w/ body | Body chars |
+### Measured corpus defects (verified 2026-07-20 — these drive the design)
+
+These are not hypothetical risks. Each was counted directly:
+
+| Defect | Measurement | Consequence |
 |---|---|---|
-| Level 6 — Become a Sectoral Expert | 116 | 7,326,899 |
-| SOIC Market Signals + StockScans | 53 | 3,281,921 |
-| Conversation with India's Super Investors | 25 | 2,957,210 |
-| Crash Course | 25 | 2,565,960 |
-| Level 2 — Intensive (Investing from Scratch) | 51 | 2,079,330 |
-| L4 — When to Hold, Buy & Sell using Technicals | 19 | 1,436,642 |
-| Ask SOIC on Saturdays | 27 | 1,425,580 |
-| Level 1 — Financial Literacy (Hindi) | 51 | 1,274,038 |
-| Level 3 — How to Value a Company | 9 | 855,064 |
-| Rising Stars | 45 | 750,851 |
-| Masterclass on Investing Using AI | 7 | 464,171 |
-| Level 5 — How to Screen & Filter Epic Stocks | 4 | 278,314 |
-| SOIC Labs: AI-Powered Investor | 5 | 229,601 |
+| ASR drops trailing consonants on the flagship metric | `ROCE` **54×** vs `ROC` **961×** | A router keyed on "ROCE" misses ~95% of the material |
+| ASR mangles metric names | `pad growth` **363×** vs `PAT growth` **74×** | Same — and quotes will contain the mangled form |
+| ASR corrupts digits | `"it is still 499% pad growth"` (HBL context) | **Unrecoverable from text.** 49%? 4.99%? |
+| **Level 1 is translated, not transcribed** | Labeled Hindi; `body_text` is fluent English | A *correctly* extracted L1 quote **cannot** be heard in the audio as written |
 
-**Critical corpus property:** transcripts are raw ASR with interleaved
-`[HH:MM:SS]` markers and **no speaker labels**. In a guest-interview lesson
-there is no mechanical way to attribute a sentence to Ishmohit rather than the
-guest. This drives a hard exclusion rule (see Gate 1.4).
+The last one invalidated an earlier pilot criterion ("click the citation, hear
+Ishmohit say it") for 51 lessons. Courses must carry a `transcript_fidelity`
+flag (`verbatim` | `translated`), and ear-verification only applies to
+`verbatim` courses.
+
+**Structural property:** transcripts carry interleaved `[HH:MM:SS]` markers and
+**no speaker labels**.
 
 ---
 
 ## Decisions taken
 
-| Decision | Choice | Rationale |
-|---|---|---|
-| Artifact shape | **Both, cleanly separated** — executable `rules.yaml` + judgement `rubrics/*.md` | Code executes thresholds; an LLM applies rubrics. One format cannot serve both. |
-| Coverage | **Pilot Level 5, then routed two-pass over the full corpus** | Validates format and gates on 278k chars before spending on 25M. |
-| Home repo | **Mine in `SOIC_Scraper`, publish into `stock_analyzer`** | Corpus and persona tooling already live in the former; the screener that executes rules lives in the latter. |
-| Conflict policy | **Context-scope first, surface true conflicts for human review** | Prevents "scoped variant" and "genuine contradiction" collapsing into each other. |
-| Approach | **Router → extractor → deterministic verifier → refuter** | The verifier is a non-LLM gate that makes fabricated citations structurally impossible. |
+| Decision | Choice |
+|---|---|
+| Artifact shape | **Two-tier executable rules** (knockouts vs graded) + judgement `rubrics/*.md` |
+| Coverage | Pilot L5 **+ the L6 module where screening actually lives**, then routed two-pass |
+| Home repo | Mine in `SOIC_Scraper`; publish into `stock_analyzer` |
+| Conflict policy | Context-scope **only when the scope distinction is itself evidence-backed**; otherwise conflict |
+| Approach | Router → extractor → deterministic verifier → refuter → reconciler |
 
-### Approach rejected, and why (revised 2026-07-20 after reading the actual wiki)
+### Approach rejected, and why (revised after reading the actual wiki)
 
-**Reusing the `/learn-topic` persona-wiki pipeline and deriving rules from the
-wiki.** Still rejected as a *rules* source — but the original rationale was
-wrong and is corrected here.
+**Deriving rules from the `/learn-topic` persona wiki.** Rejected as a *rules*
+source — but the original rationale was wrong and is corrected here.
 
-**The original claim was that prose synthesis destroys exact figures. That is
+**The original claim that prose synthesis destroys exact figures is
 empirically false.** `learning-vault-invest`'s
-`concepts/screening-filters-for-stock-selection.md` preserves them well: a P/E
-filter `< 50 or 40x`, a results tracker at `>15% sales growth / 20% PAT
-growth`, a Friday-evening weekly cadence, Accelya's `100 → 3600 cr` trajectory,
-and named cases (Zomato, Bector Foods, JM Finance). Figures survived.
+`concepts/screening-filters-for-stock-selection.md` preserves P/E `< 50 or 40x`,
+`>15%` sales / `20%` PAT growth, Accelya's `100 → 3600 cr`, and named cases.
+Figures survived.
 
-The real disqualifiers are narrower and harder:
+The real disqualifiers are narrower:
 
-1. **Provenance stops at a file, not a timestamp.** `sources:` points at
-   `raw/<topic>/part-2-scalable-businesses.md`. That cannot be clicked and
-   heard, which is pilot success criterion #1.
-2. **That `raw/` layer is summaries, not transcripts.** Per the hub's own
-   `CLAUDE.md`, Phase 1 ingested "*summary*-level module notes (74KB total)"
-   rather than "the full lecture transcripts (~1.6MB combined)", and the depth
-   gate **logged source gaps on 20 of 22 concepts**. So it genuinely is two
-   hops; figures that survived did so by luck of appearing in the summary.
-3. **Near-total absence of verbatim quotes.** The notes paraphrase ("the source
-   gives a concrete example"). Gate 1's literal-substring check cannot run
-   against paraphrase at all.
-4. **It preserves ambiguity that a rule must resolve.** "P/E less than 50 **or**
-   40 times" is good teaching and unusable as a threshold — exactly the
-   scoped-variant-vs-conflict question, left open rather than settled.
+1. **Provenance stops at a file, not a timestamp** — cannot be heard.
+2. **That `raw/` layer is summaries, not transcripts** — per the hub's own
+   CLAUDE.md, depth gate logged gaps on **20 of 22 concepts**.
+3. **Near-total absence of verbatim quotes** — Gate 1 cannot run on paraphrase.
+4. **It preserves ambiguity a rule must resolve** — "P/E less than 50 **or** 40
+   times."
 
-**Consequence: the wiki is promoted to a first-class input for `rubrics/*.md`**
-(see Rubric inputs below) while `rules.yaml` still requires transcript-level
-extraction. This refines the two-artifact split rather than overturning it.
+**Consequence:** the wiki is promoted to first-class input for `rubrics/*.md`,
+while `rules` still require transcript-level extraction.
+
+> **Recorded disagreement.** The Fable review called it inconsistent to use the
+> wiki as evidence for re-aiming the pilot while rejecting it as a rules
+> source. This spec disagrees and keeps the redirect: the evidence used was the
+> `sources:` frontmatter — a **machine-written file path emitted by the ingest
+> pipeline** — not the note's prose. Trusting provenance metadata while
+> distrusting paraphrase is coherent. Every other review finding was accepted.
 
 ---
 
 ## Architecture
 
-New toolkit `src/soic_method/` in `SOIC_Scraper`, alongside the existing five.
-Follows repo conventions: Typer CLI (`soic-method`), Pydantic models,
-`media_core` where applicable.
+New toolkit `src/soic_method/` in `SOIC_Scraper`. Typer CLI (`soic-method`),
+Pydantic models.
 
 ```
 data/content.json  (563 lessons, 25M chars)
         |
         v
 [1] router.py          deterministic. no LLM.
-        |              scans ai_summary + body_text for rule signals:
-        |              numerals w/ units (%, x, cr), comparatives (above/below/
-        |              at least), imperatives (never/always/avoid/only if).
-        |              applies format-eligibility exclusions.
+        |              signal lexicon MUST include ASR variants:
+        |              ROC/ROCE, pad/PAT, "p e"/PE, etc.
+        |              applies course eligibility + transcript_fidelity tags.
         v
-   candidates.jsonl    lesson_id + why-flagged + char spans
+   candidates.jsonl    lesson_id + flagged char spans
         |
         v
-[2] extract.py         LLM. reads ONLY candidate spans' full body_text.
-        |              emits Rule objects, each REQUIRING a verbatim quote
-        |              copied exactly from body_text.
+[2] extract.py         LLM. reads flagged span +/- context window.
+        |              returns (start, end) CHAR OFFSETS, never copied text.
         v
    raw_rules.jsonl
         |
         v
-[3] verify.py          deterministic. no LLM.   <-- load-bearing gate
-        |              quote must be a literal substring of that lesson's
-        |              normalized body_text. no match -> REJECT.
-        |              resolves [HH:MM:SS] -> citation URL + timestamp.
+[3] verify.py          deterministic. no LLM.  THREE checks, not one:
+        |                3a. offsets in range; slice is >= 40 chars
+        |                3b. rule.value appears within the slice
+        |                3c. slice contains a comparative token whose
+        |                    direction matches rule.operator
         v
-   verified.jsonl  +  rejected.jsonl (retained, calibration signal)
+   verified.jsonl  +  rejected.jsonl (retained, calibration)
         |
         v
-[4] refute.py          LLM, adversarial. "argue this quote does NOT support
-        |              this rule." defaults to refuted under uncertainty.
-        |              tiered: knockouts/thresholds = 3 refuters, majority kill.
-        |              soft/rubric material = 1 refuter.
+[4] refute.py          LLM, adversarial. ONE refuter, well-fed:
+        |              gets slice + ~1500 chars either side + full rule
+        |              + named failure-mode checklist.
         v
    survived.jsonl
         |
         v
-[5] reconcile.py       deterministic grouping + conflict detection.
-        |              LLM used ONLY for scope inference.
-        |              applies hand-maintained resolutions.yaml.
+[5] reconcile.py       corroboration -> scope attestation -> conflict.
+        |              scope from controlled scopes.yaml ONLY.
         v
-   spec bundle  +  conflicts.open.yaml
+   spec bundle + conflicts.open.yaml
         |
         v
-[6] publish.py  --> versioned bundle committed into stock_analyzer
-                    at configs/soic-method/
+[6] publish.py  --> bundle committed into stock_analyzer configs/soic-method/
 ```
 
-### Two load-bearing properties
+### Offsets, not copied quotes
 
-**Stages 1, 3 and 5 contain no LLM.** Routing, quote verification and conflict
-detection are pure code. The LLM does only the two things it is good at —
-reading prose to propose a rule, and arguing against one. Every claim it makes
-passes through a deterministic check it cannot talk past.
+**The extractor returns `(start, end)` character offsets; the verifier slices
+`body_text` itself.** This is strictly better than asking for copied text:
 
-**`rejected.jsonl` is retained.** If the extractor begins fabricating quotes,
-the rejection rate is the signal, measurable per-run — rather than something
-discovered downstream in a POLYCAB-style audit months later.
+- Fabrication becomes impossible **by construction**, not by check.
+- It eliminates a rejection class revision 1 did not anticipate: extractors
+  instinctively *repair* ASR while copying (`ROC`→`ROCE`, `pad`→`PAT`), which
+  would fail a substring match and pollute `rejected.jsonl` — the very signal
+  the spec relies on as its fabrication alarm.
 
-### Publish target
+### What Gate 1 does and does not do
 
-`configs/soic-method/` in `stock_analyzer`. Per that repo's `CLAUDE.md`,
-`configs/` is **bind-mounted** into the orchestrator, so a spec update lands on
-the next cron tick with no image rebuild. Anything baked into the image would
-make every threshold change a ~6-minute Rebuild Orchestrator cycle.
+Revisions 1–2 claimed the substring check made fabricated citations
+"structurally impossible." **That was overstated and the framing was
+dangerous** — it invited reviewers to under-scrutinize the refuter, where the
+real risk lives.
+
+Corrected claim: **Gate 1 prevents fabricated *strings*. It does not prevent
+misattributed *meaning*.** Quote-mining survives it — negation ("people say
+never buy above 40x, but that breaks when…"), reported speech ("many people
+show the same to other income"), hypotheticals ("suppose ROCE is above 18%…"),
+and company-specific asides quoted as universal rules.
+
+Checks 3b and 3c exist because they convert the two most damaging silent errors
+— **wrong value** and **inverted operator** — from LLM-judgement problems into
+deterministic rejections. Everything else is the refuter's job, which is why
+the refuter's input contract is now specified rather than left implicit.
+
+### Stage-2 read granularity and budget
+
+The extractor reads **flagged spans plus a bounded context window**, not whole
+lessons. Whole-lesson reading would approach ~6.2M input tokens; span-plus-
+window keeps the pilot in the low tens of dollars. State actual spend in the
+pilot report.
 
 ---
 
 ## Output artifacts
 
-### `rules.yaml` — executable
+### Two tiers of rule — because the method has two kinds
+
+SOIC's thresholds are pedagogical anchors inside a **discretionary** method,
+uttered across ~5 years of market regimes. Encoding "P/E below 50" as a hard
+gate asserts precision the method never claimed. So rules split:
+
+**Tier 1 — `knockouts.yaml`.** Things SOIC states absolutely (governance red
+flags, promoter pledge, accounting fraud markers). Full rigor, execute as hard
+exclusions.
 
 ```yaml
-- rule_key: screen.roce.floor
-  stage: screen                    # screen | sector | valuation | exit
-  kind: threshold                  # threshold | boolean | ranking | knockout
-  operator: gte
-  value: 18
-  unit: percent
-  scope:                           # null = universal
-    business_type: capital_light
+- rule_key: knockout.promoter.pledge
+  tier: knockout
+  kind: boolean
+  assertion: "promoter pledge present"
+  conviction: absolute          # absolute | strong | preference
+  binding: {source: postgres, table: TBD_verify, expr: TBD_verify, status: unbound}
+  citations: [...]
+  corroboration: 3              # independent lessons attesting
+  status: active
+```
+
+**Tier 2 — `graded.yaml`.** Everything else: ranges, not scalars; ranks and
+flags, never excludes.
+
+```yaml
+- rule_key: screen.pe.ceiling
+  tier: graded
+  kind: range
+  value: {min: 40, max: 50}     # the source genuinely teaches both
+  unit: multiple
+  conviction: preference
+  as_of: "2021-06"              # recording period — regime matters
+  scope: {business_type: capital_light}   # from scopes.yaml ONLY
+  scope_attestation:
+    span: [148230, 148295]
+    text_hash: "sha256:..."
   binding:
     source: postgres
     table: quarterly_financials
-    expr: "roce_ttm"
-    status: bound                  # bound | unbound | derived
+    expr: "TBD — see gaps.md"
+    status: unbound             # quarterly_financials has Sales/OP/NP/EPS/OPM%,
+                                # no ROCE or P/E column. Do not assume bound.
   citations:
     - lesson_url: "https://learn.soic.in/.../lesson/123456"
       timestamp: "00:41:12"
-      quote: "we don't even look at a business doing less than 18% ROCE"
-  status: active                   # active | conflicted | unbound | draft
-  spec_version: "0.1.0"
+      span: [148100, 148180]
+      transcript_fidelity: verbatim
+  corroboration: 2
+  status: active
 ```
 
-#### `rule_key` convention
+**`as_of` and `conviction` are load-bearing.** Without them, a 2021 bull-market
+anchor and a 2024 one look like a contradiction when they are the same
+judgement under different regimes.
 
-`rule_key` is the join key for conflict detection, so an unconstrained format
-breaks Gate 3 silently — two extractions emitting `screen.roce.floor` and
-`roce_minimum` for the same rule would never be compared, and a genuine
-contradiction would ship as two happy independent rules.
+**`corroboration` gates `active`.** A threshold attested in only one lesson
+stays `draft` — the cheapest possible defence against a single ASR digit error
+shipping as truth.
 
-Format is `<stage>.<metric>.<qualifier>`, lowercase, dot-separated, drawn from
-a **checked-in controlled vocabulary** (`rule_keys.yaml`). The extractor
-selects from that vocabulary; it does not invent keys. A rule that fits no
-existing key is emitted with `rule_key: null` and `status: draft`, and lands in
-a `new_keys.md` queue for a human to name and add to the vocabulary.
+### `binding` — and the data-gap list
 
-This deliberately trades extractor autonomy for join integrity — vocabulary
-drift is the mechanism by which conflict detection quietly stops working.
+A rule is executable only if it resolves to a column that exists. A third
+outcome beyond accept/reject: **`unbound`** — the rule is real, the quote
+verifies, no data field exists.
 
-**`binding` is the field doing the real work.** A rule is executable only if it
-resolves to a column that exists in the stack. Extraction therefore has a third
-outcome beyond accept/reject: **`unbound`** — SOIC states the rule, the quote
-verifies, but no data field exists to run it against.
+This yields `gaps.md`: *"to execute SOIC's screen faithfully, the platform is
+missing these N inputs"* — derived from the method, not guessed.
 
-This yields an unplanned but valuable deliverable: **a ranked data-gap list**
-(`gaps.md`). "To execute SOIC's screen faithfully, the platform is missing
-these N inputs" — derived from the method rather than guessed. Given
-`market_cap_updater` is already blocked on NSE and shares-outstanding is a
-known open problem, knowing which gaps bind a *real* rule is decision-useful.
+**Every `binding` in this spec is `unbound`/`TBD` on purpose.** Revision 2
+carried an example binding `screen.roce.floor → quarterly_financials.roce_ttm`
+marked `bound`; that column does not exist (the table holds Sales / Operating
+Profit / Net Profit / EPS / OPM%). Examples are what implementers copy, so no
+binding is asserted until the column inventory is verified.
 
 ### `rubrics/*.md` — judgement
 
-One per stage: `l6-sector.md`, `l5-screen.md`, `l3-valuation.md`,
-`l4-exit.md`. Each holds the question set an analyst walks, **worked examples
-lifted from actual lessons** (the L6 sector webinars earn their keep here — a
-real sector reasoned end to end beats any abstract checklist), and its citation
-trail. Capped at ~8–10KB each so they compose without blowing context.
+`l6-sector.md`, `l5-screen.md`, `l3-valuation.md`, `l4-exit.md`. Question sets,
+worked examples from real lessons, citation trails. ~8–10KB each.
 
 #### Rubric inputs — reuse before re-deriving
 
-Rubrics do **not** start from scratch. Three existing bodies of work in
-`syedamber91/learning-vault-invest` (readable via `gh`, see Access below) are
-first-class seed material, because rubrics tolerate paraphrase where
-`rules.yaml` does not:
-
 | Source | What it gives | Caveat |
 |---|---|---|
-| `wiki/personas/soic/concepts/*.md` (22 notes) | Mechanism-depth prose, provenance-gated, `qc: passed` | Sits on the summary layer; depth gaps logged on 20/22 |
-| `poc/soic/soic_persona_brief_v2.md` | Voice, method, frameworks, **15-point analysis-standards checklist** — distilled from **19 full transcripts** | Hand-distilled, not gate-run |
-| `poc/soic/PI_Industries_SOIC_analysis.md` + `enrichment_*.md` | A worked end-to-end application with receipts-tagged findings | Single company, cooperative sector |
+| `wiki/personas/soic/concepts/*.md` (22) | Mechanism-depth prose, `qc: passed` | Summary layer; depth gaps 20/22 |
+| `poc/soic/soic_persona_brief_v2.md` | Voice, method, **15-point analysis-standards checklist**, from **19 full transcripts** | Hand-distilled, not gate-run |
+| `poc/soic/PI_Industries_SOIC_analysis.md` | Worked end-to-end application, receipts-tagged | Single company |
 
-The 15-point checklist in `soic_persona_brief_v2.md` is the closest thing to a
-ready-made rubric skeleton already in existence and should be the starting
-structure for the rubric files, refined against transcript evidence rather than
-reinvented.
+The 15-point checklist is the closest thing to a ready-made rubric skeleton in
+existence — start there, refine against transcript evidence.
+
+#### Rubric gates (added revision 3)
+
+POLYCAB was a rubric-class failure, so rubrics cannot be the ungated artifact:
+
+- **Every checklist item and worked-example claim carries a citation line**
+  (lesson + timestamp + span).
+- **A 20% random sample is span-verified** exactly as rules are.
+- Rubric *prose* may paraphrase freely; rubric *claims* must pin.
+
+This makes "the human recognizes the method" an acceptance test rather than the
+only line of defence.
 
 ### Bundle layout
 
 ```
 soic-method/
-  VERSION                 semver; bump on any rule change
-  rules.yaml              executable
-  rubrics/*.md            judgement
-  evidence.jsonl          every surviving quote, full provenance
-  rejected.jsonl          failed the verifier — calibration signal
+  knockouts.yaml          tier 1 — hard
+  graded.yaml             tier 2 — ranges + conviction
+  rubrics/*.md            judgement, citation-gated
+  scopes.yaml             controlled scope vocabulary
+  rule_keys.yaml          controlled key vocabulary
+  evidence.jsonl          spans, citations, corpus hashes
+  rejected.jsonl          calibration signal
   conflicts.open.yaml     review queue
-  gaps.md                 unbound rules = the data-gap list
+  gaps.md                 unbound rules
+  SNAPSHOT                sha256 per lesson body_text at build time
 ```
 
-Versioned so a stage-2 screener can pin a spec version and diffs between runs
-are legible.
+Versioned by git SHA. **No semver at stage 0** — there is one consumer and it
+does not exist yet.
 
 ---
 
 ## Gates
 
-### Gate 1 — Provenance (deterministic, no LLM). All four must pass.
+### Gate 1 — Provenance (deterministic, no LLM)
 
-1. **Literal substring match.** Timestamp markers are interleaved mid-sentence,
-   so quote and `body_text` are normalized identically — strip `[HH:MM:SS]`,
-   collapse whitespace — while retaining an offset map. No match, no rule.
-2. **Minimum quote length (~40 chars).** Without this a fragment like `"18%"`
-   trivially matches somewhere in a 300KB transcript and the gate becomes
-   decorative.
-3. **Timestamp resolution.** Offset maps back to the nearest *preceding*
-   marker → citation URL + timestamp that can be clicked and heard.
-4. **Format eligibility.** Because transcripts carry no speaker labels,
-   **interview-format lessons cannot source a rule.**
+1. **Offsets valid**, slice ≥ 40 chars.
+2. **`value` appears within the slice** (digits or spelled form).
+3. **Comparative direction matches `operator`** — small lexicon
+   (less/below/under/at most → `lte` family; above/over/at least → `gte`).
+   Mismatch → reject.
+4. **Timestamp resolution** — nearest *preceding* marker to `start`. On
+   duplicate occurrences, first-occurrence wins, recorded explicitly.
+5. **Course eligibility** (below).
+6. **Corpus hash match** — the lesson's `body_text` sha256 must equal the
+   `SNAPSHOT` entry. Re-captured corpus with drifted ASR **hard-fails** rather
+   than silently re-pointing citations at moved audio.
 
-Gate 1.4 is the one that would otherwise quietly poison the spec: a guest's
-macro call encoded as SOIC method, carrying a perfectly valid-looking citation.
+### Gate 1b — Numeric corroboration (deterministic)
 
-#### Where exclusion is enforced
+Any digit-bearing rule must have its value independently attested **either** in
+that lesson's `ai_summary` (a second rendering of the same audio) **or** in a
+second lesson. Single-stream-only values get `status: needs_audio_check` and
+enter a human ear-verification queue. Thresholds are few; this is cheap.
 
-**Both places, deliberately.** `router.py` skips ineligible lessons so they are
-never sent to the extractor (cost), and `verify.py` independently rejects any
-rule whose source lesson is ineligible (safety). The router is an optimization;
-the verifier is the guarantee. A router bug must not be able to leak a guest
-quote into `rules.yaml`.
+### Course eligibility — coarse filter only
 
-#### Course eligibility classification
-
-Eligibility is a per-course property recorded in a checked-in
-`course_eligibility.yaml`, not inferred at runtime:
-
-| Course | Eligible for `rules.yaml` | Reason |
+| Course | Rules-eligible | Reason |
 |---|---|---|
-| Levels 1–6, Crash Course | yes | Ishmohit teaching solo |
-| Ask SOIC on Saturdays | yes | Ishmohit answering |
-| SOIC Market Signals + StockScans | yes | solo format |
-| Masterclass on Investing Using AI, SOIC Labs | yes | solo format |
-| Conversation with India's Super Investors | **no** | guest interviews, unattributable |
-| Rising Stars | **unclassified — defaults to no** | format unverified |
-| Important Membership Updates | **no** | no transcripts, admin content |
+| Levels 2–6, Crash Course | yes | solo instruction |
+| Level 1 | yes, `translated` | ear-check N/A |
+| Ask SOIC on Saturdays | yes | instructor answering |
+| StockScans, AI masterclasses, SOIC Labs | yes | solo |
+| Conversation with India's Super Investors | **no** | guest interviews |
+| **Rising Stars** | **no** | confirmed guest/member presentations |
+| Important Membership Updates | no | admin, no transcripts |
 
-**Unclassified defaults to ineligible.** A course is promoted to eligible only
-after its format is confirmed by inspection. This makes the failure mode "we
-under-collected from a solo course" rather than "we attributed a guest's rule
-to SOIC" — the first is recoverable by reclassifying, the second corrupts the
-spec silently.
+Recorded in `course_eligibility.yaml`. **Unclassified defaults to ineligible.**
 
-### Gate 2 — Adversarial refute (LLM), tiered by stakes
+**This does not solve attribution.** Eligible lessons still contain quoted
+third parties ("Buffett says…"), read-aloud member questions, and consensus
+views described in order to disagree. That is the refuter's job — see the
+checklist. Enforced at both router (cost) and verifier (guarantee).
 
-Knockouts and screen thresholds get **3 independent refuters, killed on
-majority**. Soft/rubric material gets 1. Every refuter defaults to *refuted*
-under uncertainty, so ambiguity fails closed.
+### Gate 2 — Refute (LLM). One well-fed refuter, not three.
 
-### Gate 3 — Conflict and scope
+Three same-model refuters are **correlated, not independent** — the majority
+vote largely measures sampling temperature. Budget goes to context instead.
 
-Grouping and conflict detection are deterministic (group by `rule_key`, compare
-value + scope tuple). **Only scope inference uses an LLM**, since it requires
-reading surrounding context.
+**Refuter input contract:** the slice, **±1500 chars of surrounding
+`body_text`**, the full rule object, and a checklist of named failure modes to
+argue:
 
-- same key + different value + **same** scope → **conflict** → review queue
-- same key + different value + **different** scope → **variants**, no conflict
+- negation / retraction
+- reported speech or another person's view
+- hypothetical or arithmetic illustration
+- company-specific aside quoted as a universal rule
+- read-aloud member question
+- value or direction not actually supported by surrounding context
 
-### The review queue
+Defaults to *refuted* under uncertainty.
 
-Conflicts render to `conflicts.md` with both quotes side by side, lesson links,
-and a recommended resolution. The human settles them by editing
-**`resolutions.yaml`**.
+### Gate 3 — Scope and conflict
 
-**`resolutions.yaml` is hand-maintained, versioned, and never written by the
-pipeline.** Re-running extraction re-derives everything else from scratch but
-applies existing resolutions on top. If resolutions lived in generated output,
-every re-run would silently discard accumulated judgement and re-runs would
-stop being trustworthy.
+**Scope comes from a controlled `scopes.yaml`, never free text.** Revisions 1–2
+diagnosed exactly this failure for `rule_key` — *"vocabulary drift is the
+mechanism by which conflict detection quietly stops working"* — and then
+committed the same error one field over. Free-text scopes never compare equal,
+so every disagreement would classify as a "variant" and **zero conflicts would
+ever reach the review queue.**
+
+**Conflict is the default.** Same key + different value = conflict, *unless*
+the scope distinction is itself evidence-backed: the scope inference must
+return its own attesting span that passes Gate 1. Unattested scope → conflict.
+
+This inverts the incentive. Previously "variant" was the no-friction outcome
+and "conflict" cost a human, so the LLM would always find a distinguishing
+context and launder a real contradiction into two happy active rules.
+
+Third outcome: **`scope: contested`** — scope in this material is often a
+continuum (business quality, cycle stage), and forcing a binary manufactures
+false confidence.
+
+**Pilot-only:** route *every* variant classification to human review once, to
+measure the laundering rate. Trivial at pilot scale; the only way to know.
+
+### Vocabulary bootstrap — an explicit phase
+
+On a first run `rule_keys.yaml` is near-empty, so nearly everything lands
+`rule_key: null, status: draft` — meaning **conflict detection would run over
+an empty set and the pilot could "pass" without Gate 3 ever executing.**
+
+Bootstrap is therefore a named phase:
+
+1. Run extraction key-free.
+2. Cluster drafts by metric vocabulary.
+3. Human names clusters → commit `rule_keys.yaml`.
+4. **Re-run** against the vocabulary.
+
+Once the vocabulary is non-trivial the opposite bias appears — LLMs shoehorn
+into the nearest existing key rather than emitting null. **Tripwire:** within a
+key group, rules whose spans share no metric vocabulary are flagged as possible
+shoehorns.
+
+### Reconcile mechanics
+
+- **Join key for `resolutions.yaml`: `(rule_key, sorted value set)`** —
+  content-stable and quote-independent. Keying on quotes or generated ids would
+  break the join on any re-run that shifts a span, silently dropping your
+  accumulated judgement — the exact failure this file exists to prevent.
+- **Agreement-merge:** the same threshold in 10 lessons is **one** rule with 10
+  citations and `corroboration: 10`, not 10 rows.
+- `resolutions.yaml` is **hand-maintained and never written by the pipeline.**
 
 ---
 
 ## Testing
 
-Unit tests, no network and no LLM — matching the repo's existing convention
-that extraction/parsing/vault tests run offline.
+Offline, no network, no LLM.
 
-`verify.py` carries the most test weight:
+`verify.py` carries the most weight:
 
 | Case | Expected |
 |---|---|
-| Exact quote present | accept |
-| Quote spanning interleaved `[HH:MM:SS]` markers | normalizes, accepts |
-| Fabricated quote | **reject** |
-| Quote below min length | reject |
-| Quote real but from a *different* lesson | **reject** (cross-lesson leakage) |
-| Timestamp resolution | picks nearest *preceding* marker |
+| Valid offsets, value present, direction matches | accept |
+| Offsets out of range / slice < 40 chars | reject |
+| `value: 15` but slice says `18%` | **reject** (3b) |
+| Slice says "less than" but `operator: gte` | **reject** (3c) |
+| Corpus hash mismatch | **hard fail** |
+| Duplicate occurrence | first-occurrence, recorded |
 
-Also:
-
-- `router.py` — signal detection on a fixture; interview-format exclusion
-  actually applied.
-- `reconcile.py` — conflict vs. variant classification; and specifically that
-  **`resolutions.yaml` survives a full re-run** (the most likely regression to
-  sneak in later).
+Also: router ASR-variant lexicon actually matches `ROC`/`pad growth`;
+ineligible-course exclusion applied; `resolutions.yaml` survives a full re-run
+**with spans shifted** (the join-key regression); agreement-merge produces one
+row not ten.
 
 ---
 
-## Pilot success criteria (Level 5)
+## Pilot — scope and falsifiable criteria
 
-Deliberately **not** a rule count — a target number pressures the extractor
-toward quantity.
+### Slice
 
-1. **Sample verifiable by ear.** Pick 5 rules at random, click the citation,
-   hear Ishmohit say it. Any failure means the gate is broken and nothing
-   downstream is trustworthy.
-2. **`l5-screen.md` is recognizable.** The human reads it and recognizes the
-   method they actually learned. This is the real acceptance test; no automated
-   metric substitutes.
-3. **Rejection rate reported**, establishing a baseline to watch as coverage
-   scales to the full corpus.
-4. **Zero rules sourced from interview-format lessons** — mechanically
-   checkable.
-5. **Bound/unbound split reported**, producing a first data-gap list.
+L5's 4 lessons **plus the L6 lessons backing `part-2-scalable-businesses`**.
 
-### Pilot scope, revised: L5 alone is the wrong slice
+`screening-filters-for-stock-selection.md` — the one existing wiki concept
+about screening — cites a **Level 6** module, and the thresholds it surfaces
+(P/E `<50 or 40x`, `>15%`/`20%` growth) trace there, not to L5.
+**Course-title-driven scoping is abandoned as a heuristic** — it is precisely
+the assumption this falsified.
 
-The original plan piloted Level 5 alone (4 lessons, 278k chars) because it is
-named "How to Screen & Filter Epic Stocks". **Evidence gathered 2026-07-20 says
-the screening method is not primarily taught there.**
+### Criteria — each with a threshold, or it isn't a criterion
 
-`learning-vault-invest`'s `screening-filters-for-stock-selection.md` — the one
-existing wiki concept squarely about screening — cites
-`raw/sector-analysis-framework/part-2-scalable-businesses.md`, i.e. a
-**Level 6** module. The concrete thresholds it surfaces (P/E `< 50 or 40x`,
-`>15%` sales / `20%` PAT growth, the results-tracker and bombed-out-IPO
-frameworks) trace to L6, not L5.
+| # | Criterion | Pass condition |
+|---|---|---|
+| 1 | Ear-verification | **n=10, oversampling digit-bearing rules**, drawn only from `verbatim` courses. **Zero** failures tolerated. |
+| 2 | Rejection rate | Reported **and** within 5–40%. Near-0% means the gates aren't binding; >40% means extraction is broken. |
+| 3 | Gate 3 exercised | **≥1 seeded synthetic conflict** flows end-to-end into `conflicts.open.yaml`. Otherwise the conflict machinery ships untested. |
+| 4 | Attribution | **Zero** rules sourced from ineligible courses. Mechanical. |
+| 5 | Bindings | Bound/unbound split reported; `gaps.md` non-empty. |
+| 6 | Acceptance (not a criterion) | Human reads `l5-screen.md` and recognizes the method. Subjective by design — the final gate, not the only one. |
 
-**Revised pilot slice:** Level 5's 4 lessons **plus** the L6 lessons backing
-`part-2-scalable-businesses`. This keeps the pilot small while pointing it at
-where the rules demonstrably are. Course-title-driven scoping is explicitly
-abandoned as a heuristic — it is precisely the assumption this finding
-falsified.
+Note #1's revision: an n=5 random sample has weak power (at a 20% bad-rule
+rate, all five pass ~33% of the time) and would have been impossible on
+translated lessons.
 
-### A pilot outcome that looks like failure but isn't
+### An outcome that looks like failure but isn't
 
-If even the revised slice yields few executable rules, the most likely
-explanation is that thresholds are **stated in passing during Ask SOIC and
-StockScans** rather than taught in any course module. That is a finding about
-where the method actually lives, and it raises the value of the routing pass
-rather than undermining it. It will be reported as a result, not retried until
-the number looks better.
+If the revised slice still yields few executable rules, the likely explanation
+is that thresholds are **stated in passing during Ask SOIC and StockScans**
+rather than taught in any course module. That is a finding about where the
+method lives, and it raises the value of the routing pass. Report it as a
+result; do not retry until the number looks better.
 
 ---
 
-## Out of scope for stage 0
+## Access — reading the SOIC wiki
 
-- Any screening UI or API surface (stage 2)
-- Sector verdict logic (stage 1)
-- Changes to `tvgp_flow`, `dcf_engine`, or `overview_kpi` (stage 3)
-- Watchlist objects or thesis-break triggers (stage 4)
-- Full-corpus extraction — gated on pilot outcome
-- Parallel multi-agent fan-out — requires separate explicit authorization
+**iCloud is unreadable from the agent sandbox and this is not fixable in code.**
+`~/Library/Mobile Documents/...` returns **EPERM** (not EACCES) on every path,
+via Bash, via Bash-with-sandbox-disabled, and via the Read tool. Ruled out:
+POSIX permissions (user owns the tree) and the Claude Code sandbox. Confirmed
+cause: **macOS TCC** — the host binary (`/Applications/Claude.app`) lacks Full
+Disk Access. Granting it is a user-side security decision, out of scope for the
+agent, and a broad grant for a narrow need.
 
-## Access — reading the SOIC wiki (resolved 2026-07-20)
-
-**iCloud is not readable from the agent sandbox, and this is not fixable in
-code.** `~/Library/Mobile Documents/...` returns `Operation not permitted` even
-on a fully-qualified path (`stat` on the container succeeds; `readdir` is
-denied). This is macOS **TCC**, not a Claude Code restriction — the host
-process lacks Full Disk Access. Granting it is a user-side security setting
-change, out of scope for the agent.
-
-**It is also unnecessary.** Per the 2026-07-17 hub audit, all four learning
-hubs have GitHub remotes. The SOIC wiki is fully readable via:
+**Use `gh` instead** — it works in sandboxed, remote and cloud sessions where a
+local FDA grant is meaningless:
 
 ```bash
 gh api "repos/syedamber91/learning-vault-invest/git/trees/HEAD?recursive=1" \
@@ -453,45 +525,25 @@ gh api "repos/syedamber91/learning-vault-invest/contents/<path>" \
   --jq '.content' | base64 -d
 ```
 
-Use `gh` as the access path throughout. Do not add iCloud file reads as a
-dependency — they will fail in any sandboxed or remote session.
+Do not add iCloud file reads as a dependency.
 
-## Program alignment — this stage vs. the invest hub's own roadmap
+---
 
-`learning-vault-invest`'s `CLAUDE.md` already declares a Phase 2 tracked "in
-the `stock_analyzer` repo": **2a** upgrade the `gems/*.md` prompts, **2b**
-promote `ask_notebook.py` + the persona into a `/soic` analyst agent. The
-five-stage desk program *is* that Phase 2, at higher resolution. Naming should
-be reconciled during planning so two roadmaps do not diverge.
+## Out of scope for stage 0
 
-**Stage 0 is the invest POC's own acknowledged gap.** `poc/soic/POC_VERDICT.md`
-(verdict: **GO**) lists among its honest limits: *"Persona is still
-lightweight… not yet run through the full provenance/resolution/depth gates of
-the `learn-topic` wiki pipeline."* This spec closes exactly that.
+- Screening UI/API (stage 2), sector verdict logic (stage 1), changes to
+  `tvgp_flow`/`dcf_engine`/`overview_kpi` (stage 3), watchlist objects (stage 4)
+- Full-corpus extraction — gated on pilot outcome
+- Parallel multi-agent fan-out — requires separate explicit authorization
 
-### Why the two halves need each other
+## Open items
 
-The POC's other two limits are the sharper insight:
-
-- *"No valuation/market data — the notebook holds company filings, not price…
-  need screener.in"*
-- *"No scuttlebutt / peer-node comparison… compares PI's margins against
-  Bharat Rasayan/Anupam node-peers (needs their notebooks)"*
-
-**`stock_analyzer` already has both.** Live prices in Postgres `stock_prices`,
-trusted quarterly fundamentals from screener.in in `quarterly_financials`, and
-a full sector peer-comparison API surface.
-
-So the two bodies of work are complementary halves of one desk: **the POC has
-the method and is blind to price; the platform has the price and is weak on
-method.** That is the strategic case for the whole program, and it should be
-stated explicitly in the plan.
-
-## Open items carried forward
-
-- Binding targets in `stock_analyzer` are assumed from `CLAUDE.md`
-  documentation; the concrete column inventory needs verifying during
-  implementation, and will determine the real bound/unbound ratio.
-- The wiki's 22 concepts carry logged depth gaps on 20 of them. If rubric
-  drafting hits those gaps, the fix is a per-concept re-synthesis against the
-  matching transcript excerpt — noted as available, not scheduled here.
+- **Column inventory in `stock_analyzer` is unverified.** Every `binding` is
+  `unbound`/`TBD` until it is. This determines the real bound/unbound ratio and
+  the whole content of `gaps.md`.
+- The wiki's 22 concepts carry logged depth gaps on 20. If rubric drafting hits
+  them, the fix is per-concept re-synthesis against transcript excerpts —
+  available, not scheduled.
+- `transcript_fidelity` is confirmed for L1 (`translated`) by inspection; the
+  other 13 courses are **assumed** `verbatim` and should be spot-checked before
+  the ear-verification criterion is trusted.
