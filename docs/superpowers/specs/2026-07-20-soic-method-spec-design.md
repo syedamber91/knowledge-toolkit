@@ -70,14 +70,39 @@ guest. This drives a hard exclusion rule (see Gate 1.4).
 | Conflict policy | **Context-scope first, surface true conflicts for human review** | Prevents "scoped variant" and "genuine contradiction" collapsing into each other. |
 | Approach | **Router → extractor → deterministic verifier → refuter** | The verifier is a non-LLM gate that makes fabricated citations structurally impossible. |
 
-### Approach rejected, and why
+### Approach rejected, and why (revised 2026-07-20 after reading the actual wiki)
 
 **Reusing the `/learn-topic` persona-wiki pipeline and deriving rules from the
-wiki.** A persona wiki is a prose synthesis of transcripts. Extracting
-`ROCE > 18%` from a concept note that already paraphrased a lesson is two lossy
-hops from source, and exact figures are the first casualty of prose
-abstraction. Figures are the entire point of `rules.yaml`. The wiki approach is
-correct for teaching a human and wrong for machine-executable thresholds.
+wiki.** Still rejected as a *rules* source — but the original rationale was
+wrong and is corrected here.
+
+**The original claim was that prose synthesis destroys exact figures. That is
+empirically false.** `learning-vault-invest`'s
+`concepts/screening-filters-for-stock-selection.md` preserves them well: a P/E
+filter `< 50 or 40x`, a results tracker at `>15% sales growth / 20% PAT
+growth`, a Friday-evening weekly cadence, Accelya's `100 → 3600 cr` trajectory,
+and named cases (Zomato, Bector Foods, JM Finance). Figures survived.
+
+The real disqualifiers are narrower and harder:
+
+1. **Provenance stops at a file, not a timestamp.** `sources:` points at
+   `raw/<topic>/part-2-scalable-businesses.md`. That cannot be clicked and
+   heard, which is pilot success criterion #1.
+2. **That `raw/` layer is summaries, not transcripts.** Per the hub's own
+   `CLAUDE.md`, Phase 1 ingested "*summary*-level module notes (74KB total)"
+   rather than "the full lecture transcripts (~1.6MB combined)", and the depth
+   gate **logged source gaps on 20 of 22 concepts**. So it genuinely is two
+   hops; figures that survived did so by luck of appearing in the summary.
+3. **Near-total absence of verbatim quotes.** The notes paraphrase ("the source
+   gives a concrete example"). Gate 1's literal-substring check cannot run
+   against paraphrase at all.
+4. **It preserves ambiguity that a rule must resolve.** "P/E less than 50 **or**
+   40 times" is good teaching and unusable as a threshold — exactly the
+   scoped-variant-vs-conflict question, left open rather than settled.
+
+**Consequence: the wiki is promoted to a first-class input for `rubrics/*.md`**
+(see Rubric inputs below) while `rules.yaml` still requires transcript-level
+extraction. This refines the two-artifact split rather than overturning it.
 
 ---
 
@@ -214,6 +239,24 @@ One per stage: `l6-sector.md`, `l5-screen.md`, `l3-valuation.md`,
 lifted from actual lessons** (the L6 sector webinars earn their keep here — a
 real sector reasoned end to end beats any abstract checklist), and its citation
 trail. Capped at ~8–10KB each so they compose without blowing context.
+
+#### Rubric inputs — reuse before re-deriving
+
+Rubrics do **not** start from scratch. Three existing bodies of work in
+`syedamber91/learning-vault-invest` (readable via `gh`, see Access below) are
+first-class seed material, because rubrics tolerate paraphrase where
+`rules.yaml` does not:
+
+| Source | What it gives | Caveat |
+|---|---|---|
+| `wiki/personas/soic/concepts/*.md` (22 notes) | Mechanism-depth prose, provenance-gated, `qc: passed` | Sits on the summary layer; depth gaps logged on 20/22 |
+| `poc/soic/soic_persona_brief_v2.md` | Voice, method, frameworks, **15-point analysis-standards checklist** — distilled from **19 full transcripts** | Hand-distilled, not gate-run |
+| `poc/soic/PI_Industries_SOIC_analysis.md` + `enrichment_*.md` | A worked end-to-end application with receipts-tagged findings | Single company, cooperative sector |
+
+The 15-point checklist in `soic_persona_brief_v2.md` is the closest thing to a
+ready-made rubric skeleton already in existence and should be the starting
+structure for the rubric files, refined against transcript evidence rather than
+reinvented.
 
 ### Bundle layout
 
@@ -352,14 +395,33 @@ toward quantity.
    checkable.
 5. **Bound/unbound split reported**, producing a first data-gap list.
 
+### Pilot scope, revised: L5 alone is the wrong slice
+
+The original plan piloted Level 5 alone (4 lessons, 278k chars) because it is
+named "How to Screen & Filter Epic Stocks". **Evidence gathered 2026-07-20 says
+the screening method is not primarily taught there.**
+
+`learning-vault-invest`'s `screening-filters-for-stock-selection.md` — the one
+existing wiki concept squarely about screening — cites
+`raw/sector-analysis-framework/part-2-scalable-businesses.md`, i.e. a
+**Level 6** module. The concrete thresholds it surfaces (P/E `< 50 or 40x`,
+`>15%` sales / `20%` PAT growth, the results-tracker and bombed-out-IPO
+frameworks) trace to L6, not L5.
+
+**Revised pilot slice:** Level 5's 4 lessons **plus** the L6 lessons backing
+`part-2-scalable-businesses`. This keeps the pilot small while pointing it at
+where the rules demonstrably are. Course-title-driven scoping is explicitly
+abandoned as a heuristic — it is precisely the assumption this finding
+falsified.
+
 ### A pilot outcome that looks like failure but isn't
 
-Level 5 is only 4 lessons. If it yields very few executable rules, the most
-likely explanation is that **the real thresholds are not taught in the
-screening course — they are stated in passing during Ask SOIC and StockScans.**
-That is a finding about where the method actually lives, and it raises the
-value of the routing pass rather than undermining it. It will be reported as a
-result, not retried until the number looks better.
+If even the revised slice yields few executable rules, the most likely
+explanation is that thresholds are **stated in passing during Ask SOIC and
+StockScans** rather than taught in any course module. That is a finding about
+where the method actually lives, and it raises the value of the routing pass
+rather than undermining it. It will be reported as a result, not retried until
+the number looks better.
 
 ---
 
@@ -372,12 +434,64 @@ result, not retried until the number looks better.
 - Full-corpus extraction — gated on pilot outcome
 - Parallel multi-agent fan-out — requires separate explicit authorization
 
+## Access — reading the SOIC wiki (resolved 2026-07-20)
+
+**iCloud is not readable from the agent sandbox, and this is not fixable in
+code.** `~/Library/Mobile Documents/...` returns `Operation not permitted` even
+on a fully-qualified path (`stat` on the container succeeds; `readdir` is
+denied). This is macOS **TCC**, not a Claude Code restriction — the host
+process lacks Full Disk Access. Granting it is a user-side security setting
+change, out of scope for the agent.
+
+**It is also unnecessary.** Per the 2026-07-17 hub audit, all four learning
+hubs have GitHub remotes. The SOIC wiki is fully readable via:
+
+```bash
+gh api "repos/syedamber91/learning-vault-invest/git/trees/HEAD?recursive=1" \
+  --jq '.tree[] | select(.type=="blob") | .path'
+gh api "repos/syedamber91/learning-vault-invest/contents/<path>" \
+  --jq '.content' | base64 -d
+```
+
+Use `gh` as the access path throughout. Do not add iCloud file reads as a
+dependency — they will fail in any sandboxed or remote session.
+
+## Program alignment — this stage vs. the invest hub's own roadmap
+
+`learning-vault-invest`'s `CLAUDE.md` already declares a Phase 2 tracked "in
+the `stock_analyzer` repo": **2a** upgrade the `gems/*.md` prompts, **2b**
+promote `ask_notebook.py` + the persona into a `/soic` analyst agent. The
+five-stage desk program *is* that Phase 2, at higher resolution. Naming should
+be reconciled during planning so two roadmaps do not diverge.
+
+**Stage 0 is the invest POC's own acknowledged gap.** `poc/soic/POC_VERDICT.md`
+(verdict: **GO**) lists among its honest limits: *"Persona is still
+lightweight… not yet run through the full provenance/resolution/depth gates of
+the `learn-topic` wiki pipeline."* This spec closes exactly that.
+
+### Why the two halves need each other
+
+The POC's other two limits are the sharper insight:
+
+- *"No valuation/market data — the notebook holds company filings, not price…
+  need screener.in"*
+- *"No scuttlebutt / peer-node comparison… compares PI's margins against
+  Bharat Rasayan/Anupam node-peers (needs their notebooks)"*
+
+**`stock_analyzer` already has both.** Live prices in Postgres `stock_prices`,
+trusted quarterly fundamentals from screener.in in `quarterly_financials`, and
+a full sector peer-comparison API surface.
+
+So the two bodies of work are complementary halves of one desk: **the POC has
+the method and is blind to price; the platform has the price and is weak on
+method.** That is the strategic case for the whole program, and it should be
+stated explicitly in the plan.
+
 ## Open items carried forward
 
-- The Phase-1 SOIC persona wiki (`wiki/personas/soic/`, 1 topic + 22 concepts)
-  lives in an iCloud Obsidian vault unreadable from the sandbox. Its current
-  state needs confirming; it may supply rubric material but is not a rules
-  source (see rejected approach).
 - Binding targets in `stock_analyzer` are assumed from `CLAUDE.md`
   documentation; the concrete column inventory needs verifying during
   implementation, and will determine the real bound/unbound ratio.
+- The wiki's 22 concepts carry logged depth gaps on 20 of them. If rubric
+  drafting hits those gaps, the fix is a per-concept re-synthesis against the
+  matching transcript excerpt — noted as available, not scheduled here.
