@@ -11,6 +11,7 @@ them is the refuter's job.
 
 from __future__ import annotations
 
+import re
 from typing import Dict, List
 
 from .corpus import normalize_slice
@@ -27,6 +28,21 @@ DIRECTION_TOKENS: Dict[str, List[str]] = {
 DIRECTION_TOKENS["lt"] = DIRECTION_TOKENS["lte"]
 DIRECTION_TOKENS["gt"] = DIRECTION_TOKENS["gte"]
 
+# Word-boundary regex per direction token, precompiled once — mirrors
+# router.py's `_METRIC_PATTERNS` fix (83d92d0). Short tokens like "min" are
+# real comparative language ("minimum") but also common substrings of
+# unrelated words ("eliminate"); \b confines a match to the token appearing
+# as its own word/phrase, not embedded inside a longer token.
+# DIRECTION_TOKENS itself is untouched; only the matching mechanism changed.
+_DIRECTION_PATTERNS: Dict[str, List["re.Pattern"]] = {
+    op: [re.compile(r"\b" + re.escape(tok) + r"\b") for tok in toks]
+    for op, toks in DIRECTION_TOKENS.items()
+}
+
+
+def _direction_present(operator: str, norm: str) -> bool:
+    return any(p.search(norm) for p in _DIRECTION_PATTERNS.get(operator, []))
+
 
 def _value_forms(value: float) -> List[str]:
     """Surface forms a number may take in a transcript."""
@@ -35,6 +51,21 @@ def _value_forms(value: float) -> List[str]:
         forms.append(str(int(value)))
     forms.append(str(value))
     return forms
+
+
+def _value_present(value: float, norm: str) -> bool:
+    """Whether any surface form of ``value`` appears as its own token.
+
+    Same \\b-boundary fix as `_direction_present`/router.py's
+    `_METRIC_PATTERNS`: digits are `\\w` characters, so a plain substring
+    check (`"8" in "18%"`) would wrongly treat a short claimed value as
+    present just because it happens to be a digit-substring of the real
+    number in the span.
+    """
+    return any(
+        re.search(r"\b" + re.escape(form) + r"\b", norm)
+        for form in _value_forms(value)
+    )
 
 
 def verify_rule(rule: Rule, lessons: Dict[str, LessonRecord]) -> VerifyResult:
@@ -50,8 +81,11 @@ def verify_rule(rule: Rule, lessons: Dict[str, LessonRecord]) -> VerifyResult:
             continue
 
         # 6. corpus snapshot integrity — checked first; everything else is
-        # meaningless against drifted text.
-        if cit.text_hash and lesson.text_hash and cit.text_hash != lesson.text_hash:
+        # meaningless against drifted text. Fail CLOSED: a missing hash on
+        # either side is treated as a mismatch, not skipped — an empty
+        # text_hash proves nothing about drift, so it cannot be trusted to
+        # pass this check.
+        if not cit.text_hash or not lesson.text_hash or cit.text_hash != lesson.text_hash:
             reasons.append("corpus hash mismatch for lesson %s" % cit.lesson_id)
             continue
 
@@ -74,20 +108,30 @@ def verify_rule(rule: Rule, lessons: Dict[str, LessonRecord]) -> VerifyResult:
             reasons.append("span too short (%d chars)" % len(norm))
             continue
 
-        # 3. the claimed value must appear in the span
-        if rule.value is not None:
-            if not any(f in norm for f in _value_forms(rule.value)):
-                reasons.append("value %s absent from span" % _value_forms(rule.value)[0])
-        if rule.value_range is not None:
-            for bound in (rule.value_range.min, rule.value_range.max):
-                if not any(f in norm for f in _value_forms(bound)):
-                    reasons.append("range bound %s absent from span" % _value_forms(bound)[0])
-
-        # 4. comparative direction must match the operator
-        if rule.operator in DIRECTION_TOKENS:
-            if not any(tok in norm for tok in DIRECTION_TOKENS[rule.operator]):
+        # 3/4. value + direction checks — exempted ONLY for kind == "boolean"
+        # (a boolean rule carries no numeric claim to verify). This is an
+        # explicit kind check, not inferred from value/operator being absent,
+        # so a malformed non-boolean rule missing its value is caught below
+        # rather than silently treated as "not applicable".
+        if rule.kind != "boolean":
+            # 3. the claimed value must appear in the span
+            if rule.value is not None:
+                if not _value_present(rule.value, norm):
+                    reasons.append("value %s absent from span" % _value_forms(rule.value)[0])
+            elif rule.value_range is not None:
+                for bound in (rule.value_range.min, rule.value_range.max):
+                    if not _value_present(bound, norm):
+                        reasons.append("range bound %s absent from span" % _value_forms(bound)[0])
+            else:
                 reasons.append(
-                    "direction mismatch: no %s token in span" % rule.operator
+                    "malformed rule: kind %r has neither value nor value_range" % rule.kind
                 )
+
+            # 4. comparative direction must match the operator
+            if rule.operator in DIRECTION_TOKENS:
+                if not _direction_present(rule.operator, norm):
+                    reasons.append(
+                        "direction mismatch: no %s token in span" % rule.operator
+                    )
 
     return VerifyResult(ok=not reasons, reasons=reasons)
