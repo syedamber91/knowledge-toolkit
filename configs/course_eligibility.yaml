@@ -1,0 +1,58 @@
+# Rules-eligibility for the SOIC method extractor.
+# UNLISTED COURSES AND MODULES ARE INELIGIBLE. Never infer at runtime.
+#
+# transcript_fidelity:
+#   verbatim   - ASR of the spoken audio (may still be heavily degraded)
+#   translated - text is an English rendering of non-English audio;
+#                ear-verification does NOT apply
+courses:
+  "Level 1- Financial Literacy Course For All (Hindi)":
+    eligible: true
+    transcript_fidelity: translated
+  "Level 2-Intensive Course (Investing from Scratch)- English":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Level 3 How to Value a Company & Portfolio Creation!":
+    eligible: true
+    transcript_fidelity: verbatim
+  "L4- When to Hold, Buy & Sell using Technicals for Long Term!":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Level 5- How to Screen & Filter Epic Stocks":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Level 6 Become a Sectoral Expert":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Crash Course":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Ask SOIC on Saturdays at 11 a.m.":
+    eligible: true
+    transcript_fidelity: verbatim
+  "SOIC Market Signals + StockScans":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Masterclass on Investing Using AI":
+    eligible: true
+    transcript_fidelity: verbatim
+  "SOIC Labs: Become an AI-Powered Investor":
+    eligible: true
+    transcript_fidelity: verbatim
+  # Guest interviews — no speaker labels, unattributable by construction.
+  "Conversation with India's Super Investors":
+    eligible: false
+    transcript_fidelity: verbatim
+  # Confirmed member/guest presentations.
+  "Rising Stars":
+    eligible: false
+    transcript_fidelity: verbatim
+  "Important Membership Updates":
+    eligible: false
+    transcript_fidelity: verbatim
+
+# Modules excluded even though their course is eligible (guest-taught).
+# Matched case-insensitively as a substring of the module title.
+excluded_modules:
+  - "by Siddharth Bhandari"
+  - "by Digant Haria"
