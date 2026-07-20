@@ -66,7 +66,11 @@ These are not hypothetical risks. Each was counted directly:
 | ASR drops trailing consonants on the flagship metric | `ROCE` **54×** vs `ROC` **961×** | A router keyed on "ROCE" misses ~95% of the material |
 | ASR mangles metric names | `pad growth` **363×** vs `PAT growth` **74×** | Same — and quotes will contain the mangled form |
 | ASR corrupts digits | `"it is still 499% pad growth"` (HBL context) | **Unrecoverable from text.** 49%? 4.99%? |
+| **ASR corrupts proper nouns** | One 30-second stretch: `Sinjenta` (Syngenta), `Sumitoma` then `Sumitobho` (same company, two spellings), `Pessisites India` / `pesticides India` / `India pesticides` (three) | Router lexicon cannot match company/sector names naively; entity-level claims are unreliable |
+| **ASR corrupts sentence structure** | `"the bears and BASF just in my opinion are three is Satya"` — unparseable | A verbatim-quotable span can be **semantically empty**. Gate 1 would pass it |
 | **Level 1 is translated, not transcribed** | Labeled Hindi; `body_text` is fluent English | A *correctly* extracted L1 quote **cannot** be heard in the audio as written |
+
+The last three compound: degradation is not confined to digits, so `corroboration ≥ 2` is doing more work than it first appears — it is the main defence against *any* single-stream ASR artifact, numeric or not. It also raises the refuter's bar: one of its checklist items must be "is this span coherent enough to support any rule at all?"
 
 The last one invalidated an earlier pilot criterion ("click the citation, hear
 Ishmohit say it") for 51 lessons. Courses must carry a `transcript_fidelity`
@@ -369,10 +373,28 @@ enter a human ear-verification queue. Thresholds are few; this is cheap.
 
 Recorded in `course_eligibility.yaml`. **Unclassified defaults to ineligible.**
 
-**This does not solve attribution.** Eligible lessons still contain quoted
-third parties ("Buffett says…"), read-aloud member questions, and consensus
-views described in order to disagree. That is the refuter's job — see the
-checklist. Enforced at both router (cost) and verifier (guarantee).
+### Module-level eligibility — course level is not enough
+
+Verified 2026-07-20: **Level 6 contains guest-led modules despite the course
+being eligible.** Of its 40 modules, at least two are guest-taught:
+
+- `a-primer-to-saas-by-siddharth-bhandari`
+- `masterclass-on-banks-nbfcs-by-digant-haria`
+
+Bhandari also appears in the *excluded* Super Investors course. Course-level
+eligibility would have admitted his rules through the Level 6 door.
+
+Eligibility is therefore recorded at **module** granularity. A cheap first pass
+exists: the capture's module slugs encode authorship as `-by-<person>`, so
+candidates are mechanically greppable. **That is a routing heuristic, not a
+guarantee** — a guest module named without the pattern would slip through, so
+the 40 L6 module names get a one-time human classification pass, recorded in
+`course_eligibility.yaml` alongside courses. It is 40 lines of judgement, once.
+
+**None of this solves in-lesson attribution.** Eligible modules still contain
+quoted third parties ("Buffett says…"), read-aloud member questions, and
+consensus views described in order to disagree. That is the refuter's job — see
+the checklist. Enforced at both router (cost) and verifier (guarantee).
 
 ### Gate 2 — Refute (LLM). One well-fed refuter, not three.
 
@@ -505,18 +527,35 @@ result; do not retry until the number looks better.
 
 ---
 
-## Access — reading the SOIC wiki
+## Access — sources and how to read them
 
-**iCloud is unreadable from the agent sandbox and this is not fixable in code.**
-`~/Library/Mobile Documents/...` returns **EPERM** (not EACCES) on every path,
-via Bash, via Bash-with-sandbox-disabled, and via the Read tool. Ruled out:
-POSIX permissions (user owns the tree) and the Claude Code sandbox. Confirmed
-cause: **macOS TCC** — the host binary (`/Applications/Claude.app`) lacks Full
-Disk Access. Granting it is a user-side security decision, out of scope for the
-agent, and a broad grant for a narrow need.
+### iCloud: now readable locally, but not a dependency
 
-**Use `gh` instead** — it works in sandboxed, remote and cloud sessions where a
-local FDA grant is meaningless:
+Originally blocked: `~/Library/Mobile Documents/...` returned **EPERM** (not
+EACCES) via Bash, Bash-with-sandbox-disabled, and the Read tool — ruling out
+POSIX permissions and the Claude Code sandbox, and confirming **macOS TCC**.
+Full Disk Access was granted to `/Applications/Claude.app` on 2026-07-20 and
+the iCloud vaults are now readable.
+
+**This does not change the data plan, and the pipeline must not depend on it.**
+A local FDA grant is meaningless in sandboxed, remote, headless and cloud
+sessions — which is where this pipeline will often run.
+
+### Canonical source: `data/content.json` (unchanged)
+
+Verified 2026-07-20: the `Stock Market Vault` transcripts are a **derived view
+of `content.json`, byte-identical** (26,618 vs 26,619 chars on the compared
+lesson — a trailing newline). The vault is built *from* the capture by
+`soic_toolkit build_vault`.
+
+So the vault offers **no fidelity gain** and is not an alternative source. It
+remains useful for two narrow purposes:
+
+- **Human browsing** of the corpus in Obsidian.
+- **Module-name inspection** — its per-module directory slugs are what surfaced
+  the guest-module problem above.
+
+### Wiki: read via `gh`
 
 ```bash
 gh api "repos/syedamber91/learning-vault-invest/git/trees/HEAD?recursive=1" \
@@ -525,7 +564,7 @@ gh api "repos/syedamber91/learning-vault-invest/contents/<path>" \
   --jq '.content' | base64 -d
 ```
 
-Do not add iCloud file reads as a dependency.
+Portable across every execution environment; prefer it over the local clone.
 
 ---
 
@@ -544,6 +583,10 @@ Do not add iCloud file reads as a dependency.
 - The wiki's 22 concepts carry logged depth gaps on 20. If rubric drafting hits
   them, the fix is per-concept re-synthesis against transcript excerpts —
   available, not scheduled.
-- `transcript_fidelity` is confirmed for L1 (`translated`) by inspection; the
-  other 13 courses are **assumed** `verbatim` and should be spot-checked before
-  the ear-verification criterion is trusted.
+- `transcript_fidelity` is confirmed for L1 (`translated`) and L6 (`verbatim`,
+  though heavily ASR-degraded) by inspection. The other 12 courses are
+  **assumed** `verbatim` and should be spot-checked before the ear-verification
+  criterion is trusted.
+- The 40 Level-6 module names need their one-time human eligibility pass. Two
+  guest modules are already identified; the pass is to catch any named without
+  the `-by-<person>` pattern.
