@@ -2,6 +2,9 @@
 .env
 .auth/
 data/
+# Also matches a `data` symlink (e.g. into a sibling worktree's corpus copy) —
+# the trailing-slash pattern above only matches a real directory.
+/data
 output/
 vault/
 
