@@ -30,12 +30,22 @@ _COMPARATIVE = re.compile(
 )
 _NUMBER = re.compile(r"\d")
 
+# Word-boundary regex per surface form, precompiled once. Short ASR-variant
+# forms like "roc" or "min" are real corpus signal but also common substrings
+# of unrelated words ("ferocious", "Rochit") — \b confines a match to the
+# form appearing as its own word/phrase, not embedded inside a longer token.
+# SIGNAL_TERMS itself is untouched; only the matching mechanism changed.
+_METRIC_PATTERNS: Dict[str, List["re.Pattern"]] = {
+    canon: [re.compile(r"\b" + re.escape(form) + r"\b") for form in forms]
+    for canon, forms in SIGNAL_TERMS.items()
+}
+
 
 def _metric_hits(text_lower: str) -> List[str]:
     return [
         canon
-        for canon, forms in SIGNAL_TERMS.items()
-        if any(f in text_lower for f in forms)
+        for canon, patterns in _METRIC_PATTERNS.items()
+        if any(p.search(text_lower) for p in patterns)
     ]
 
 
