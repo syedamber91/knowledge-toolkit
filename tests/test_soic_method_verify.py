@@ -376,3 +376,170 @@ def test_standalone_percent_word_value_still_passes_no_regression():
                             span=Span(start=s, end=s + len(quote)), text_hash=HASH)],
     )
     assert verify_rule(r, lessons).ok
+
+
+# --- Regression tests for task-5-review.md round 3 ---------------------------
+# Round 3 diagnosed the boundary-anchored substring-search approach
+# (`(?<![\d.])<form>(?![\d.])`) as structurally wrong -- it needs one more
+# excluded-adjacency character every time a new corpus construction turns up
+# (digit -> round 1, decimal point -> round 2, comma/sign -> round 3 here).
+# Fixed by replacing it with number extraction (`_extract_numbers`) + float
+# comparison, which closes the whole class instead of one more instance.
+
+COMMA_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[00:50:00] the promoter pledged 18,000 shares against a personal loan again\n"
+    "[00:50:20] anyway moving on to the next topic entirely.\n"
+)
+COMMA_QUOTE = "the promoter pledged 18,000 shares against a personal loan again"
+
+
+def _comma_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=COMMA_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _comma_span():
+    s = COMMA_BODY.index(COMMA_QUOTE)
+    return Span(start=s, end=s + len(COMMA_QUOTE))
+
+
+def test_accepts_comma_grouped_value_as_genuine_match():
+    # Round3-Critical-1 (correct-value direction): the real span says
+    # "18,000 shares"; the claimed value IS the correct 18000. Pre-fix,
+    # `_value_forms(18000)` produced only the comma-free string "18000",
+    # which is never a literal substring of "18,000" -- so the genuinely
+    # correct claim was spuriously REJECTED. Number extraction parses
+    # "18,000" to 18000.0 directly, so this must now PASS.
+    r = _rule(
+        operator="eq", value=18000,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:50:00",
+                            span=_comma_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _comma_lessons())
+    assert res.ok
+
+
+def test_rejects_smaller_value_against_comma_grouped_real_number():
+    # Round3-Critical-1 (wrong-value direction): the real span says
+    # "18,000 shares"; the claimed value is 18 -- a materially different,
+    # 1000x smaller number. Pre-fix, the lookaround didn't exclude a comma,
+    # so `_value_present(18, "...18,000...")` spuriously matched. Number
+    # extraction parses "18,000" to 18000.0, which != 18, so this must
+    # REJECT.
+    r = _rule(
+        operator="eq", value=18,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:50:00",
+                            span=_comma_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _comma_lessons())
+    assert not res.ok and any("value 18" in x for x in res.reasons)
+
+
+SIGN_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[00:55:00] same store sales actually fell to -5 percent for the quarter okay\n"
+    "[00:55:20] anyway moving on to the next topic entirely.\n"
+)
+SIGN_QUOTE = "same store sales actually fell to -5 percent for the quarter okay"
+
+
+def _sign_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=SIGN_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _sign_span():
+    s = SIGN_BODY.index(SIGN_QUOTE)
+    return Span(start=s, end=s + len(SIGN_QUOTE))
+
+
+def test_rejects_positive_value_against_real_negative_number():
+    # Round3-Critical-2: the real span says sales fell to "-5 percent"
+    # (negative five); the claimed value is a positive 5 -- the opposite
+    # sign, an opposite-meaning number for an investing rule. Pre-fix, the
+    # lookaround didn't exclude a leading "-", so `_value_present(5,
+    # "...-5...")` spuriously matched. Number extraction parses "-5" to
+    # -5.0, which != 5, so this must REJECT.
+    r = _rule(
+        operator="eq", value=5,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:55:00",
+                            span=_sign_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _sign_lessons())
+    assert not res.ok and any("value 5" in x for x in res.reasons)
+
+
+def test_accepts_genuine_negative_value_match():
+    # Companion to the above: the claimed value IS the genuine -5. Number
+    # extraction parses "-5" to -5.0, which equals the claim, so this must
+    # PASS.
+    r = _rule(
+        operator="eq", value=-5,
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="00:55:00",
+                            span=_sign_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _sign_lessons())
+    assert res.ok
+
+
+RANGE_NONE_BODY = (
+    "[00:00:05] intro chatter here to pad the transcript out a bit.\n"
+    "[01:00:00] we're happy paying a p e less than 50 or 40 times earnings okay\n"
+    "[01:00:20] anyway moving on to the next topic entirely.\n"
+)
+RANGE_NONE_QUOTE = "we're happy paying a p e less than 50 or 40 times earnings okay"
+
+
+def _range_none_lessons():
+    return {
+        "1": LessonRecord(
+            lesson_id="1", course_title="c", module_title="m", title="t",
+            url="u", body_text=RANGE_NONE_BODY, text_hash=HASH, eligible=True,
+        )
+    }
+
+
+def _range_none_span():
+    s = RANGE_NONE_BODY.index(RANGE_NONE_QUOTE)
+    return Span(start=s, end=s + len(RANGE_NONE_QUOTE))
+
+
+def test_range_rule_with_operator_none_is_not_unhandled_when_genuinely_cited():
+    # Round3-Critical-3: kind="range" with operator=None is the ONLY
+    # correct way to construct a range rule (models.OPERATORS has no
+    # range/between entry, and the design spec's own kind: range example
+    # carries no operator field). Pre-fix, round 2's fail-closed else
+    # branch only exempted operator=="eq", so this genuinely, cleanly
+    # cited range rule (both 40 and 50 literally present in the span) was
+    # unconditionally rejected with "unhandled operator None: no
+    # direction check defined" -- a false-reject blocking an entire
+    # spec-documented rule shape. Must now PASS.
+    r = _rule(
+        kind="range", operator=None, value=None,
+        value_range=ValueRange(min=40, max=50),
+        citations=[Citation(lesson_id="1", lesson_url="u", timestamp="01:00:00",
+                            span=_range_none_span(), text_hash=HASH)],
+    )
+    res = verify_rule(r, _range_none_lessons())
+    assert res.ok
+
+
+def test_threshold_rule_with_operator_none_still_rejected_as_unhandled():
+    # The range/None exemption must NOT widen into a blanket
+    # operator-is-None exemption: a kind="threshold" rule with a missing
+    # operator still genuinely needs directional language and must still
+    # fail closed via the "unhandled operator" branch. Uses the ordinary
+    # QUOTE/_lessons fixture where the claimed value (18) is genuinely
+    # present, isolating this to the operator branch.
+    res = verify_rule(_rule(kind="threshold", operator=None, value=18), _lessons())
+    assert not res.ok
+    assert any("unhandled operator" in x for x in res.reasons)
