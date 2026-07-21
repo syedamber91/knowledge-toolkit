@@ -104,3 +104,70 @@ def test_rules_without_a_key_never_group():
     out = reconcile([_rule(18, key=None), _rule(15, key=None)], _lessons(), {})
     assert out.conflicts == []
     assert len(out.drafts) == 2
+
+
+# --- "variants" requires the scopes to actually DIFFER -----------------------
+# final-branch-review.md C3. classify_group returned "variants" as soon as
+# every rule carried *a* scope with *an* attesting span, never checking the
+# scopes were distinct from each other. Two contradictory thresholds under
+# one identical scope dict therefore both shipped as active rules and never
+# reached conflicts.open.yaml -- the exact laundering the conflict-by-default
+# inversion was built to close. Cost of laundering: one copied scope dict.
+
+def _attest():
+    s = BODY.index(SCOPE_QUOTE)
+    return ScopeAttestation(lesson_id="1",
+                            span=Span(start=s, end=s + len(SCOPE_QUOTE)))
+
+
+def test_identical_scopes_with_different_values_are_a_conflict():
+    same = {"business_type": "capital_light"}
+    a = _rule(18, scope=same, attest=_attest())
+    b = _rule(15, scope=same, attest=_attest())
+    verdict, _ = classify_group([a, b], _lessons())
+    assert verdict == "conflict"
+
+
+def test_identical_scoped_contradiction_reaches_the_conflict_queue():
+    same = {"business_type": "capital_light"}
+    out = reconcile([_rule(18, scope=same, attest=_attest()),
+                     _rule(15, scope=same, attest=_attest())], _lessons(), {})
+    assert out.rules == []
+    assert len(out.conflicts) == 1
+
+
+# --- ScopeAttestation.lesson_id is honoured ---------------------------------
+# final-branch-review.md I1. The probe used to keep citations[0]'s lesson_id
+# and overwrite only the span, so an attestation naming a different lesson
+# was verified against the CITING lesson's text -- the named lesson was
+# never consulted.
+
+def test_attestation_naming_an_unknown_lesson_is_rejected():
+    att = ScopeAttestation(lesson_id="does-not-exist",
+                           span=Span(start=BODY.index(SCOPE_QUOTE),
+                                     end=BODY.index(SCOPE_QUOTE) + len(SCOPE_QUOTE)))
+    a = _rule(18, scope={"business_type": "capital_light"}, attest=att)
+    b = _rule(15, scope={"business_type": "cyclical"}, attest=att)
+    verdict, _ = classify_group([a, b], _lessons())
+    assert verdict == "conflict"
+
+
+def test_attestation_is_verified_against_the_lesson_it_names():
+    # Lesson 2 carries the scope language; lesson 1 (the cited one) does not
+    # have anything at those offsets. Verifying against lesson 1 would
+    # reject; honouring att.lesson_id accepts.
+    other_body = ("[00:00:05] filler filler filler filler filler filler\n"
+                  "[00:03:00] " + SCOPE_QUOTE + " honestly\n")
+    lessons = _lessons()
+    lessons["2"] = LessonRecord(lesson_id="2", course_title="c",
+                                module_title="m", title="t", url="u2",
+                                body_text=other_body, text_hash="h2",
+                                eligible=True)
+    s = other_body.index(SCOPE_QUOTE)
+    att = ScopeAttestation(lesson_id="2",
+                           span=Span(start=s, end=s + len(SCOPE_QUOTE)))
+    a = _rule(18, scope={"business_type": "capital_light"}, attest=att)
+    b = _rule(15, scope={"business_type": "cyclical"}, attest=att)
+    verdict, rules = classify_group([a, b], lessons)
+    assert verdict == "variants"
+    assert len(rules) == 2

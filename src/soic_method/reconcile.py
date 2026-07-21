@@ -14,8 +14,8 @@ from typing import Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, Field
 
-from .corroborate import corroborate
-from .models import LessonRecord, Rule
+from .corroborate import corroborate, rule_values as _values_of
+from .models import Citation, LessonRecord, Rule
 from .verify import verify_rule
 
 
@@ -23,14 +23,6 @@ class ReconcileOutput(BaseModel):
     rules: List[Rule] = Field(default_factory=list)
     drafts: List[Rule] = Field(default_factory=list)
     conflicts: List[List[Rule]] = Field(default_factory=list)
-
-
-def _values_of(rule: Rule) -> List[float]:
-    if rule.value is not None:
-        return [rule.value]
-    if rule.value_range is not None:
-        return [rule.value_range.min, rule.value_range.max]
-    return []
 
 
 def resolution_key(rule: Rule) -> str:
@@ -83,11 +75,47 @@ def _scope_is_attested(rule: Rule, lessons: Dict[str, LessonRecord]) -> bool:
     att = rule.scope_attestation
     if att is None or not rule.scope or not rule.citations:
         return False
+
+    # The probe is built against the lesson the ATTESTATION names, not the
+    # one the rule happens to cite first. Keeping citations[0]'s lesson_id
+    # and overwriting only the span made ScopeAttestation.lesson_id dead:
+    # an attestation declaring lesson 2 was verified against lesson 1's
+    # body, so it either passed on unrelated text sitting at those offsets
+    # or failed spuriously because the citing lesson was shorter -- and a
+    # falsely-"verified" attestation is the entire cost of laundering a
+    # contradiction into two variants (final-branch-review.md I1).
+    att_lesson = lessons.get(att.lesson_id)
+    if att_lesson is None:
+        return False           # fail closed: unknown attesting lesson
+    probe_cit = Citation(
+        lesson_id=att_lesson.lesson_id,
+        lesson_url=att_lesson.url,
+        timestamp="00:00:00",
+        span=att.span,
+        transcript_fidelity=att_lesson.transcript_fidelity,
+        text_hash=att_lesson.text_hash,
+    )
     probe = rule.model_copy(update={
-        "citations": [rule.citations[0].model_copy(update={"span": att.span})],
+        "citations": [probe_cit],
         "value": None, "value_range": None, "operator": None, "kind": "boolean",
     })
     return verify_rule(probe, lessons).ok
+
+
+def _scopes_are_distinct(rules: List[Rule]) -> bool:
+    """Whether every rule in the group claims a DIFFERENT scope.
+
+    "Variants" means "these rules disagree because they apply to different
+    things". Two rules asserting 18 and 15 under an IDENTICAL scope dict do
+    not describe different things -- they contradict each other, and
+    publishing both launders exactly the contradiction Gate 3's
+    conflict-by-default exists to surface. The old check only asked whether
+    each rule carried *a* scope with *an* attesting span, never whether the
+    scopes differed, so one non-empty scope dict copied onto both rules plus
+    one shared 40-char span was enough to ship both
+    (final-branch-review.md C3).
+    """
+    return len({frozenset(r.scope.items()) for r in rules}) == len(rules)
 
 
 def classify_group(
@@ -96,7 +124,8 @@ def classify_group(
     distinct = {tuple(sorted(_values_of(r))) for r in rules}
     if len(distinct) <= 1:
         return "merged", [merge_agreeing(rules, lessons)]
-    if all(_scope_is_attested(r, lessons) for r in rules):
+    if (_scopes_are_distinct(rules)
+            and all(_scope_is_attested(r, lessons) for r in rules)):
         return "variants", rules
     return "conflict", rules
 
