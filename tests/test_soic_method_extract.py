@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from soic_method.extract import build_extract_prompt, extract_rules
 from soic_method.models import Candidate, LessonRecord, Span
 
@@ -100,3 +102,94 @@ def test_extract_returns_empty_when_rules_key_is_not_a_list_int():
 
 def test_extract_returns_empty_when_rules_key_is_not_a_list_bool():
     assert extract_rules(_lesson(), _cand(), lambda p: '{"rules": true}') == []
+
+
+# --- Enum closure degrades gracefully (final-branch-review.md C1) -------------
+# Rule's enum fields are now closed, so an LLM emitting an unrecognised
+# `tier`/`kind`/`stage`/`conviction` raises at construction. extract_rules
+# must DROP that rule and keep going, not crash the stage -- and must not
+# fall back to a default that publishes the rule anyway.
+
+def _span():
+    s = BODY.index(QUOTE)
+    return {"start": s, "end": s + len(QUOTE)}
+
+
+def _raw(**over):
+    base = {"tier": "graded", "kind": "threshold", "stage": "screen",
+            "operator": "lte", "value": 18}
+    base.update(over)
+    base.update(_span())
+    return base
+
+
+@pytest.mark.parametrize("field,bad", [
+    ("tier", "knockout_but_spelled_wrong"),
+    ("stage", "portfolio"),
+    ("conviction", "very sure"),
+])
+def test_extract_drops_rules_with_out_of_vocabulary_enums(field, bad):
+    rules = extract_rules(_lesson(), _cand(),
+                          _llm_returning({"rules": [_raw(**{field: bad})]}))
+    assert rules == []
+
+
+def test_extract_drops_only_the_bad_rule_from_a_mixed_batch():
+    # A misbehaving extractor must not take the whole span's output with it.
+    rules = extract_rules(_lesson(), _cand(), _llm_returning({"rules": [
+        _raw(tier="banana"),
+        _raw(),
+    ]}))
+    assert len(rules) == 1
+    assert rules[0].tier == "graded"
+
+
+# --- kind is derived from the value shape (final-branch-review.md I4) ---------
+
+def test_range_values_force_kind_range_and_null_operator():
+    # The model mislabels a band as a threshold. Previously this built a
+    # kind="threshold" rule carrying a value_range, which verify.py then
+    # rejected as "unhandled operator None" -- a schema-shape fault
+    # reported as an operator fault, polluting rejected.jsonl (the spec's
+    # calibration signal).
+    rules = extract_rules(_lesson(), _cand(), _llm_returning({"rules": [
+        _raw(kind="threshold", operator=None, value=None,
+             value_min=40, value_max=50),
+    ]}))
+    assert len(rules) == 1
+    assert rules[0].kind == "range"
+    assert rules[0].operator is None
+    assert (rules[0].value_range.min, rules[0].value_range.max) == (40, 50)
+
+
+def test_scalar_value_forces_kind_threshold():
+    rules = extract_rules(_lesson(), _cand(), _llm_returning({"rules": [
+        _raw(kind="range", value=18, operator="lte"),
+    ]}))
+    assert len(rules) == 1
+    assert rules[0].kind == "threshold"
+    assert rules[0].value_range is None
+
+
+def test_threshold_without_an_operator_is_dropped_not_published():
+    # A cutoff with no comparative direction cannot be verified: "18% ROC"
+    # alone does not say floor or ceiling.
+    rules = extract_rules(_lesson(), _cand(), _llm_returning({"rules": [
+        _raw(operator=None),
+    ]}))
+    assert rules == []
+
+
+def test_rule_with_no_values_at_all_is_dropped_unless_declared_boolean():
+    assert extract_rules(_lesson(), _cand(), _llm_returning({"rules": [
+        _raw(kind="threshold", value=None, operator=None),
+    ]})) == []
+
+
+def test_declared_boolean_with_no_values_survives():
+    rules = extract_rules(_lesson(), _cand(), _llm_returning({"rules": [
+        _raw(kind="boolean", value=None, operator=None),
+    ]}))
+    assert len(rules) == 1
+    assert rules[0].kind == "boolean"
+    assert rules[0].value is None and rules[0].value_range is None

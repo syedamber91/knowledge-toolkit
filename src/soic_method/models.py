@@ -14,10 +14,20 @@ from pydantic import BaseModel, Field, model_validator
 TIER_KNOCKOUT = "knockout"
 TIER_GRADED = "graded"
 
+TIERS = (TIER_KNOCKOUT, TIER_GRADED)
+KINDS = ("threshold", "range", "boolean")
+STAGES = ("screen", "sector", "valuation", "exit")
 CONVICTIONS = ("absolute", "strong", "preference")
 OPERATORS = ("gte", "lte", "gt", "lt", "eq")
 STATUSES = ("draft", "active", "conflicted", "unbound", "needs_audio_check")
 FIDELITIES = ("verbatim", "translated")
+
+
+def _require_in(field: str, value: str, allowed: tuple) -> None:
+    if value not in allowed:
+        raise ValueError(
+            "%s %r is not one of %s" % (field, value, list(allowed))
+        )
 
 
 class Span(BaseModel):
@@ -38,6 +48,11 @@ class Citation(BaseModel):
     span: Span
     transcript_fidelity: str = "verbatim"
     text_hash: str = ""                # sha256 of the lesson body_text
+
+    @model_validator(mode="after")
+    def _known_fidelity(self) -> "Citation":
+        _require_in("transcript_fidelity", self.transcript_fidelity, FIDELITIES)
+        return self
 
 
 class Binding(BaseModel):
@@ -86,6 +101,29 @@ class Rule(BaseModel):
     def _one_value_form(self) -> "Rule":
         if self.value is not None and self.value_range is not None:
             raise ValueError("rule carries both a scalar value and a range")
+        return self
+
+    @model_validator(mode="after")
+    def _known_enums(self) -> "Rule":
+        """Every enum field is closed at construction.
+
+        These constants used to be declared and enforced nowhere, which made
+        them documentation rather than a contract. That mattered because the
+        two fields an LLM extractor picks freely -- ``kind`` and ``tier`` --
+        are exactly the two that route a rule AROUND the deterministic gates:
+        ``kind`` decides whether verify.py runs its value/direction checks at
+        all and whether corroborate.py's Gate 1b applies, and ``tier`` decides
+        whether the rule publishes as a hard exclusion. An unrecognised value
+        must therefore be a construction error the extractor drops, not a
+        silent route past verification (final-branch-review.md C1).
+        """
+        _require_in("tier", self.tier, TIERS)
+        _require_in("kind", self.kind, KINDS)
+        _require_in("stage", self.stage, STAGES)
+        _require_in("conviction", self.conviction, CONVICTIONS)
+        _require_in("status", self.status, STATUSES)
+        if self.operator is not None:
+            _require_in("operator", self.operator, OPERATORS)
         return self
 
 

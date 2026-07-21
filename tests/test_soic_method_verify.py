@@ -224,13 +224,20 @@ def test_unhandled_operator_is_rejected_not_silently_passed():
     # Any operator that is neither "eq" nor a DIRECTION_TOKENS key must
     # FAIL CLOSED, proving the fallback branch fires rather than silently
     # passing the way the pre-fix code did for every non-DIRECTION_TOKENS
-    # operator (including "eq"). Rule.operator isn't constrained by a
-    # pydantic Literal/validator to models.OPERATORS, so this exercises
-    # the fallback with a value outside that tuple -- standing in for any
-    # future operator this dict hasn't been taught yet. The claimed value
-    # (18) is genuinely present, isolating this to the direction/operator
-    # branch.
-    res = verify_rule(_rule(operator="ne", value=18), _lessons())
+    # operator (including "eq").
+    #
+    # Rule.operator IS now constrained to models.OPERATORS at construction
+    # (final-branch-review.md C1), so "ne" can no longer be built through
+    # the validating constructor -- it is injected via model_copy, which
+    # skips validation, precisely because the case this guards is the one
+    # the schema cannot catch: an operator ADDED to models.OPERATORS but
+    # never taught to DIRECTION_TOKENS. Today no such value exists, and
+    # that is exactly why the branch needs a test rather than a reader's
+    # trust. verify.py's fail-closed else stays defence in depth behind the
+    # schema, not a substitute for it. The claimed value (18) is genuinely
+    # present, isolating this to the direction/operator branch.
+    unknown_op = _rule(value=18).model_copy(update={"operator": "ne"})
+    res = verify_rule(unknown_op, _lessons())
     assert not res.ok
     assert any("unhandled operator" in x for x in res.reasons)
 

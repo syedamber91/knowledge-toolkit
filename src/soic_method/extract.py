@@ -11,7 +11,7 @@ repairing ASR while transcribing.
 from __future__ import annotations
 
 import json
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 from .corpus import resolve_timestamp
 from .models import Candidate, Citation, LessonRecord, Rule, Span
@@ -42,6 +42,11 @@ Return an empty list if the passage states no rule. Prefer returning nothing
 over guessing. The span you return must literally contain the number and the
 comparative wording.
 
+Report the values you actually see. A single cutoff has `value` and an
+`operator`; a band has `value_min` and `value_max` and no operator; a rule
+with no number at all has `kind` "boolean". The system derives `kind` from
+which of those you fill in, and discards anything it cannot reconcile.
+
 TRANSCRIPT:
 {annotated}
 """
@@ -66,6 +71,41 @@ def build_extract_prompt(
         annotated=_annotate(chunk, cand.span.start),
         vocabulary=vocabulary,
     )
+
+
+def _value_shape(
+    value: object, vmin: object, vmax: object,
+    operator: object, raw_kind: object,
+) -> Optional[Dict[str, object]]:
+    """Reconcile the model's `kind` with the values it actually returned.
+
+    Returns the `kind`/`operator`/`value`/`value_range` fields to build the
+    rule with, or ``None`` when the two cannot be made consistent -- in
+    which case the rule is dropped at extraction rather than allowed to
+    fail downstream for a reason that misdescribes the fault.
+
+    The three self-consistent shapes, and nothing else:
+
+    * both bounds present  -> ``kind="range"``, ``operator=None``. A band
+      ("between 40 and 50 times earnings") has no single directional sense,
+      and verify.py's range exemption keys on exactly this pairing.
+    * a scalar value       -> ``kind="threshold"`` and an operator is
+      REQUIRED. A threshold with no comparative direction cannot be
+      verified: "18% ROC" alone does not say floor or ceiling.
+    * neither              -> only legal if the model actually said
+      ``kind="boolean"``. A `threshold` with no number is malformed, not a
+      boolean rule, so it is dropped instead of silently reclassified.
+    """
+    if vmin is not None and vmax is not None:
+        return {"kind": "range", "operator": None,
+                "value_range": {"min": vmin, "max": vmax}}
+    if value is not None:
+        if operator is None:
+            return None
+        return {"kind": "threshold", "operator": operator, "value": value}
+    if raw_kind == "boolean":
+        return {"kind": "boolean", "operator": None}
+    return None
 
 
 def extract_rules(
@@ -100,12 +140,26 @@ def extract_rules(
         if key not in allowed:
             key = None
 
+        # `kind` is DERIVED from the value shape, never taken from the model.
+        # The two used to be independent, so a model returning
+        # {"kind": "threshold", "value_min": 40, "value_max": 50,
+        #  "operator": null} for "between 40 and 50 times earnings" built a
+        # rule whose bounds verified fine and which Gate 1 then killed with
+        # "unhandled operator None" -- a schema-shape mismatch reported as an
+        # operator fault, in rejected.jsonl, the file the spec designates as
+        # the calibration signal and fabrication alarm. Deriving the shape
+        # also removes one more routing decision from the model's control
+        # (final-branch-review.md I4, and cf. C1).
+        vmin, vmax = raw.get("value_min"), raw.get("value_max")
+        value, operator = raw.get("value"), raw.get("operator")
+        shape = _value_shape(value, vmin, vmax, operator, raw.get("kind"))
+        if shape is None:
+            continue           # cannot be made self-consistent: drop it
+
         fields = {
             "rule_key": key,
             "tier": raw.get("tier", "graded"),
-            "kind": raw.get("kind", "threshold"),
             "stage": raw.get("stage", "screen"),
-            "operator": raw.get("operator"),
             "unit": raw.get("unit"),
             "conviction": raw.get("conviction", "preference"),
             "citations": [
@@ -119,13 +173,17 @@ def extract_rules(
                 )
             ],
         }
-        if raw.get("value") is not None:
-            fields["value"] = raw["value"]
-        elif raw.get("value_min") is not None and raw.get("value_max") is not None:
-            fields["value_range"] = {"min": raw["value_min"], "max": raw["value_max"]}
+        fields.update(shape)
 
         try:
             out.append(Rule(**fields))
         except ValueError:
+            # Covers pydantic's ValidationError too (it subclasses
+            # ValueError), which is what an out-of-vocabulary `tier`,
+            # `stage` or `conviction` from the model now raises. A rule the
+            # model described with an enum value the schema does not
+            # recognise is DROPPED, not published on a guessed default --
+            # the whole point of closing those enums is that an
+            # unrecognised value must not route past the gates.
             continue
     return out
