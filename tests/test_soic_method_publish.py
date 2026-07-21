@@ -50,3 +50,40 @@ def test_bundle_never_emits_a_bound_binding(tmp_path):
     text = (tmp_path / "graded.yaml").read_text()
     assert "bound" in text            # the word appears as "unbound"
     assert "status: bound" not in text
+
+
+# --- Only `active` rules reach the executable files -------------------------
+# final-branch-review.md I2. Partitioning was on `tier` alone, so a
+# needs_audio_check knockout -- a rule the pipeline itself flagged for human
+# ear verification -- shipped in knockouts.yaml indistinguishably from a
+# corroborated one, and a consumer executing that file as hard exclusions
+# would have applied it.
+
+def test_non_active_knockout_does_not_ship_as_a_hard_exclusion(tmp_path):
+    r = _rule("knockout").model_copy(update={"status": "needs_audio_check",
+                                             "corroboration": 0})
+    write_bundle(ReconcileOutput(rules=[r]), _lessons(), tmp_path)
+    assert yaml.safe_load((tmp_path / "knockouts.yaml").read_text()) == []
+    drafts = yaml.safe_load((tmp_path / "drafts.yaml").read_text())
+    assert len(drafts) == 1
+    assert drafts[0]["status"] == "needs_audio_check"
+
+
+def test_non_active_graded_rule_is_routed_to_drafts(tmp_path):
+    active = _rule("graded", 18)
+    held = _rule("graded", 15).model_copy(update={"status": "needs_audio_check"})
+    write_bundle(ReconcileOutput(rules=[active, held]), _lessons(), tmp_path)
+    graded = yaml.safe_load((tmp_path / "graded.yaml").read_text())
+    drafts = yaml.safe_load((tmp_path / "drafts.yaml").read_text())
+    assert [g["value"] for g in graded] == [18]
+    assert [d["value"] for d in drafts] == [15]
+
+
+def test_pre_existing_drafts_are_preserved_alongside_withheld_rules(tmp_path):
+    draft = _rule("graded", 12).model_copy(update={"status": "draft",
+                                                   "rule_key": None})
+    held = _rule("graded", 15).model_copy(update={"status": "needs_audio_check"})
+    write_bundle(ReconcileOutput(rules=[held], drafts=[draft]),
+                 _lessons(), tmp_path)
+    drafts = yaml.safe_load((tmp_path / "drafts.yaml").read_text())
+    assert sorted(d["value"] for d in drafts) == [12, 15]

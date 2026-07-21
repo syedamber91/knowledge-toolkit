@@ -35,12 +35,24 @@ def write_bundle(
     dest = Path(dest)
     dest.mkdir(parents=True, exist_ok=True)
 
-    knockouts = [r for r in out.rules if r.tier == "knockout"]
-    graded = [r for r in out.rules if r.tier != "knockout"]
+    # Status gates publication, not just tier. The pipeline sets `status`
+    # faithfully and then used to publish regardless of it, so a
+    # `needs_audio_check` knockout -- a rule the pipeline itself flagged as
+    # needing human ear verification -- shipped in knockouts.yaml
+    # indistinguishable from a corroborated one, and a downstream consumer
+    # executing that file as hard exclusions would apply it
+    # (final-branch-review.md I2). Only `active` rules reach the two
+    # executable files; everything else joins drafts.yaml, which is the
+    # existing not-yet-executable queue.
+    active = [r for r in out.rules if r.status == "active"]
+    withheld = [r for r in out.rules if r.status != "active"]
+
+    knockouts = [r for r in active if r.tier == "knockout"]
+    graded = [r for r in active if r.tier != "knockout"]
 
     (dest / "knockouts.yaml").write_text(_dump(knockouts), encoding="utf-8")
     (dest / "graded.yaml").write_text(_dump(graded), encoding="utf-8")
-    (dest / "drafts.yaml").write_text(_dump(out.drafts), encoding="utf-8")
+    (dest / "drafts.yaml").write_text(_dump(out.drafts + withheld), encoding="utf-8")
 
     (dest / "conflicts.open.yaml").write_text(
         yaml.safe_dump(
