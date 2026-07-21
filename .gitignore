@@ -44,3 +44,4 @@ graphify-out/*.graphml
 graphify-out/.needs_update
 .graphify_*.json
 .graphify_*.txt
+out/
