@@ -220,8 +220,30 @@ instrumented before full-corpus extraction is costed.
   single most important thing this architecture exists to do.
 - Module-level eligibility caught a guest module the naming heuristic missed.
   This alone justified the design.
-- Corroboration meaningfully discriminates: the two rules stated in only one
-  lesson correctly sat at `needs_audio_check` rather than shipping as `active`.
+- Corroboration separated single-lesson from multi-lesson rules: the two rules
+  stated in only one lesson sat at `needs_audio_check` rather than `active`.
+
+  > **Correction (added after the final whole-branch review).** An earlier
+  > version of this report claimed corroboration *"meaningfully discriminates."*
+  > That claim was **not supported** and is withdrawn. The final review measured
+  > Gate 1b against the real corpus and found it near-random at scale: because
+  > `_attested_in` scanned an entire ~100KB transcript for a bare number,
+  > **41 of 100 arbitrary values reached `active`** — 52–56 of the integers
+  > 1–100 appear *somewhere* in any given pilot lesson. The two rules landed at
+  > `needs_audio_check` for being single-lesson, not because the gate
+  > discriminated on content. Task 6's 60-char fixtures hid this entirely.
+  >
+  > **Fixed** in `4fe01f9`: an attesting occurrence must now fall within a
+  > bounded window that also contains a relevant metric term (reusing
+  > `router.SIGNAL_TERMS`). Re-measured **41/100 → 1/100**, while the pilot's
+  > real corroboration counts were **unchanged at 3/3/1/1** — the tightening
+  > removed coincidence, not evidence.
+  >
+  > Residual, recorded openly: ~9% mean false-positive rate across rule keys,
+  > concentrated in two 17% buckets (`screen.market_cap.floor` and unnamed
+  > rules) — exactly the keys naming no metric the vocabulary knows, so only the
+  > window bound is working. Narrowing to ±100 barely moved them, confirming the
+  > cause is the vocabulary gap, not window width.
 
 **What it did not prove, and should not be claimed:**
 - **Gate 1's real rejection rate** — 0% is an artifact of who played the
