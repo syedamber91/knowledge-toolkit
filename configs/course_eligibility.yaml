@@ -53,6 +53,31 @@ courses:
 
 # Modules excluded even though their course is eligible (guest-taught).
 # Matched case-insensitively as a substring of the module title.
+#
+# All 40 Level-6 modules were classified 2026-07-21 (Task 11 Step 1) by
+# scanning EVERY lesson's opening for guest-handoff language, not by reading
+# titles. Result: 3 guest-led modules, not the 2 the `-by-<person>` naming
+# convention suggests.
 excluded_modules:
   - "by Siddharth Bhandari"
   - "by Digant Haria"
+  # Guest: Sajal Kapoor ("today we have with us Mr. Sajjal Kapoor" [ASR sp.]).
+  # 11 lessons. The title carries NO `-by-<person>` marker, so the slug
+  # heuristic alone would have admitted an external investor's independent
+  # views as SOIC's own method. This is exactly the case the plan predicted
+  # the naming convention would miss.
+  - "Unseen Trends in Bio-Technology"
+
+# Borderline, deliberately kept ELIGIBLE (recorded so the call is auditable):
+#   "Oil & Gas Sector Simplified" is presented by SOIC team members
+#   ("team members, Neel and Shoochi will cover it"), not by Ishmohit and not
+#   by an external guest. Treated as SOIC's own institutional voice teaching
+#   SOIC's framework, which is what rules eligibility is about — the guest
+#   exclusion exists to stop a THIRD PARTY's independent methodology being
+#   attributed to SOIC, which does not apply here. Revisit if pilot output
+#   shows this module's rules diverging in character from the rest.
+#
+# Also note: "Spotting Turnarounds" and "Fluorine Industry! Megatrend or Fad?"
+# both OPEN with a host introducing Ishmohit ("over to you Ishmohit"), which
+# trips a naive guest-language scan. They are Ishmohit teaching and stay
+# eligible — the introducer is a host, not the instructor.
