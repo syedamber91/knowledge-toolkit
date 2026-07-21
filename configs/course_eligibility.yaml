@@ -24,6 +24,54 @@ courses:
   "Level 6 Become a Sectoral Expert":
     eligible: true
     transcript_fidelity: verbatim
+    # This course has been module-classified (Task 11 Step 1: every lesson's
+    # opening read for guest-handoff language), so it opts into per-module
+    # approval: a module NOT listed here is ineligible, rather than eligible
+    # by default. The 39 entries are all 40 Level-6 modules minus "Unseen
+    # Trends in Bio-Technology" (the guest module carrying no `-by-<person>`
+    # marker). The two `-by-` guest modules appear below for completeness of
+    # the classification record and are separately, explicitly excluded in
+    # `excluded_modules` -- exclusion always wins over the allow-list.
+    modules_allowlist:
+      - "Decode Indian & Global Watch Industry"
+      - "Decode EV Ecosystem In India"
+      - "Is Software Making A Comeback?"
+      - "Fission to Alpha: India’s Nuclear Energy Sector Decoded"
+      - "Power Piping Companies"
+      - "All CDMOs Decoded with Business Triggers"
+      - "Moated Companies: AI Value Chain"
+      - "Commercial Vehicles"
+      - "Aerospace & Precision Engineering"
+      - "Drone & Anti-Drone Sector"
+      - "Future of Indian Shipyards: From Defence To Cargo"
+      - "Alcohol Sector"
+      - "Identifying Scalable Businesses"
+      - "Premiumisation: India’s Next Consumption Boom"
+      - "Highly Moated Value Chains"
+      - "Capital Goods: Proxy to Nation Building"
+      - "CDMO: A Multiyear Trend?"
+      - "The Capital Code: Capital Market Value Chain"
+      - "Lab Grown Diamonds Sector Analysis"
+      - "Aroma Chemicals & Their Hidden Potential"
+      - "Pre-Engineered Buildings Sector"
+      - "Spotting Turnarounds"
+      - "A Primer To SAAS by Siddharth Bhandari"
+      - "How to Find the Most Profitable Business in a Value Chain"
+      - "Oil & Gas Sector Simplified"
+      - "Uncover Hidden Gems in Metals & Mining Sector"
+      - "Decoding the Hotel Industry"
+      - "Decoding Indian Banking Space 2.0"
+      - "Masterclass on Banks & NBFCs by Digant Haria"
+      - "Agrochemicals: Where India is Winning"
+      - "SOIC Hospital Sectoral Webinar Analysis"
+      - "Masterclass on Low Float Stocks"
+      - "Fluorine Industry! Megatrend or Fad?"
+      - "Detailed Analysis of Real Estate Sector"
+      - "Understand Insurance Landscape: Simplifying a Complex Sector"
+      - "Gold NBFCs (Niche Financiers)"
+      - "API Sectoral Analysis"
+      - "Modern Monopolies: Platform Businesses"
+      - "Understanding Speciality Chemical Sector"
   "Crash Course":
     eligible: true
     transcript_fidelity: verbatim
@@ -61,6 +109,10 @@ courses:
 excluded_modules:
   - "by Siddharth Bhandari"
   - "by Digant Haria"
+  # The same two, spelled out in full rather than left to the `-by-` substring
+  # heuristic the spec predicted would be fallible.
+  - "A Primer To SAAS by Siddharth Bhandari"
+  - "Masterclass on Banks & NBFCs by Digant Haria"
   # Guest: Sajal Kapoor ("today we have with us Mr. Sajjal Kapoor" [ASR sp.]).
   # 11 lessons. The title carries NO `-by-<person>` marker, so the slug
   # heuristic alone would have admitted an external investor's independent
