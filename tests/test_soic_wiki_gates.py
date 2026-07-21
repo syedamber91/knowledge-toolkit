@@ -89,3 +89,37 @@ def test_candidate_terms_picks_quoted_and_named_phrases():
     assert "diamond of profit pools" in terms
     assert "right to win" in terms
     assert "moat" not in terms        # single word, below the 2-word floor
+
+
+def test_split_cited_quotes_partitions_on_nearby_citation():
+    from soic_wiki.gates import split_cited_quotes
+    note = ('He says "stock market is a weighing machine" (TURN 00:06:40).\n'
+            'The "diamond of profit pools" framework is central.\n')
+    parts = split_cited_quotes(note)
+    assert parts["cited"] == ["stock market is a weighing machine|TURN"]
+    assert parts["uncited"] == ["diamond of profit pools"]
+
+
+def test_verify_cited_quotes_checks_presence_in_the_cited_lesson():
+    from soic_wiki.gates import verify_cited_quotes
+    lesson = _lesson("1", "[00:06:40] the stock market is a weighing machine ok")
+    note = 'He says "stock market is a weighing machine" (TURN 00:06:40).'
+    checks = verify_cited_quotes(note, {"TURN": lesson})
+    assert len(checks) == 1 and checks[0].verified is True
+
+
+def test_verify_cited_quotes_fails_a_quote_absent_from_the_cited_lesson():
+    from soic_wiki.gates import verify_cited_quotes
+    lesson = _lesson("1", "[00:06:40] entirely different content here")
+    note = 'He says "stock market is a weighing machine" (TURN 00:06:40).'
+    checks = verify_cited_quotes(note, {"TURN": lesson})
+    assert checks[0].verified is False
+
+
+def test_verify_cited_quotes_strips_bracketed_corrections():
+    from soic_wiki.gates import verify_cited_quotes
+    # The ASR says "Sammy hotels"; the note writes the mandated bracket form.
+    lesson = _lesson("1", "[00:17:23] business by the name of Sammy hotels ok")
+    note = 'The company "Sammy hotels [Samhi Hotels]" (TURN 00:17:23) is revealed.'
+    checks = verify_cited_quotes(note, {"TURN": lesson})
+    assert checks[0].verified is True

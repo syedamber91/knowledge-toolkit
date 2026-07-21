@@ -189,7 +189,9 @@ def audit_terms(
 # Phrases a note presents AS terminology: double-quoted, or 'the X framework'
 # style. Deliberately narrow — the gate should examine claimed coinages, not
 # every noun phrase.
-_QUOTED = re.compile(r"[\"“”']([a-z][a-z0-9 \-]{6,60})[\"“”']", re.I)
+# Character class admits [] so the mandated ASR-correction form
+# ("Sammy hotels [Samhi Hotels]") is captured as one phrase.
+_QUOTED = re.compile(r"[\"“”']([a-z][a-z0-9 \-\[\]]{6,60})[\"“”']", re.I)
 _NAMED = re.compile(
     r"\b(?:the|a)\s+([a-z][a-z0-9\- ]{4,50}?)\s+"
     r"(?:framework|model|principle|concept|metaphor|analysis|approach)\b",
@@ -205,3 +207,70 @@ def candidate_terms(note_text: str) -> List[str]:
     for m in _NAMED.finditer(note_text):
         found.add(m.group(1).strip().lower())
     return sorted(f for f in found if len(f.split()) >= 2)
+
+
+# --- cited quotes vs terminology claims --------------------------------------
+#
+# The frequency gates exist for UNCITED terminology — a phrase the note
+# presents as the persona's recurring vocabulary. A phrase quoted WITH an
+# inline citation like (TURN 00:17:39) is a different animal: it claims only
+# "these words occur at this location", and the right check is presence in the
+# cited lesson, not corpus-wide frequency. Auditing the first regenerated note
+# proved the distinction matters: 17 of its 22 flagged "terms" were cited
+# verbatim quotes, hapax BECAUSE the note cites exactly one lesson.
+
+_CITATION_NEAR = re.compile(r"\(([A-Z][A-Z0-9]*)\s+\d{2}:\d{2}:\d{2}\)")
+_CITE_WINDOW = 220     # chars after the closing quote to look for a citation
+
+
+class QuoteCheck(BaseModel):
+    phrase: str
+    cited_ref: Optional[str] = None
+    verified: bool = False       # phrase found in the cited lesson's body
+
+
+def split_cited_quotes(
+    note_text: str,
+) -> Dict[str, List[str]]:
+    """Partition a note's quoted phrases into cited vs uncited.
+
+    A quote is "cited" when a (REF HH:MM:SS) citation appears within
+    ``_CITE_WINDOW`` chars after it. Returns {"cited": [...], "uncited": [...]}
+    with the ref recorded alongside cited phrases as ``phrase|ref``.
+    """
+    cited: List[str] = []
+    uncited: List[str] = []
+    for m in _QUOTED.finditer(note_text):
+        phrase = m.group(1).strip().lower()
+        if len(phrase.split()) < 2:
+            continue
+        tail = note_text[m.end():m.end() + _CITE_WINDOW]
+        cm = _CITATION_NEAR.search(tail)
+        if cm:
+            cited.append(phrase + "|" + cm.group(1))
+        else:
+            uncited.append(phrase)
+    return {"cited": sorted(set(cited)), "uncited": sorted(set(uncited))}
+
+
+def verify_cited_quotes(
+    note_text: str,
+    ref_to_lesson: Dict[str, LessonRecord],
+) -> List[QuoteCheck]:
+    """Presence-check each cited quote against the lesson its ref names.
+
+    Bracketed editorial corrections are stripped before matching: the write
+    rules mandate "Sammy hotels [Samhi Hotels]", and the correction is the
+    note's annotation, not transcript text.
+    """
+    out: List[QuoteCheck] = []
+    parts = split_cited_quotes(note_text)
+    for item in parts["cited"]:
+        phrase, ref = item.rsplit("|", 1)
+        clean = re.sub(r"\[[^\]]*\]", "", phrase).strip()
+        lesson = ref_to_lesson.get(ref)
+        ok = False
+        if lesson is not None and clean:
+            ok = clean in normalize_slice(lesson.body_text)
+        out.append(QuoteCheck(phrase=phrase, cited_ref=ref, verified=ok))
+    return out
