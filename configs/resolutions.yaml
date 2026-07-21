@@ -1,0 +1,45 @@
+# Human adjudications of conflicts Gate 3 could not resolve.
+#
+# THIS FILE IS HAND-MAINTAINED AND IS NEVER WRITTEN BY THE PIPELINE.
+# Re-running extraction re-derives everything else from scratch but applies
+# these decisions on top. The join key is (rule_key, sorted value set) —
+# deliberately independent of citation spans, so a re-run that shifts offsets
+# by a character does not silently orphan a decision recorded here.
+#
+# Format:
+#   "<rule_key>|<comma-separated sorted values>":
+#     keep: <a value belonging to the rule being kept>
+#     decided_by: <who>
+#     decided_on: <YYYY-MM-DD>
+#     rationale: <why — this is the part a future reader actually needs>
+
+"screen.pe.ceiling|15.0,30.0":
+  keep: 15.0
+  decided_by: syedamberiqbal
+  decided_on: 2026-07-21
+  rationale: >
+    Gate 3 surfaced two irreconcilable P/E statements, both verbatim and both
+    verified against the corpus:
+
+      A) "pe ratio is between 15 to 30"
+         lesson 3586296 "Tools To Find Epic Stocks" @ 00:34:15
+      B) "p should be less than 50 times i can do less than 40"
+         lesson 4150532 "Part 2 Scalable Businesses" @ 01:18:01
+
+    Neither carried a scope attestation, so the reconciler correctly refused
+    to invent a distinction between them and routed both for human judgment.
+
+    DECISION: keep A (15-30).
+
+    Note for anyone revisiting this: statement B is arguably a looser
+    *exploratory* filter — in context he is widening a screen to see what it
+    captures ("i can do less than 40"), not stating a standing rule — whereas
+    A is given as the framework he screens by and is restated as such in the
+    same lesson ("because we have a 15 to 30p framework"). That reading
+    supports this decision but was NOT the basis for it; the decision is the
+    human's, recorded here as made.
+
+    Consequence: the screen now REJECTS on a P/E below 15 as well as above 30,
+    because A is a band, not a ceiling. That is stricter than B in both
+    directions and will exclude deep-value / low-multiple names. Revisit if
+    that exclusion proves wrong in practice.

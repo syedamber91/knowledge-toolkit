@@ -34,6 +34,9 @@ BINDINGS: Dict[str, str] = {
     "screen.sales_growth.floor": "sales_growth_pct",
     "screen.pat_growth.floor": "pat_growth_pct",
     "screen.market_cap.floor": "market_cap_cr",
+    # Derived: latest close / TTM EPS. Unlocked once the human resolved the
+    # P/E conflict to the 15-30 band (configs/resolutions.yaml, 2026-07-21).
+    "screen.pe.ceiling": "pe_ratio",
     # "screen.roc.floor" deliberately absent — no ROC/ROCE column exists in
     # any migration. Recorded in gaps.md rather than silently approximated.
 }
@@ -44,6 +47,7 @@ class CompanyMetrics(BaseModel):
     sales_growth_pct: Optional[float] = None
     pat_growth_pct: Optional[float] = None
     market_cap_cr: Optional[float] = None
+    pe_ratio: Optional[float] = None     # close / TTM EPS; None if EPS <= 0
     roc_pct: Optional[float] = None      # always None until a column exists
 
 
@@ -148,6 +152,24 @@ prior AS (
        AND q.period_end BETWEEN l.period_end - INTERVAL '400 days'
                             AND l.period_end - INTERVAL '330 days'
      ORDER BY l.company_code, q.period_end DESC
+),
+ttm AS (
+    -- Trailing-twelve-month EPS = the last 4 reported quarters. Fewer than 4
+    -- yields NULL rather than an annualised guess: a partial-year P/E would
+    -- be wrong in a way that still looks plausible.
+    SELECT company_code, SUM(eps) AS ttm_eps, COUNT(*) AS quarters
+      FROM (SELECT company_code, eps,
+                   ROW_NUMBER() OVER (PARTITION BY company_code
+                                      ORDER BY period_end DESC) AS rn
+              FROM quarterly_financials
+             WHERE eps IS NOT NULL) t
+     WHERE rn <= 4
+     GROUP BY company_code
+),
+px AS (
+    SELECT DISTINCT ON (symbol) symbol, close
+      FROM stock_prices
+     ORDER BY symbol, trade_date DESC
 )
 SELECT r.company_code,
        CASE WHEN p.prev_revenue > 0
@@ -157,10 +179,18 @@ SELECT r.company_code,
             THEN (l.net_profit - p.prev_net_profit) / p.prev_net_profit * 100 END
            AS pat_growth_pct,
        r.market_cap_cr,
+       -- P/E only where TTM EPS is complete AND positive. A negative-earnings
+       -- company has no meaningful P/E; emitting one would let a loss-maker
+       -- screen as cheap.
+       CASE WHEN t.quarters = 4 AND t.ttm_eps > 0
+            THEN px.close / t.ttm_eps END
+           AS pe_ratio,
        NULL::numeric AS roc_pct   -- no ROC/ROCE column exists; see gaps.md
   FROM company_registry r
   JOIN latest l ON l.company_code = r.company_code
   LEFT JOIN prior p ON p.company_code = r.company_code
+  LEFT JOIN ttm t  ON t.company_code = r.company_code
+  LEFT JOIN px     ON px.symbol = r.nse_symbol
  WHERE r.active IS TRUE
 """
 

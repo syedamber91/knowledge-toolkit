@@ -146,7 +146,16 @@ def main() -> int:
         (survived if refute(rule, by_id, llm) else killed).append((note, rule))
 
     # --- GATE 3: reconcile --------------------------------------------------
-    out = reconcile([r for _, r in survived], by_id, {})
+    # resolutions.yaml is hand-maintained; the pipeline reads it, never writes it.
+    res_path = ROOT / "configs" / "resolutions.yaml"
+    resolutions = {}
+    if res_path.exists():
+        import yaml
+        resolutions = yaml.safe_load(res_path.read_text(encoding="utf-8")) or {}
+    out = reconcile([r for _, r in survived], by_id, resolutions)
+    if resolutions:
+        print("applied %d human resolution(s) from configs/resolutions.yaml"
+              % len(resolutions))
 
     dest = ROOT / "out" / "pilot-bundle"
     write_bundle(out, by_id, dest)
