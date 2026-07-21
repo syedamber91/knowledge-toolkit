@@ -33,31 +33,115 @@ appear in text Y), so it is imported instead.
 
 from __future__ import annotations
 
-from typing import Dict, List
+import re
+from typing import Dict, List, Optional, Pattern
 
 from .corpus import normalize_slice
 from .models import LessonRecord, Rule
+from .router import _METRIC_PATTERNS
 from .verify import _extract_numbers
 
 MIN_CORROBORATION = 2
 
+# Half-width of the attesting window, in normalized characters, either side
+# of the metric term. ~300 chars is roughly a spoken paragraph in this ASR
+# (the transcripts run ~1,000 chars per timestamped minute), so it is wide
+# enough to hold "we want ROC ... of at least fifteen percent" split across
+# a garbled clause, and narrow enough that an unrelated number elsewhere in
+# the same 100KB lesson cannot reach it. See the measurement note below.
+ATTEST_WINDOW_CHARS = 300
 
-def _attested_in(text: str, values: List[float]) -> bool:
-    """Whether every value in ``values`` is present as a real numeric
-    literal in ``text``.
+_ALL_METRIC_PATTERNS: List[Pattern] = [
+    p for pats in _METRIC_PATTERNS.values() for p in pats
+]
 
-    ``text`` is normalized once and every literal number in it is extracted
-    once via ``_extract_numbers`` (Task 5's hardened digit/comma/decimal/
-    spelled-number extractor); each claimed value is then compared against
-    that set by exact float equality -- the same semantics Gate 1 uses for
-    its own value-presence check (``verify._value_present``), just applied
-    to a whole lesson stream instead of one cited span.
+# rule_key is dotted+underscored ("screen.pat_growth.floor"); split it into
+# bare tokens so the canonical metric name inside it ("pat") can be matched
+# against router.SIGNAL_TERMS' keys.
+_KEY_TOKENS = re.compile(r"[^a-z0-9]+")
+
+
+def metric_patterns_for(rule: Rule) -> List[Pattern]:
+    """The metric vocabulary an attesting occurrence must sit next to.
+
+    Deliberately reuses ``router.SIGNAL_TERMS`` via its precompiled
+    ``_METRIC_PATTERNS`` rather than introducing a second, drifting metric
+    lexicon: the router's forms are the ones measured against this corpus's
+    ASR (``ROC`` 961x, ``pad growth`` 363x), and a rule that was routed by
+    one vocabulary should be corroborated against the same one.
+
+    When the rule names a metric its ``rule_key`` recognises, only that
+    metric's surface forms count -- a "15" next to a P/E discussion does not
+    attest a ROC floor. When the key names no known metric (or the rule is
+    still unnamed), any metric term counts: the window bound alone is still
+    a large improvement over the whole-body scan, and failing closed here
+    would silently downgrade every draft rule.
     """
-    present = _extract_numbers(normalize_slice(text))
-    return all(v in present for v in values)
+    tokens = set(_KEY_TOKENS.split((rule.rule_key or "").casefold()))
+    for canon, patterns in _METRIC_PATTERNS.items():
+        if canon in tokens:
+            return patterns
+    return _ALL_METRIC_PATTERNS
 
 
-def _rule_values(rule: Rule) -> List[float]:
+def _attested_in(
+    text: str,
+    values: List[float],
+    patterns: Optional[List[Pattern]] = None,
+) -> bool:
+    """Whether ``values`` are attested by a CONTEXTUALLY RELEVANT occurrence.
+
+    An attesting occurrence must satisfy two conditions at once, inside a
+    single +/-``ATTEST_WINDOW_CHARS`` window: every claimed value appears as
+    a real numeric literal, AND the window also contains a metric term the
+    rule is about.
+
+    Mere presence anywhere in the lesson is not evidence. Measured on the
+    pilot's own transcripts, 52-56 of the integers 1..100 appear SOMEWHERE
+    in each ~100KB lesson body, so the unbounded scan this replaced promoted
+    41/100 arbitrary values to ``status="active"`` on two citations --
+    i.e. Gate 1b, the only defence the design has against a corrupted digit,
+    was close to a coin flip (final-branch-review.md C2). The window makes
+    the check ask the question it was always meant to ask: does a second
+    rendering of the audio state this number *about this metric*.
+
+    The numeric comparison itself is still ``verify._extract_numbers`` +
+    float equality, applied per window instead of per whole body. That
+    matcher converged over six adversarial rounds against real corpus
+    constructions (digit substrings, decimal prefixes, comma grouping,
+    dash-ranges vs negative signs); regressing to substring matching here
+    would re-open the whole class. Only the SCOPE of the text it reads has
+    changed, not how it reads it.
+
+    Requiring all of a range's bounds inside ONE window (rather than
+    anywhere in the stream) is deliberate: "between 15 and 30 times
+    earnings" is a single utterance, and a lesson that says "15" in one
+    place and "30" in another has not attested the band.
+    """
+    if not values:
+        return False
+    norm = normalize_slice(text)
+    for pattern in (patterns if patterns is not None else _ALL_METRIC_PATTERNS):
+        for m in pattern.finditer(norm):
+            lo = max(0, m.start() - ATTEST_WINDOW_CHARS)
+            hi = min(len(norm), m.end() + ATTEST_WINDOW_CHARS)
+            present = _extract_numbers(norm[lo:hi])
+            if all(v in present for v in values):
+                return True
+    return False
+
+
+def rule_values(rule: Rule) -> List[float]:
+    """The values a rule asserts. ONE definition, shared with reconcile.
+
+    Three separate invariants key on this: Gate 1b's attestation set
+    (below), Gate 3's merged/variants/conflict decision, and
+    ``reconcile.resolution_key`` -- the content-stable join key that must
+    never drift, or accumulated human resolutions are silently orphaned.
+    Two byte-identical copies could diverge and make a group corroborate
+    under one definition while conflicting under the other, so reconcile
+    imports this one (final-branch-review.md I5).
+    """
     if rule.value is not None:
         return [rule.value]
     if rule.value_range is not None:
@@ -80,11 +164,12 @@ def corroborate(rule: Rule, lessons: Dict[str, LessonRecord]) -> Rule:
     different lessons citing the same value also reach the threshold. A
     lesson id is only ever counted once even if cited multiple times.
     """
-    values = _rule_values(rule)
+    values = rule_values(rule)
     if not values:
         return rule.model_copy(update={"corroboration": len(rule.citations),
                                        "status": "active"})
 
+    patterns = metric_patterns_for(rule)
     streams = 0
     seen_lessons = set()
     for cit in rule.citations:
@@ -92,9 +177,9 @@ def corroborate(rule: Rule, lessons: Dict[str, LessonRecord]) -> Rule:
         if lesson is None or lesson.lesson_id in seen_lessons:
             continue
         seen_lessons.add(lesson.lesson_id)
-        if _attested_in(lesson.body_text, values):
+        if _attested_in(lesson.body_text, values, patterns):
             streams += 1
-        if lesson.ai_summary and _attested_in(lesson.ai_summary, values):
+        if lesson.ai_summary and _attested_in(lesson.ai_summary, values, patterns):
             streams += 1
 
     status = "active" if streams >= MIN_CORROBORATION else "needs_audio_check"
