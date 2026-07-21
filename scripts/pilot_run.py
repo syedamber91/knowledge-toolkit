@@ -56,9 +56,17 @@ EXTRACTIONS = [
          kind="threshold", op="gte", value=15, unit="percent", note="CAND18 cross-lesson"),
     dict(lesson="4150532", cand=2, anchor="20%", key="screen.pat_growth.floor",
          kind="threshold", op="gte", value=20, unit="percent", note="CAND18 cross-lesson"),
-    # ...but as a <50/<40 ceiling here. REAL conflict, not synthetic.
-    dict(lesson="4150532", cand=3, anchor="50", key="screen.pe.ceiling",
-         kind="range", op=None, vmin=40, vmax=50, unit="multiple", note="CAND19 P/E ceiling"),
+    # ...but as a CEILING here. REAL conflict, not synthetic.
+    #
+    # Extraction corrected 2026-07-21: this was first captured as a range
+    # {40, 50}, which misreads the sentence. "p should be less than 50 times
+    # i can do less than 40" is not a band between 40 and 50 -- it is one
+    # ceiling stated loosely then tightened. Capturing it as a range invented
+    # a lower bound of 40 that he never states, and would have rejected every
+    # company under 40x as "too cheap". Correct shape is a <= ceiling; 40 is
+    # the tightened value and is verbatim in the span.
+    dict(lesson="4150532", cand=3, anchor="40", key="screen.pe.ceiling",
+         kind="threshold", op="lte", value=40, unit="multiple", note="CAND19 P/E ceiling"),
     # Lesson 4924001 "Screen Domestic Businesses" -- market cap floor.
     dict(lesson="4924001", cand=1, anchor="1000", key="screen.market_cap.floor",
          kind="threshold", op="gte", value=1000, unit="crore", note="CAND2 market cap"),

@@ -13,8 +13,8 @@
 #     decided_on: <YYYY-MM-DD>
 #     rationale: <why — this is the part a future reader actually needs>
 
-"screen.pe.ceiling|15.0,30.0":
-  keep: 15.0
+"screen.pe.ceiling|40.0":
+  keep: 40.0
   decided_by: syedamberiqbal
   decided_on: 2026-07-21
   rationale: >
@@ -29,17 +29,27 @@
     Neither carried a scope attestation, so the reconciler correctly refused
     to invent a distinction between them and routed both for human judgment.
 
-    DECISION: keep A (15-30).
+    DECISION: keep B, as a ceiling of 40x.
 
-    Note for anyone revisiting this: statement B is arguably a looser
-    *exploratory* filter — in context he is widening a screen to see what it
-    captures ("i can do less than 40"), not stating a standing rule — whereas
-    A is given as the framework he screens by and is restated as such in the
-    same lesson ("because we have a 15 to 30p framework"). That reading
-    supports this decision but was NOT the basis for it; the decision is the
-    human's, recorded here as made.
+    HISTORY — this decision was revised, and the revision fixed an extraction
+    bug rather than merely changing a preference:
 
-    Consequence: the screen now REJECTS on a P/E below 15 as well as above 30,
-    because A is a band, not a ceiling. That is stricter than B in both
-    directions and will exclude deep-value / low-multiple names. Revisit if
-    that exclusion proves wrong in practice.
+      * First recorded as "keep A (15-30)". Screening then showed the band
+        rejecting a P/E of 9 as "too cheap", because a band excludes in BOTH
+        directions.
+      * On review the human called for an effective 0-40 band. That exposed
+        the real defect: statement B had been extracted as a RANGE {40, 50},
+        which misreads the sentence. B is one ceiling stated loosely (<50)
+        then tightened (<40) — not a band. The range extraction invented a
+        lower bound of 40 that SOIC never states.
+      * B is now extracted with its true shape: kind=threshold, operator=lte,
+        value=40. The value 40 is verbatim in the cited span.
+
+    Why "<= 40" rather than a literal "0-40" band: a 0-40 band appears nowhere
+    in the corpus, whereas "less than 40" is verbatim. The two screen
+    IDENTICALLY here, because UNIVERSE_SQL emits NULL for any P/E where TTM
+    EPS <= 0 — so no non-positive P/E ever reaches this rule. Same behaviour,
+    fully traceable to something he actually said.
+
+    Consequence vs the superseded choice of A: low-multiple names are no
+    longer excluded for being cheap. Only the expensive end is cut, at 40x.

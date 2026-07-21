@@ -64,41 +64,49 @@ def test_fully_evaluable_company_passes():
     assert res.partial is False
 
 
-def _pe_band():
-    """The human-resolved P/E rule: a 15-30 BAND, not a ceiling.
+def _pe_ceiling():
+    """The human-resolved P/E rule: a <=40 CEILING.
 
-    Resolved 2026-07-21 in configs/resolutions.yaml, choosing "pe ratio is
-    between 15 to 30" over "less than 50 times i can do less than 40".
+    Resolved 2026-07-21 (configs/resolutions.yaml), keeping "i can do less
+    than 40" over "pe ratio is between 15 to 30". Effectively a 0-40 band,
+    since UNIVERSE_SQL never emits a non-positive P/E.
     """
-    return Rule(tier="graded", kind="range", stage="screen",
-                rule_key="screen.pe.ceiling",
-                value_range={"min": 15, "max": 30}, status="active")
+    return Rule(tier="graded", kind="threshold", stage="screen",
+                rule_key="screen.pe.ceiling", operator="lte", value=40,
+                status="active")
 
 
-def test_pe_inside_the_band_passes():
+def test_pe_under_the_ceiling_passes():
     m = CompanyMetrics(company_code="X", pe_ratio=22.0)
-    assert evaluate_rule(_pe_band(), m).verdict == "pass"
+    assert evaluate_rule(_pe_ceiling(), m).verdict == "pass"
 
 
-def test_pe_above_the_band_fails():
+def test_pe_above_the_ceiling_fails():
     m = CompanyMetrics(company_code="X", pe_ratio=41.0)
-    assert evaluate_rule(_pe_band(), m).verdict == "fail"
+    assert evaluate_rule(_pe_ceiling(), m).verdict == "fail"
 
 
-def test_pe_below_the_band_also_fails_because_it_is_a_band_not_a_ceiling():
-    # The consequence of the human's resolution: a P/E of 8 is REJECTED, not
-    # treated as extra-cheap. Choosing the band over the "<50/<40" ceiling
-    # excludes deep-value names in both directions. Pinned so the behaviour
-    # is deliberate rather than surprising.
-    m = CompanyMetrics(company_code="X", pe_ratio=8.0)
-    assert evaluate_rule(_pe_band(), m).verdict == "fail"
+def test_low_pe_passes_because_a_ceiling_does_not_exclude_cheapness():
+    # This is the behaviour change from the superseded 15-30 band, which
+    # rejected a P/E of 9 as "too cheap". A ceiling cuts only the expensive
+    # end -- the correct reading of "less than 40".
+    m = CompanyMetrics(company_code="X", pe_ratio=9.0)
+    assert evaluate_rule(_pe_ceiling(), m).verdict == "pass"
+
+
+def test_pe_exactly_at_the_ceiling_passes():
+    # "less than 40" is implemented as <= 40. Pinned so the boundary is a
+    # decision on the record rather than an accident of the operator choice.
+    m = CompanyMetrics(company_code="X", pe_ratio=40.0)
+    assert evaluate_rule(_pe_ceiling(), m).verdict == "pass"
 
 
 def test_pe_is_unknown_when_earnings_are_negative():
     # UNIVERSE_SQL emits NULL P/E for loss-makers (TTM EPS <= 0). A loss-maker
-    # must not screen as "cheap" -- it has no meaningful P/E at all.
+    # must not screen as "cheap" -- it has no meaningful P/E at all. This is
+    # also what makes the <=40 ceiling equivalent to the requested 0-40 band.
     m = CompanyMetrics(company_code="X", pe_ratio=None)
-    assert evaluate_rule(_pe_band(), m).verdict == "unknown"
+    assert evaluate_rule(_pe_ceiling(), m).verdict == "unknown"
 
 
 def test_pe_is_now_bound_but_roc_still_is_not():
