@@ -78,7 +78,9 @@ def main() -> int:
     # note whose sole mention sat inside its own disclaimer), with a window
     # wide enough to hold a full disposition sentence.
     DISPO = ("artifact", "asr", "debris", "not his", "never uses",
-             "nowhere", "does not name", "not a term", "collision")
+             "nowhere", "does not name", "not a term", "collision",
+             "disposition", "doesn't appear", "does not appear",
+             "not the instructor's", "not his own phrase", "own phrase")
     real_viol = []
     for v in viol:
         ctx = notes[v.note_slug].lower()
