@@ -191,7 +191,21 @@ def audit_terms(
 # every noun phrase.
 # Character class admits [] so the mandated ASR-correction form
 # ("Sammy hotels [Samhi Hotels]") is captured as one phrase.
-_QUOTED = re.compile(r"[\"“”']([a-z][a-z0-9 \-\[\]]{6,60})[\"“”']", re.I)
+#
+# Double quotes and single quotes are handled as separate alternatives (two
+# capture groups) rather than one shared character class. A bare apostrophe
+# is common inside ordinary prose (contractions "isn't", possessives
+# "company's") and is almost never adjacent to a letter when used as an
+# actual quote delimiter -- real quotes are bounded by whitespace/punctuation.
+# Sharing one class let a possessive's apostrophe pair with a later
+# contraction's apostrophe and "quote" everything in between (e.g. "whisky's
+# scale ... isn't" read as the coined term "s scale ... isn"), a false
+# coinage-claim reported across five sectors' G1 output before this fix.
+_QUOTED = re.compile(
+    r'["“”]([a-z][a-z0-9 \-\[\]]{6,60})["“”]'
+    r"|(?<![a-zA-Z])'([a-z][a-z0-9 \-\[\]]{6,60})'(?![a-zA-Z])",
+    re.I,
+)
 _NAMED = re.compile(
     r"\b(?:the|a)\s+([a-z][a-z0-9\- ]{4,50}?)\s+"
     r"(?:framework|model|principle|concept|metaphor|analysis|approach)\b",
@@ -203,7 +217,7 @@ def candidate_terms(note_text: str) -> List[str]:
     """Phrases a note asserts as named terminology."""
     found = set()
     for m in _QUOTED.finditer(note_text):
-        found.add(m.group(1).strip().lower())
+        found.add((m.group(1) or m.group(2)).strip().lower())
     for m in _NAMED.finditer(note_text):
         found.add(m.group(1).strip().lower())
     return sorted(f for f in found if len(f.split()) >= 2)
@@ -257,7 +271,7 @@ def split_cited_quotes(
     cited: List[str] = []
     uncited: List[str] = []
     for m in _QUOTED.finditer(note_text):
-        phrase = m.group(1).strip().lower()
+        phrase = (m.group(1) or m.group(2)).strip().lower()
         if len(phrase.split()) < 2:
             continue
         tail = note_text[m.end():m.end() + _CITE_WINDOW]

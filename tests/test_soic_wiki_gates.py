@@ -137,6 +137,28 @@ def test_citation_near_matches_timestamp_ranges():
     assert parts["uncited"] == []
 
 
+def test_candidate_terms_does_not_span_apostrophes_as_quote_delimiters():
+    # The real A5-batch-2 bug: `_QUOTED` treated a bare apostrophe (a
+    # contraction or possessive) as a quote delimiter, so ordinary prose like
+    # "whisky's scale ... isn't the fastest grower" was misread as a single
+    # *quoted* phrase spanning "s scale ... isn" -- reported as coined
+    # terminology across five sectors, none of it a real quote.
+    note = ("Whisky's scale dominates the category mix even though it isn't "
+            "the fastest grower. The instructor's stated tracking metric is "
+            "the growth rate.\n")
+    terms = candidate_terms(note)
+    assert not any("scale dominates" in t for t in terms)
+    assert not any("stated tracking metric" in t for t in terms)
+
+
+def test_candidate_terms_still_matches_a_true_single_quoted_phrase():
+    # The fix must not lose real single-quote-delimited phrases -- only bare
+    # apostrophes glued to letters (contractions/possessives) are excluded.
+    note = "The instructor calls it 'the compounding machine' more than once.\n"
+    terms = candidate_terms(note)
+    assert "the compounding machine" in terms
+
+
 def test_bracketed_gloss_after_a_range_citation_is_cited_by_the_same_citation():
     # The real LGD case: an English gloss immediately follows the cited
     # non-English quote, both covered by ONE range citation at the end.
