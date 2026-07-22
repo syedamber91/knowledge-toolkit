@@ -219,7 +219,15 @@ def candidate_terms(note_text: str) -> List[str]:
 # proved the distinction matters: 17 of its 22 flagged "terms" were cited
 # verbatim quotes, hapax BECAUSE the note cites exactly one lesson.
 
-_CITATION_NEAR = re.compile(r"\(([A-Z][A-Z0-9]*)\s+\d{2}:\d{2}:\d{2}\)")
+# Matches BOTH a single timestamp "(REF HH:MM:SS)" and a range
+# "(REF HH:MM:SS-HH:MM:SS)". The write prompts' citation headers use
+# ts_start-ts_end, so writers routinely produce range citations (e.g. every
+# valuation-chain citation in the A1/A2 notes: "(TURN 00:17:21-00:19:12)").
+# Missing the range form was a real bug, not a directional/window problem:
+# it silently mis-flagged correctly-cited quotes as uncited whenever the
+# nearest citation happened to be a range rather than a single timestamp.
+_CITATION_NEAR = re.compile(
+    r"\(([A-Z][A-Z0-9]*)\s+\d{2}:\d{2}:\d{2}(?:-\d{2}:\d{2}:\d{2})?\)")
 _CITE_WINDOW = 220     # chars after the closing quote to look for a citation
 
 
@@ -234,9 +242,17 @@ def split_cited_quotes(
 ) -> Dict[str, List[str]]:
     """Partition a note's quoted phrases into cited vs uncited.
 
-    A quote is "cited" when a (REF HH:MM:SS) citation appears within
-    ``_CITE_WINDOW`` chars after it. Returns {"cited": [...], "uncited": [...]}
-    with the ref recorded alongside cited phrases as ``phrase|ref``.
+    A quote is "cited" when a (REF HH:MM:SS) or (REF HH:MM:SS-HH:MM:SS)
+    citation appears within ``_CITE_WINDOW`` chars after it. Returns
+    {"cited": [...], "uncited": [...]} with the ref recorded alongside cited
+    phrases as ``phrase|ref``.
+
+    A bracketed English gloss immediately following a cited non-English or
+    garbled quote (e.g. `"unne 10 rings..." ["they placed 10 rings..."]
+    (LGD 00:14:24-00:14:32)`) is correctly "cited" under this rule already,
+    because the SAME citation that covers the original quote also falls
+    within the gloss's own forward window — no separate directional logic
+    is needed once range citations are matched (see _CITATION_NEAR above).
     """
     cited: List[str] = []
     uncited: List[str] = []

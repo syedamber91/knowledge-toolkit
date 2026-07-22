@@ -123,3 +123,28 @@ def test_verify_cited_quotes_strips_bracketed_corrections():
     note = 'The company "Sammy hotels [Samhi Hotels]" (TURN 00:17:23) is revealed.'
     checks = verify_cited_quotes(note, {"TURN": lesson})
     assert checks[0].verified is True
+
+
+def test_citation_near_matches_timestamp_ranges():
+    # The real bug this pins: range citations ("(REF HH:MM:SS-HH:MM:SS)")
+    # are what the write-prompt citation headers actually produce
+    # (ts_start-ts_end), and a regex that only matched single timestamps
+    # silently mis-flagged correctly-cited quotes as uncited.
+    from soic_wiki.gates import split_cited_quotes
+    note = 'He says "the market corrects fast" (LGD 00:14:24-00:14:32).'
+    parts = split_cited_quotes(note)
+    assert parts["cited"] == ["the market corrects fast|LGD"]
+    assert parts["uncited"] == []
+
+
+def test_bracketed_gloss_after_a_range_citation_is_cited_by_the_same_citation():
+    # The real LGD case: an English gloss immediately follows the cited
+    # non-English quote, both covered by ONE range citation at the end.
+    from soic_wiki.gates import split_cited_quotes
+    note = ('Store staff said "unne 10 rings rakthi mom ke saamne" '
+            '["they placed 10 rings in front of mom"] (LGD 00:14:24-00:14:32).')
+    parts = split_cited_quotes(note)
+    cited_phrases = [c.split("|")[0] for c in parts["cited"]]
+    assert "unne 10 rings rakthi mom ke saamne" in cited_phrases
+    assert "they placed 10 rings in front of mom" in cited_phrases
+    assert parts["uncited"] == []
