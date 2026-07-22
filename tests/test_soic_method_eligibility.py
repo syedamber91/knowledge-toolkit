@@ -101,3 +101,49 @@ def test_empty_allowlist_means_no_module_is_eligible():
     e = Eligibility({"C": {"eligible": True, "modules_allowlist": []}},
                     excluded_modules=[])
     assert not e.is_eligible("C", "anything")
+
+
+def test_lesson_level_exclusion_inside_an_otherwise_eligible_module():
+    e = load_eligibility(CONFIG)
+    assert not e.is_eligible(
+        "SOIC Labs: Become an AI-Powered Investor",
+        "SOIC Labs: Become an AI-Powered Investor",
+        "Stocks Dashboard with Dr. Shashank",
+    )
+
+
+def test_sibling_lessons_in_the_same_module_stay_eligible():
+    e = load_eligibility(CONFIG)
+    assert e.is_eligible(
+        "SOIC Labs: Become an AI-Powered Investor",
+        "SOIC Labs: Become an AI-Powered Investor",
+        "AI For The Intelligent Investor",
+    )
+
+
+def test_lesson_title_omitted_does_not_break_module_level_checks():
+    # apply_eligibility always passes lesson_title, but is_eligible must
+    # still work when called without one (backward compatible).
+    e = load_eligibility(CONFIG)
+    assert e.is_eligible("Level 5- How to Screen & Filter Epic Stocks", "any")
+
+
+def test_defensive_lesson_exclusion_matches_even_with_no_content_yet():
+    e = load_eligibility(CONFIG)
+    assert not e.is_eligible(
+        "Ask SOIC on Saturdays at 11 a.m.",
+        "SOIC Exclusive Newsletter",
+        "Interview with Mr.Rohit Chauhan (RC Capital)",
+    )
+
+
+def test_apply_eligibility_passes_lesson_title_through():
+    e = load_eligibility(CONFIG)
+    lessons = [
+        _lesson("SOIC Labs: Become an AI-Powered Investor",
+                "SOIC Labs: Become an AI-Powered Investor"),
+    ]
+    lessons[0] = lessons[0].model_copy(
+        update={"title": "Stocks Dashboard with Dr. Shashank"})
+    out = apply_eligibility(lessons, e)
+    assert out[0].eligible is False

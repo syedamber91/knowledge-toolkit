@@ -133,3 +133,47 @@ excluded_modules:
 # both OPEN with a host introducing Ishmohit ("over to you Ishmohit"), which
 # trips a naive guest-language scan. They are Ishmohit teaching and stay
 # eligible — the introducer is a host, not the instructor.
+
+# =============================================================================
+# A3 (2026-07-22): eligibility scan for the 46 modules in the other 9
+# already-course-eligible courses (Level 1/2/3/5, Crash Course, L4,
+# Masterclass on Investing Using AI, SOIC Labs, Market Signals, Ask SOIC) --
+# the pass the plan's risk #6 flagged as never having been run outside
+# Level 6. Method: (a) full-body-text scan of all ~86 modules' lessons for
+# guest-handoff language, (b) lesson-title scan for person-name/interview
+# markers, (c) manual read of every hit before deciding.
+#
+# Result: no course or module needed reclassification -- all 10 courses'
+# `eligible: true` entries in the `courses:` mapping above stand unchanged.
+# Two genuine LESSON-level guests found, which the module-only mechanism
+# could not express (both live inside otherwise-legitimate, Ishmohit-taught
+# modules) -- extending eligibility.py with `excluded_lessons` to fix that.
+excluded_lessons:
+  # SOIC Labs: Become an AI-Powered Investor > same-name module.
+  # Confirmed guest by reading the full opening: "we have with us Mrs.
+  # [Mr.] Shachang Ji" -- an anesthesiologist (SOIC student, not staff,
+  # not Ishmohit) who "took voluntary retirement" and built his own AI
+  # dashboard tool, presenting it himself. Host explicitly thanks
+  # "Ishmoid" (Ishmohit) as a separate person in the room. Same shape as
+  # Sajal Kapoor: an outsider's own work being taught inside an SOIC
+  # course. Has content (39,920 chars) -- a real exclusion, not defensive.
+  - "Stocks Dashboard with Dr. Shashank"
+  # Ask SOIC on Saturdays > SOIC Exclusive Newsletter. Confirmed guest by
+  # TITLE ALONE (an external fund manager interview, RC Capital). Currently
+  # 0 chars (no transcript captured), so this exclusion is DEFENSIVE: if a
+  # transcript is captured for this lesson in a future re-scrape, it must
+  # not be silently admitted just because its module is fine.
+  - "Interview with Mr.Rohit Chauhan (RC Capital)"
+
+# Borderline, deliberately kept ELIGIBLE (A3, recorded so the call is
+# auditable): "Q&A with Ishmohit & Sarthak" (Ask SOIC > SOIC Exclusive MEET
+# (Live), 67,202 chars). Investigated the "Sarthak" name specifically: it
+# occurs exactly ONCE in the full transcript, as an unrelated illustrative
+# example ("Sarthak Garg" used to explain what a HUF-linked PAN card looks
+# like) -- not a self-introduction, not a host introducing him, no guest-
+# handoff language anywhere in the lesson. No positive evidence of an
+# external guest. "Ask SOIC on Saturdays" is a recurring, team-hosted live
+# Q&A format; treated the same as the Oil & Gas / Neel-Shuchi precedent
+# above -- Sarthak read as an SOIC team co-host, not an outside guest,
+# absent evidence otherwise. Revisit if later listening surfaces a
+# self-introduction that contradicts this.
