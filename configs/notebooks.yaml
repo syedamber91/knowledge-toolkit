@@ -1,0 +1,14 @@
+# Company -> NotebookLM notebook_id registry for soic_senses.notebook_client.
+#
+# A company with no entry here is expected to raise NotebookUnavailableError
+# from resolve_notebook_id() -- callers fall back to screener-only analysis,
+# clearly labeled, rather than treating the absence as an error.
+#
+# IDs sourced from real runs: PI_INDUSTRIES from the PI Industries POC's own
+# query_log.jsonl; IGL/ABB from the stock_analyzer repo's CLAUDE.md
+# "Known notebook IDs" table (kept in sync manually -- add new IDs to both
+# places when a company is onboarded in either project).
+notebooks:
+  PI_INDUSTRIES: 089aedd3-7825-497a-9774-26aeef6b6f22
+  IGL: ec56de21-0518-415b-a2d8-c09920fe594e
+  ABB: 46bb9f4e-800d-4fed-9dbf-546c5a563500
