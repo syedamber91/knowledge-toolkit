@@ -13,7 +13,9 @@
 # cosmetic bug -- the title field is documentation-only, not used for
 # matching). Entries for non-L6 courses below are corrected by hand each
 # time this file is regenerated: how-to-screen-and-filter-epic-stocks (L5),
-# the three L4 modules, how-to-value-a-company-and-portfolio-creation (L3).
+# the three L4 modules, how-to-value-a-company-and-portfolio-creation (L3),
+# and the 10 Level-2-Intensive-Course modules (how-to-navigate-... through
+# module-8-all-about-competitive-advantages).
 notebooks:
   detailed-analysis-of-real-estate-sector:
     notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
@@ -207,4 +209,34 @@ notebooks:
     title: SOIC L4 -- Framework For Buying & Selling A Stock
   how-to-value-a-company-and-portfolio-creation:
     notebook_id: 53f5f92c-1a40-4b0e-83d0-61376fa74e6a
-    title: 'SOIC Level 3 -- How to Value a Company & Portfolio Creation'
+    title: SOIC Level 3 -- How to Value a Company & Portfolio Creation
+  how-to-navigate-and-take-best-out-of-soic-membership:
+    notebook_id: 45b693bf-22cc-4fa4-a397-9b5d5ced2504
+    title: 'SOIC Level 2 -- How to Navigate & Take Best out of SOIC Membership'
+  module-1-the-need-for-compounding:
+    notebook_id: b7fef2fa-544a-41a2-87df-822169e583ef
+    title: 'SOIC Level 2 -- Module 1 The Need for Compounding'
+  module-2-why-equity-analysis:
+    notebook_id: d3dd902b-06ad-48ee-bfda-3fc091580277
+    title: 'SOIC Level 2 -- Module 2 Why Equity Analysis?'
+  module-3-understanding-financial-statements:
+    notebook_id: 0ec5e5b1-0595-4aa6-874e-f51b61c9502f
+    title: 'SOIC Level 2 -- Module 3 Understanding Financial Statements'
+  updated-soic-screener-sheet:
+    notebook_id: 89999ab2-5484-40dd-b3c2-ea45fed51312
+    title: 'SOIC Level 2 -- UPDATED | SOIC Screener Sheet'
+  module-4-forensic-analysis:
+    notebook_id: 3631e35d-a452-4a4f-80a0-d11c172272e2
+    title: 'SOIC Level 2 -- Module 4 Forensic Analysis'
+  module-5-ratio-analysis:
+    notebook_id: 4303dd72-7a6d-412b-a3c9-f0aaf0f0f9bd
+    title: 'SOIC Level 2 -- Module 5 Ratio Analysis'
+  module-6-how-to-research-and-find-information:
+    notebook_id: 23a85be3-03d8-4c08-bf8c-dbd8410d3ac5
+    title: 'SOIC Level 2 -- Module 6 How to research and find information?'
+  module-7-importance-of-industry-structures:
+    notebook_id: 29d9170f-15d0-4ff8-bfbe-c10f9e07ab31
+    title: 'SOIC Level 2 -- Module 7 Importance of Industry Structures'
+  module-8-all-about-competitive-advantages:
+    notebook_id: dbfdba37-fc09-480d-a795-a20df996a412
+    title: 'SOIC Level 2 -- Module 8 All about competitive advantages'
