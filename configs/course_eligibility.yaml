@@ -12,15 +12,78 @@ courses:
   "Level 2-Intensive Course (Investing from Scratch)- English":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: 13 modules total, 3 of which
+    # are 0-char placeholders ("Very Important!", "SOIC Research Reports",
+    # "SOIC Excel Sheets" -- excluded from the allowlist, no content to
+    # process). Full-text scan for guest-handoff markers across all real
+    # lessons in the other 10 modules found zero real guest introductions.
+    # Highest-risk hits (checked individually): "founder of Satyam" is
+    # Ishmohit narrating the Satyam fraud case study, not a guest; the
+    # "CEO of" clusters in Module 6's concall/annual-report lessons (Parag
+    # Milk, Syngene, Deepak Nitrite) are Ishmohit reading and analyzing
+    # THIRD-PARTY companies' own public documents/concalls as teaching
+    # material -- he is the one narrating, no guest ever speaks. All other
+    # hits are the same generic sign-off/product-introduction false
+    # positives seen in every prior course. No lesson-level exclusions
+    # needed.
+    modules_allowlist:
+    - "How to Navigate & Take Best out of SOIC Membership"
+    - "Module 1 The Need for Compounding"
+    - "Module 2 Why Equity Analysis?"
+    - "Module 3 Understanding Financial Statements"
+    - "UPDATED | SOIC Screener Sheet"
+    - "Module 4 Forensic Analysis"
+    - "Module 5 Ratio Analysis"
+    - "Module 6 How to research and find information?"
+    - "Module 7 Importance of Industry Structures"
+    - "Module 8 All about competitive advantages"
   "Level 3 How to Value a Company & Portfolio Creation!":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: single module, 13 lessons (9
+    # with real content -- 4 are 0-char placeholders: "Portfolio Allocation
+    # Approach", "Links To Best Talks on Valuation", "QUIZ", "Remember &
+    # Share- Key Points to Remember"). Full-text scan for guest-handoff
+    # markers across all 9 real lessons found zero real guest introductions
+    # -- every regex hit was a false positive: "CEO of the company" as a
+    # passing shareholding-analysis example (not a self-introduction),
+    # Ishmohit introducing SOIC's own concepts ("we introduce the concept
+    # of reverse DCF") or features ("we have recently introduced a new
+    # thing"), and generic sign-offs. All core Ishmohit/SOIC framing. No
+    # lesson-level exclusions needed.
+    modules_allowlist:
+    - "How to Value a Company & Portfolio Creation"
   "L4- When to Hold, Buy & Sell using Technicals for Long Term!":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: 3 modules, 21 lessons total.
+    # Full-text scan (not just opening lines) for guest-handoff markers
+    # (welcome/introduce/joining us/founder of/CEO of/etc.) across all 21
+    # lessons found zero real guest introductions -- every regex hit was a
+    # false positive: product introductions ("introduced new products like
+    # cloud computing"), tool/feature introductions by Ishmohit himself
+    # ("I'll just introduce the first ranking sheet"), membership-pitch
+    # boilerplate ("introduce what we do at SOIC membership"), and generic
+    # sign-offs ("thank you so much for joining us"). "founder of Zeroza" in
+    # "Framework on How to Sell Stocks" is an aside reference to an external
+    # person's opinion, not a guest self-introduction or handoff. All core
+    # SOIC/Ishmohit framing throughout. No lesson-level exclusions needed.
+    modules_allowlist:
+    - "Technical Analysis Masterclass"
+    - "Additional Classes"
+    - "Framework For Buying & Selling A Stock"
   "Level 5- How to Screen & Filter Epic Stocks":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: single module, 4 lessons.
+    # Full-text scan (not just opening lines) for guest-handoff markers
+    # (welcome/introduce/joining us/founder of/CEO of/etc.) across all 4
+    # lessons found zero real guest introductions -- every regex hit was a
+    # false positive from generic phrasing ("welcome to SOIC", "introduce a
+    # new product/model"). All core SOIC/Ishmohit framing ("hi dear tribe
+    # members", "the SOIC way"). No lesson-level exclusions needed.
+    modules_allowlist:
+    - "How to Screen & Filter Epic Stocks"
   "Level 6 Become a Sectoral Expert":
     eligible: true
     transcript_fidelity: verbatim
