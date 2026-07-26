@@ -354,6 +354,44 @@ additions to F3/F4/F9) are now committed in `decision-frameworks-v1.md`
 (20 frameworks total), with a provenance note in the file itself recording
 the discarded fabricated-quote attempt.
 
+### CLI (`soic_wiki.cli`, built 2026-07-27)
+
+Every sector this session was originally run via hand-typed one-off Python
+snippets. That's now wrapped in a real Typer CLI:
+
+```bash
+# Live decision briefing (screener ratios + matching frameworks + sector context)
+python -m soic_wiki.cli briefing NAVINFLUOR \
+  --keyword fluorine --keyword "navin fluorine" \
+  --frameworks path/to/decision-frameworks-v1.md \
+  --sectors configs/sector_notebooks.yaml
+
+# Run the NotebookLM-brain pipeline for one sector module end-to-end
+python -m soic_wiki.cli run-sector "Fluorine Industry! Megatrend or Fad?" \
+  --slug fluorine-industry-megatrend-or-fad \
+  --sector-registry configs/sector_notebooks.yaml \
+  --out-dir out/a5_fluorine_industry
+# writes out-dir/notes/*.md + out-dir/refs.json, runs the SAME
+# sector_gate.run_sector_acceptance_report every prior batch used,
+# exits non-zero on FAIL
+
+# Propose a framework-file diff for a sector -- writes a PREVIEW only
+python -m soic_wiki.cli evolve-frameworks \
+  --notebook-id <sector's notebook_id> --sector-title "Fluorine Industry" \
+  --frameworks path/to/decision-frameworks-v1.md --out /tmp/diff.md
+# NEVER writes to the real frameworks file -- review /tmp/diff.md and
+# apply an approved diff by hand, same as every framework diff this
+# session was reviewed
+```
+
+`run-sector` still does NOT sync to the vault or run framework evolution
+automatically -- `scripts/sync_notes_to_vault.py` and `evolve-frameworks`
+stay separate, deliberate steps so nothing gets published without a look.
+The gate logic itself now lives in `soic_wiki/sector_gate.py` (extracted
+from `scripts/sector_report.py`, which is now a thin wrapper over it,
+verified byte-for-byte identical output against real committed data) --
+both the CLI and the standalone script check output the exact same way.
+
 ## Learning packs, verification loop & Google Drive
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
