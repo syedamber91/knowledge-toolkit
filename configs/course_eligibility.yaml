@@ -21,9 +21,13 @@ courses:
   "Level 5- How to Screen & Filter Epic Stocks":
     eligible: true
     transcript_fidelity: verbatim
-    # Module-classified 2026-07-27: single module, all 4 lessons opened with
-    # core SOIC/Ishmohit framing ("hi dear tribe members", "the SOIC way") --
-    # no guest-handoff language found, no exclusions needed.
+    # Module + lesson-classified 2026-07-27: single module, 4 lessons.
+    # Full-text scan (not just opening lines) for guest-handoff markers
+    # (welcome/introduce/joining us/founder of/CEO of/etc.) across all 4
+    # lessons found zero real guest introductions -- every regex hit was a
+    # false positive from generic phrasing ("welcome to SOIC", "introduce a
+    # new product/model"). All core SOIC/Ishmohit framing ("hi dear tribe
+    # members", "the SOIC way"). No lesson-level exclusions needed.
     modules_allowlist:
     - "How to Screen & Filter Epic Stocks"
   "Level 6 Become a Sectoral Expert":
