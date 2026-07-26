@@ -10,9 +10,10 @@
 #
 # NOTE: ensure_sector_notebook() titles every new entry "SOIC L6 -- <name>"
 # regardless of which course the module actually belongs to (a pre-existing
-# cosmetic bug -- the entries for how-to-screen-and-filter-epic-stocks (L5)
-# and the three L4 modules below are corrected by hand since the `title`
-# field is documentation-only and not used for matching).
+# cosmetic bug -- the title field is documentation-only, not used for
+# matching). Entries for non-L6 courses below are corrected by hand each
+# time this file is regenerated: how-to-screen-and-filter-epic-stocks (L5),
+# the three L4 modules, how-to-value-a-company-and-portfolio-creation (L3).
 notebooks:
   detailed-analysis-of-real-estate-sector:
     notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
@@ -194,13 +195,16 @@ notebooks:
     - star health
   how-to-screen-and-filter-epic-stocks:
     notebook_id: 21b8ac74-f4da-4b41-8dd0-9a7daaae0bc5
-    title: 'SOIC Level 5 -- How to Screen & Filter Epic Stocks'
+    title: SOIC Level 5 -- How to Screen & Filter Epic Stocks
   technical-analysis-masterclass:
     notebook_id: 426323ff-218f-4a1f-ad84-9526cba8d68a
-    title: 'SOIC L4 -- Technical Analysis Masterclass'
+    title: SOIC L4 -- Technical Analysis Masterclass
   additional-classes:
     notebook_id: 81c95606-44c2-42bd-b718-9954b8209aac
-    title: 'SOIC L4 -- Additional Classes'
+    title: SOIC L4 -- Additional Classes
   framework-for-buying-selling-a-stock:
     notebook_id: b506a3f6-aca8-4964-82df-3204db2ed254
-    title: 'SOIC L4 -- Framework For Buying & Selling A Stock'
+    title: SOIC L4 -- Framework For Buying & Selling A Stock
+  how-to-value-a-company-and-portfolio-creation:
+    notebook_id: 53f5f92c-1a40-4b0e-83d0-61376fa74e6a
+    title: 'SOIC Level 3 -- How to Value a Company & Portfolio Creation'

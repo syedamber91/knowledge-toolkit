@@ -15,6 +15,19 @@ courses:
   "Level 3 How to Value a Company & Portfolio Creation!":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: single module, 13 lessons (9
+    # with real content -- 4 are 0-char placeholders: "Portfolio Allocation
+    # Approach", "Links To Best Talks on Valuation", "QUIZ", "Remember &
+    # Share- Key Points to Remember"). Full-text scan for guest-handoff
+    # markers across all 9 real lessons found zero real guest introductions
+    # -- every regex hit was a false positive: "CEO of the company" as a
+    # passing shareholding-analysis example (not a self-introduction),
+    # Ishmohit introducing SOIC's own concepts ("we introduce the concept
+    # of reverse DCF") or features ("we have recently introduced a new
+    # thing"), and generic sign-offs. All core Ishmohit/SOIC framing. No
+    # lesson-level exclusions needed.
+    modules_allowlist:
+    - "How to Value a Company & Portfolio Creation"
   "L4- When to Hold, Buy & Sell using Technicals for Long Term!":
     eligible: true
     transcript_fidelity: verbatim
