@@ -122,6 +122,97 @@ Current signature stays untouched — it's the evidence assembler. Add:
 - **Failure semantics:** refuse (verdict `INSUFFICIENT_DATA`) whenever a
   data error is set — never score against nothing.
 
+### 2.1 Implementation-ready spec (still a plan — nothing below exists yet)
+
+This subsection tightens §1/§2 into what the change would concretely look
+like when a later, explicitly-authorized implementation pass writes it.
+File paths are where things would live **once approved**; the YAML files
+and code below are sketches in this plan doc only.
+
+**Files (once approved):**
+
+- `wiki/personas/soic/frameworks/decision-rules-v2.yaml` (vault, beside
+  the markdown it mirrors) — pilot entries for `F10`, `F21`, `F22`, `F23`,
+  `F24` (per §8; F21-F24 must first land in `decision-frameworks-v1.md`
+  through the human-approved evolution flow — the F21-F24 draft already
+  exists at `docs/superpowers/plans/2026-07-27-soic-framework-f21-f24-draft.md`
+  and is awaiting sign-off). Notable per-entry decisions: F22 ships
+  `status: advisory-numeric` (SOIC states direction, no calibrated
+  leverage-share ceiling); F23 ships `abstain_if: [missing:
+  weekly_price_series]` (data source doesn't exist yet); F24 is
+  `class: routing` — its "vote" is a metric-key selection consumed by F10,
+  never a bullish/bearish signal.
+- `wiki/personas/soic/frameworks/metric-registry.yaml` (vault) — one entry
+  per metric key the pilot rules reference: `stock_pe`, `roce`, `roe`,
+  `market_cap`, `book_value` (fetchable TODAY — they are labels in
+  `screener_client.parse_top_ratios`' output dict), vs
+  `cfo_to_ebitda_pct_3y`, `receivable_days`, `net_margin`,
+  `asset_turnover`, `debt_to_equity`, `profit_growth_3y_pct`,
+  `weekly_price_series` (each marked `status: not_yet_fetchable` with the
+  needed extension named — screener statement tables for the first six, a
+  weekly OHLCV source for the last). The registry never invents a fetch;
+  a `not_yet_fetchable` metric makes every signal that needs it resolve
+  to `abstain`.
+
+**Code (in `src/soic_senses/decision_engine.py`, additive only —
+`build_briefing(symbol, keywords, frameworks_path, sector_registry_path=None)`
+keeps its exact current signature and behavior):**
+
+```python
+@dataclass
+class Decision:
+    symbol: str
+    verdict: str                      # BUY | HOLD | SELL | AVOID | INSUFFICIENT_DATA
+    conviction: str                   # HIGH | MEDIUM | LOW
+    per_framework_votes: Dict[str, str]         # framework id -> bullish/neutral/bearish/veto/abstain
+    rule_trail: List[SignalOutcome]   # one per evaluated signal
+    contradictions: List[str]         # named pairs of conflicting votes, with values
+    unresolved_human_questions: List[str]
+    data_coverage: float              # evaluable signals / applicable signals
+    as_of: str                        # ISO timestamp of the live fetch
+
+@dataclass
+class SignalOutcome:
+    framework_id: str
+    signal: str        # signal name from the YAML
+    metric: str        # registry key
+    value: object      # the live value, or None
+    source: str        # registry source string
+    rule: str          # the rule expression evaluated
+    outcome: str       # pass | fail | abstain
+
+def evaluate(briefing: Briefing, rules_path, registry_path) -> Decision: ...
+```
+
+Evaluation order inside `evaluate()`: (1) if `briefing.data_error` is set
+→ `INSUFFICIENT_DATA` immediately; (2) resolve each rule's signals via
+the registry against `briefing.live_ratios` (missing metric or
+`not_yet_fetchable` → `abstain`, never a crash); (3) apply `safety_gate`
+entries first — any failed gate caps the verdict at AVOID regardless of
+other votes; (4) run `routing` entries (F24) to select which metric key
+valuation entries evaluate; (5) weighted combination of the remaining
+votes; (6) coverage < 0.5 → `INSUFFICIENT_DATA`; conflicting non-veto
+votes are appended to `contradictions` and cap conviction at LOW.
+
+**Tests (extend `tests/test_soic_senses_decision_engine.py`, plus new
+fixture YAMLs under `tests/fixtures/`):** each written FIRST and watched
+fail, per house TDD style —
+
+1. *Veto beats bullish:* a rules fixture where F10 votes bullish but the
+   F21-shaped gate fails → assert `verdict == "AVOID"` and the gate
+   appears in `rule_trail` with `outcome == "fail"`.
+2. *Missing metric abstains:* live_ratios lacking a needed key → assert
+   the signal's `outcome == "abstain"`, no exception, and the framework's
+   vote is `abstain` (not counted as bearish).
+3. *Insufficient data refuses:* coverage below the 0.5 floor (e.g. only
+   the F23 price-series signals applicable, all `not_yet_fetchable`) →
+   assert `verdict == "INSUFFICIENT_DATA"` and conviction is not `HIGH`.
+4. *Contradictions reported, not averaged:* two frameworks voting
+   bullish/bearish on the same stock → assert both appear in
+   `contradictions` and conviction is capped at LOW.
+5. *`build_briefing` untouched:* the six existing tests keep passing
+   unchanged — the regression proof that `evaluate()` is additive.
+
 ## 3. `sector_router.py`: from read-only context to parameter overlays
 
 Each sector entry may carry an **overlay block**: sector-specific bands
@@ -305,6 +396,117 @@ drops out with F12.
 5. "Done" gate unchanged, plus one addition: every threshold in the
    pilot YAML must carry a verbatim citation from these notes — all four
    new rules already can.
+
+---
+
+## 9. Ongoing framework evolution as new data arrives (standing process)
+
+The framework file has already grown in observable batches — F1-F11
+(initial distillation), F12-F17 (Batch-4 sectors), F18-F20 (first
+NotebookLM-brain evolution), and the proposed F21-F24 (L2-L5 method
+courses). More SOIC content WILL keep arriving (new courses, new sector
+modules, new concept-note syncs), so evolution must be a durable loop,
+not a one-time step. The loop below keeps `framework_evolution.py`'s core
+invariant — **propose, never auto-commit; a human approves every content
+change** — and adds the machinery the machine-rules layer makes both
+possible and necessary.
+
+### 9.1 What triggers a re-evaluation
+
+Three trigger classes, in decreasing frequency:
+
+1. **A new gated batch lands** (a sector module passes its citation-
+   verification gates, or a method-course sync like the L2-L5 one
+   completes). This is the existing `evolve-frameworks` CLI trigger —
+   unchanged, but extended: the proposal pass must be run against the
+   FRESHLY re-loaded framework list (the prompt-builder's own docstring
+   already demands this) and must now also answer a third question per
+   mechanism, beyond REINFORCES/NEW: does the new material **contradict
+   or re-calibrate** an existing framework's stated number? A
+   `### RECALIBRATES F<n>` block type gets added alongside the existing
+   `_NEW_BLOCK`/`_REINFORCE_BLOCK` regexes — because the dangerous drift
+   isn't missing frameworks, it's a framework whose threshold the newer
+   lectures quietly moved.
+2. **A `calibration_expiry` date passes** (see 9.3).
+3. **A live contradiction is observed** — a Phase C+ `evaluate()` run
+   where the human reviewer overrides the machine verdict and attributes
+   the disagreement to a rule (not an advisory factor). Each such
+   override is logged with the framework id; two overrides against the
+   same rule inside a quarter auto-opens a re-calibration proposal.
+
+### 9.2 Review cadence
+
+- **Per-batch (event-driven):** the evolution proposal + human diff
+  review, as today. Target latency: within a week of a batch landing, so
+  the framework file never silently lags the corpus.
+- **Quarterly (scheduled):** a maintenance review that (a) sweeps
+  `calibration_expiry` dates falling in the next quarter, (b) reviews the
+  override log from 9.1(3), (c) re-runs the md↔YAML consistency check and
+  the full regression-fixture suite even if nothing changed — catching
+  bit-rot from vault edits made outside the flow (Obsidian is a live
+  editing surface; assume out-of-band edits happen).
+- **Annually:** a full re-read of `advisory-only` frameworks asking
+  whether any have become mechanizable (new data sources, new stated
+  numbers in newer lectures) — the F23 pattern, where a framework waits
+  on a fetch extension, gets re-checked here too.
+
+### 9.3 `calibration_expiry`: who checks it, what happens
+
+Every numeric threshold in `decision-rules-v2.yaml` carries a
+`calibration_expiry` date (schema §1). Enforcement is mechanical, not
+memorial:
+
+- **Checked at load time, every run.** The rules loader compares each
+  entry's expiry against today. Expired → the signal is downgraded to
+  `advisory` for that run (it still appears in the rule trail, marked
+  `expired`), the Decision's conviction is capped at MEDIUM, and the
+  briefing/Decision markdown renders a loud "N thresholds past
+  calibration expiry" banner. Nothing silently keeps scoring on a stale
+  number — this is the F11 freshness discipline applied to the rules
+  themselves.
+- **Flagged ahead of time by the quarterly review** (9.2), which opens a
+  re-calibration task per threshold expiring next quarter. Re-calibration
+  = re-verify the grounding citation still supports the number, check
+  newer corpus material for a `RECALIBRATES` signal, and either re-date
+  the expiry (with a dated note in the framework's `Grounding:`) or
+  change the number through the normal human-approved diff flow.
+- **Who:** the check itself is code (loader + a small `expiry-sweep`
+  report the quarterly review reads); the re-dating/re-numbering decision
+  is always the human reviewer. No expiry is ever auto-extended.
+
+### 9.4 Scaling the regression-fixture gate past 24 frameworks
+
+Phase D's gate (frozen `(briefing snapshot, expected Decision)` pairs;
+any framework/rule/overlay change must list which fixture verdicts flip)
+scales with three rules:
+
+- **Panel growth is tied to framework growth.** Every new `machine`
+  framework must ship with at least one fixture stock that *exercises*
+  it (one where the rule fires, ideally one where it abstains). A
+  framework no fixture exercises is untested by construction — the gate
+  report lists per-framework fixture coverage and flags zeros, the same
+  "ran but produced nothing useful" discipline the screener client
+  applies to empty ratio pages.
+- **Flip-lists stay reviewable by scoping.** As fixtures multiply, the
+  human-review diff shows only: (a) fixtures whose verdict/conviction
+  changed, (b) fixtures whose rule trail changed outcome on the edited
+  framework — never the full fixture dump. An edit that flips nothing
+  says so in one line.
+- **Fixtures age like thresholds.** Each fixture snapshot records its
+  fetch date; the quarterly review re-fetches live data for the panel
+  and rebuilds snapshots (expected Decisions re-approved by the human
+  when they change) so the gate tests today's world, not 2026's. A
+  fixture older than two quarters is excluded from the gate (with a
+  warning) rather than allowed to enforce stale expectations.
+
+### 9.5 What never changes
+
+The write to `decision-frameworks-v1.md` (and, once it exists,
+`decision-rules-v2.yaml`) remains a human act after reviewing a proposed
+diff — exactly `framework_evolution.py`'s current contract. Automation
+grows around the review (structural validation, citation verification,
+regression flip-lists, expiry sweeps) to make the human decision
+better-informed and faster, never to remove it.
 
 ---
 
