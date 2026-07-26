@@ -1,43 +1,188 @@
+# Sector-module -> NotebookLM notebook_id registry.
+#
+# Populated by soic_wiki.notebooklm_sector_pipeline.ensure_sector_notebook,
+# which creates a notebook the first time a slug is seen and reuses it on
+# every subsequent run (idempotent -- never creates a duplicate for the
+# same slug). `keywords:` is human-curated per sector (drafted here from
+# each sector's actual concept-note content) and is what sector_router.py
+# ranks on -- a sector with no keywords can never be matched. Adding a new
+# sector here is the ONLY wiring decision_engine needs; it never changes.
 notebooks:
   detailed-analysis-of-real-estate-sector:
     notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
     title: SOIC L6 Pilot -- Detailed Analysis of Real Estate Sector
+    keywords:
+    - real estate
+    - developer
+    - reit
+    - joint development
+    - capital cycle
+    - sunteck
+    - india bulls
+    - embassy
   fluorine-industry-megatrend-or-fad:
     notebook_id: 92bcef09-7502-42d7-9b41-73dbdcc22ab5
     title: SOIC L6 -- Fluorine Industry! Megatrend or Fad?
+    keywords:
+    - fluorine
+    - fluoropolymer
+    - refrigerant gas
+    - navin fluorine
+    - srf
+    - gujarat fluorochemicals
+    - china plus one
   masterclass-on-low-float-stocks:
     notebook_id: a6bc8be0-4aff-43b8-ae67-9d0c5023cd14
     title: SOIC L6 -- Masterclass on Low Float Stocks
+    keywords:
+    - free float
+    - low float
+    - float cornering
+    - shareholder
+    - reflexivity
+    - dilution
   understanding-speciality-chemical-sector:
     notebook_id: cf02abaa-9000-4cf5-ae26-0f5b3c74eb5e
     title: SOIC L6 -- Understanding Speciality Chemical Sector
+    keywords:
+    - speciality chemical
+    - china plus one
+    - deepak nitrite
+    - aarti industries
+    - fine organics
+    - pi industries
+    - bromine
+    - phosgene
+    - amines
   future-of-indian-shipyards-from-defence-to-cargo:
     notebook_id: 0a908064-a0e0-4b29-926c-f1f20d10b85b
     title: 'SOIC L6 -- Future of Indian Shipyards: From Defence To Cargo'
+    keywords:
+    - shipyard
+    - shipbuilding
+    - grse
+    - mazagon
+    - cochin shipyard
+    - port infrastructure
+    - charter vessel
+    - dsv
   agrochemicals-where-india-is-winning:
     notebook_id: 589518f7-29da-4a0c-81e9-b238184e20e0
     title: 'SOIC L6 -- Agrochemicals: Where India is Winning'
+    keywords:
+    - agrochemical
+    - pesticide
+    - crams
+    - sumitomo chemicals
+    - sharda cropchem
+    - pi industries
+    - astec lifesciences
+    - kaveri seeds
+    - rallis
   api-sectoral-analysis:
     notebook_id: 4a79c649-b173-48fa-87ec-d9492cb94555
     title: SOIC L6 -- API Sectoral Analysis
+    keywords:
+    - api
+    - active pharmaceutical ingredient
+    - cdmo
+    - hikal
+    - peptides
+    - deuteration
+    - animal pharma
+    - process chemistry
   modern-monopolies-platform-businesses:
     notebook_id: d08dc7d4-ba56-4e3b-a56c-2bcffd2d282f
     title: 'SOIC L6 -- Modern Monopolies: Platform Businesses'
+    keywords:
+    - platform business
+    - network effects
+    - aggregation theory
+    - infoedge
+    - cams
+    - iex
+    - irctc
+    - indiamart
+    - policybazaar
+    - discount broker
   capital-goods-proxy-to-nation-building:
     notebook_id: c3db1fbe-08c6-45b9-a8e7-3f6b5033baec
     title: 'SOIC L6 -- Capital Goods: Proxy to Nation Building'
+    keywords:
+    - capital goods
+    - precision engineering
+    - order book
+    - transmission
+    - solar pump
+    - razor blade model
+    - industrial consumable
   soic-hospital-sectoral-webinar-analysis:
     notebook_id: 445e1a9b-33f6-4011-8048-8e7293153628
     title: SOIC L6 -- SOIC Hospital Sectoral Webinar Analysis
+    keywords:
+    - hospital
+    - healthcare
+    - max healthcare
+    - apollo hospitals
+    - kims
+    - narayana health
+    - hcg
+    - aster dm
+    - arpob
+    - occupancy
   decoding-indian-banking-space-2:
     notebook_id: 29205c61-f26e-4cca-84a5-a73df203cf5b
     title: SOIC L6 -- Decoding Indian Banking Space 2.0
+    keywords:
+    - bank
+    - banking
+    - nbfc
+    - small finance bank
+    - psu bank
+    - credit card
+    - roa
+    - asset quality
+    - nim
+    - gnpa
   uncover-hidden-gems-in-metals-and-mining-sector:
     notebook_id: 37f7f221-0828-49b7-bdee-fd1e2b9a4ca8
     title: SOIC L6 -- Uncover Hidden Gems in Metals & Mining Sector
+    keywords:
+    - metals
+    - mining
+    - iron ore
+    - steel
+    - stainless steel
+    - aluminium
+    - copper
+    - carbon steel
+    - steel pipes
   the-capital-code-capital-market-value-chain:
     notebook_id: 57c6c744-a692-4ebd-a496-cafd4a840a4c
     title: 'SOIC L6 -- The Capital Code: Capital Market Value Chain'
+    keywords:
+    - capital market
+    - cams
+    - kfintech
+    - rta
+    - depository
+    - cdsl
+    - nsdl
+    - amc
+    - discount broker
+    - wealth management
+    - investment banking
   understand-insurance-landscape-simplifying-a-complex-sector:
     notebook_id: 18c80cbf-0100-46b6-82f0-b26e0a4409b2
     title: 'SOIC L6 -- Understand Insurance Landscape: Simplifying a Complex Sector'
+    keywords:
+    - insurance
+    - general insurance
+    - life insurance
+    - vnb margin
+    - embedded value
+    - bancassurance
+    - solvency ratio
+    - icici lombard
+    - hdfc life
+    - star health
