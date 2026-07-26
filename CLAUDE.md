@@ -392,6 +392,42 @@ from `scripts/sector_report.py`, which is now a thin wrapper over it,
 verified byte-for-byte identical output against real committed data) --
 both the CLI and the standalone script check output the exact same way.
 
+### Example questions / how to start a conversation with this system
+
+**Important distinction, established the hard way in conversation:** `briefing`
+(and the underlying `decision_engine.build_briefing`) NEVER calls NotebookLM
+live -- not even for a brand-new question it has no local answer to. It only
+reads `decision-frameworks-v1.md` + `configs/sector_notebooks.yaml` off disk
+plus one live screener.in HTTP call. There is no auto-escalation from "nothing
+matched locally" to "so go ask NotebookLM live" -- that only happens if you
+explicitly call `ask_notebook(notebook_id, question)` yourself, as its own
+separate step. Keep that distinction in mind when picking from the examples
+below -- the first two groups are cheap/fast/static; the third actually
+fires a live query and needs a working NotebookLM session.
+
+**Live briefings** (screener data + local frameworks + sector pointer, no NotebookLM call):
+1. "Give me a decision briefing for Navin Fluorine — keywords fluorine, backward integration."
+2. "Pull a briefing on SRF using the fluorine sector frameworks."
+3. "What does the framework file say I should check before looking at a hospital stock like Max Healthcare?"
+4. "Give me a briefing on HDFC Life — keywords insurance, life insurance, VNB margin."
+5. "I'm looking at DLF — what frameworks and sector context apply?"
+
+**Reading the knowledge base directly** (no live call at all, fastest/free):
+6. "What does SOIC's method say about backward integration and margins?"
+7. "Explain the SOTP conglomerate stub-valuation framework and where it came from."
+8. "Summarize the concept note on SRF's capital allocation strategy."
+9. "What are all the frameworks that mention 'China plus one'?"
+
+**Live NotebookLM follow-ups** (genuinely new question, actually queries a sector notebook -- needs a working session):
+10. "Ask the Fluorine Industry notebook whether the instructor discusses any domestic Indian environmental risk to HF producers."
+11. "Ask the Insurance notebook what specific numbers were given for HDFC Life's VNB margin."
+12. "Query the Banking Sector notebook — does the instructor say anything about Bandhan Bank specifically?"
+
+**Extending the system itself** (real orchestration commands, take a few minutes each):
+13. "Run the sector pipeline on [an untouched Level-1/2/3 module] and show me the gate result."
+14. "Propose a framework-evolution diff for the Insurance sector notebook and show me the preview — don't apply it."
+15. "Which of the 14 sectors' keywords would match if I searched for 'NBFC' — check for gaps or overlaps."
+
 ## Learning packs, verification loop & Google Drive
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
