@@ -21,6 +21,11 @@ courses:
   "Level 5- How to Screen & Filter Epic Stocks":
     eligible: true
     transcript_fidelity: verbatim
+    # Module-classified 2026-07-27: single module, all 4 lessons opened with
+    # core SOIC/Ishmohit framing ("hi dear tribe members", "the SOIC way") --
+    # no guest-handoff language found, no exclusions needed.
+    modules_allowlist:
+    - "How to Screen & Filter Epic Stocks"
   "Level 6 Become a Sectoral Expert":
     eligible: true
     transcript_fidelity: verbatim
