@@ -1,0 +1,22 @@
+notebooks:
+  detailed-analysis-of-real-estate-sector:
+    notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
+    title: SOIC L6 Pilot -- Detailed Analysis of Real Estate Sector
+    keywords:
+    - real estate
+    - developer
+    - reit
+    - joint development
+    - capital cycle
+  fluorine-industry-megatrend-or-fad:
+    notebook_id: 92bcef09-7502-42d7-9b41-73dbdcc22ab5
+    title: SOIC L6 -- Fluorine Industry! Megatrend or Fad?
+    keywords:
+    - fluorine
+    - fluoropolymer
+    - refrigerant gas
+    - navin fluorine
+    - srf
+  no-keywords-sector:
+    notebook_id: some-id
+    title: Sector With No Keywords Field

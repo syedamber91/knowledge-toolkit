@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Union
 
 from soic_senses.framework_router import Framework, load_frameworks, match_frameworks
 from soic_senses.screener_client import fetch_screener_ratios
+from soic_senses.sector_router import Sector, load_sectors, match_sectors
 
 
 @dataclass
@@ -27,6 +28,7 @@ class Briefing:
     live_ratios: Optional[Dict[str, object]] = None
     data_error: Optional[str] = None
     frameworks: List[Framework] = field(default_factory=list)
+    sectors: List[Sector] = field(default_factory=list)
 
     def to_markdown(self) -> str:
         lines = [f"# Decision Briefing — {self.symbol}", ""]
@@ -55,6 +57,15 @@ class Briefing:
         else:
             lines.append("(no framework matched the given keywords)")
 
+        lines.append("## Applicable Sector Context")
+        if self.sectors:
+            for sector in self.sectors:
+                lines.append(f"### {sector.title}")
+                lines.append(f"NotebookLM notebook: `{sector.notebook_id}`")
+                lines.append("")
+        else:
+            lines.append("(no sector notebook matched the given keywords)")
+
         return "\n".join(lines)
 
 
@@ -62,13 +73,21 @@ def build_briefing(
     symbol: str,
     keywords: List[str],
     frameworks_path: Union[str, Path],
+    sector_registry_path: Optional[Union[str, Path]] = None,
 ) -> Briefing:
-    """Fetch live ratios + match frameworks for one company.
+    """Fetch live ratios + match frameworks + match sector notebooks for one
+    company.
 
     A screener fetch failure is recorded on the briefing (data_error), never
     raised past this point -- the caller still gets the framework matches
     even when the data layer is down, and to_markdown() surfaces the failure
     loudly rather than silently proceeding with no numbers.
+
+    sector_registry_path is optional (default None -> skip sector matching
+    entirely, so existing callers that don't pass it are unaffected). When
+    given, sectors are matched the same way frameworks are: growing
+    configs/sector_notebooks.yaml is the only wiring a new sector needs --
+    this function never changes again as more sectors are registered.
     """
     briefing = Briefing(symbol=symbol, keywords=keywords)
 
@@ -79,5 +98,9 @@ def build_briefing(
 
     frameworks = load_frameworks(frameworks_path)
     briefing.frameworks = match_frameworks(frameworks, keywords)
+
+    if sector_registry_path is not None:
+        sectors = load_sectors(sector_registry_path)
+        briefing.sectors = match_sectors(sectors, keywords)
 
     return briefing
