@@ -22,7 +22,7 @@ from __future__ import annotations
 import datetime
 import json
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import yaml
 
@@ -84,6 +84,47 @@ def _build_client(tokens):
         csrf_token=tokens.csrf_token,
         session_id=tokens.session_id,
     )
+
+
+def _require_client():
+    tokens = _load_cached_tokens()
+    if not tokens:
+        raise NotebookAuthError("no cached tokens (~/.notebooklm-mcp/auth.json)")
+    return _build_client(tokens)
+
+
+def create_notebook(title: str) -> str:
+    """Create a new NotebookLM notebook, returning its notebook_id.
+
+    Raises NotebookQueryError (naming the title) if the client call
+    returns None -- notebooklm_mcp's own convention for "the RPC didn't
+    give back a usable result" -- rather than returning None onward and
+    letting a caller silently proceed with no notebook.
+    """
+    client = _require_client()
+    notebook = client.create_notebook(title=title)
+    if not notebook:
+        raise NotebookQueryError(f"create_notebook returned no result for title {title!r}")
+    return notebook.notebook_id
+
+
+def add_text_source(notebook_id: str, text: str, title: str) -> None:
+    """Add a pasted-text source to a notebook (the only way to get a raw
+    transcript into NotebookLM -- there is no file-upload API).
+
+    Raises NotebookQueryError (naming the notebook_id) if the client call
+    returns None.
+    """
+    client = _require_client()
+    result = client.add_text_source(notebook_id, text, title=title)
+    if not result:
+        raise NotebookQueryError(f"add_text_source returned no result for notebook {notebook_id!r}")
+
+
+def list_notebooks() -> List[object]:
+    """List all NotebookLM notebooks visible to the cached session."""
+    client = _require_client()
+    return client.list_notebooks()
 
 
 def ask_notebook(

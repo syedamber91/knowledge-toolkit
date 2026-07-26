@@ -157,3 +157,94 @@ def test_query_company_tags_and_logs_receipt(tmp_path):
     assert receipt["tag"] == "[Q1]"
     assert receipt["answer"] == "Margins expanded."
     assert log_path.exists()
+
+
+def test_create_notebook_returns_new_notebook_id():
+    from soic_senses.notebook_client import create_notebook
+
+    fake_client = MagicMock()
+    fake_client.create_notebook.return_value = MagicMock(notebook_id="new-nb-id")
+
+    with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
+        "soic_senses.notebook_client._build_client", return_value=fake_client
+    ):
+        notebook_id = create_notebook("SOIC L6 -- Detailed Analysis of Real Estate Sector")
+
+    fake_client.create_notebook.assert_called_once_with(
+        title="SOIC L6 -- Detailed Analysis of Real Estate Sector"
+    )
+    assert notebook_id == "new-nb-id"
+
+
+def test_create_notebook_raises_query_error_when_client_returns_none():
+    from soic_senses.notebook_client import NotebookQueryError, create_notebook
+
+    fake_client = MagicMock()
+    fake_client.create_notebook.return_value = None
+
+    with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
+        "soic_senses.notebook_client._build_client", return_value=fake_client
+    ):
+        try:
+            create_notebook("Some title")
+            assert False, "expected NotebookQueryError"
+        except NotebookQueryError as exc:
+            assert "Some title" in str(exc)
+
+
+def test_add_text_source_calls_client_with_notebook_and_title():
+    from soic_senses.notebook_client import add_text_source
+
+    fake_client = MagicMock()
+    fake_client.add_text_source.return_value = {"source_id": "src-1"}
+
+    with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
+        "soic_senses.notebook_client._build_client", return_value=fake_client
+    ):
+        add_text_source("nb-1", "transcript text here", title="REAL Detailed Analysis of Real Estate Sector")
+
+    fake_client.add_text_source.assert_called_once_with(
+        "nb-1", "transcript text here", title="REAL Detailed Analysis of Real Estate Sector"
+    )
+
+
+def test_add_text_source_raises_query_error_when_client_returns_none():
+    from soic_senses.notebook_client import NotebookQueryError, add_text_source
+
+    fake_client = MagicMock()
+    fake_client.add_text_source.return_value = None
+
+    with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
+        "soic_senses.notebook_client._build_client", return_value=fake_client
+    ):
+        try:
+            add_text_source("nb-1", "text", title="some title")
+            assert False, "expected NotebookQueryError"
+        except NotebookQueryError as exc:
+            assert "nb-1" in str(exc)
+
+
+def test_list_notebooks_returns_client_notebooks():
+    from soic_senses.notebook_client import list_notebooks
+
+    fake_client = MagicMock()
+    fake_client.list_notebooks.return_value = [MagicMock(notebook_id="a"), MagicMock(notebook_id="b")]
+
+    with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
+        "soic_senses.notebook_client._build_client", return_value=fake_client
+    ):
+        result = list_notebooks()
+
+    assert len(result) == 2
+    fake_client.list_notebooks.assert_called_once()
+
+
+def test_lifecycle_functions_raise_auth_error_when_no_cached_tokens():
+    from soic_senses.notebook_client import NotebookAuthError, create_notebook
+
+    with patch("soic_senses.notebook_client._load_cached_tokens", return_value=None):
+        try:
+            create_notebook("Some title")
+            assert False, "expected NotebookAuthError"
+        except NotebookAuthError:
+            pass
