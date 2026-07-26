@@ -163,7 +163,7 @@ def test_create_notebook_returns_new_notebook_id():
     from soic_senses.notebook_client import create_notebook
 
     fake_client = MagicMock()
-    fake_client.create_notebook.return_value = MagicMock(notebook_id="new-nb-id")
+    fake_client.create_notebook.return_value = MagicMock(id="new-nb-id")
 
     with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
         "soic_senses.notebook_client._build_client", return_value=fake_client
@@ -228,7 +228,7 @@ def test_list_notebooks_returns_client_notebooks():
     from soic_senses.notebook_client import list_notebooks
 
     fake_client = MagicMock()
-    fake_client.list_notebooks.return_value = [MagicMock(notebook_id="a"), MagicMock(notebook_id="b")]
+    fake_client.list_notebooks.return_value = [MagicMock(id="a"), MagicMock(id="b")]
 
     with patch("soic_senses.notebook_client._load_cached_tokens", return_value=object()), patch(
         "soic_senses.notebook_client._build_client", return_value=fake_client

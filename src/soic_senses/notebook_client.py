@@ -105,7 +105,7 @@ def create_notebook(title: str) -> str:
     notebook = client.create_notebook(title=title)
     if not notebook:
         raise NotebookQueryError(f"create_notebook returned no result for title {title!r}")
-    return notebook.notebook_id
+    return notebook.id
 
 
 def add_text_source(notebook_id: str, text: str, title: str) -> None:

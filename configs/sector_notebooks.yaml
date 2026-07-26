@@ -1,0 +1,11 @@
+# Sector-module -> NotebookLM notebook_id registry, for the Part-2 pilot.
+#
+# Populated by soic_wiki.notebooklm_sector_pipeline.ensure_sector_notebook,
+# which creates a notebook the first time a slug is seen and reuses it on
+# every subsequent run (idempotent -- never creates a duplicate for the
+# same slug). Part 3 will extend each entry with a human-curated
+# `keywords:` list once sector_router is built; Part 2 only needs the id.
+notebooks:
+  detailed-analysis-of-real-estate-sector:
+    notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
+    title: SOIC L6 Pilot -- Detailed Analysis of Real Estate Sector
