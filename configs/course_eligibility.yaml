@@ -1,0 +1,179 @@
+# Rules-eligibility for the SOIC method extractor.
+# UNLISTED COURSES AND MODULES ARE INELIGIBLE. Never infer at runtime.
+#
+# transcript_fidelity:
+#   verbatim   - ASR of the spoken audio (may still be heavily degraded)
+#   translated - text is an English rendering of non-English audio;
+#                ear-verification does NOT apply
+courses:
+  "Level 1- Financial Literacy Course For All (Hindi)":
+    eligible: true
+    transcript_fidelity: translated
+  "Level 2-Intensive Course (Investing from Scratch)- English":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Level 3 How to Value a Company & Portfolio Creation!":
+    eligible: true
+    transcript_fidelity: verbatim
+  "L4- When to Hold, Buy & Sell using Technicals for Long Term!":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Level 5- How to Screen & Filter Epic Stocks":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Level 6 Become a Sectoral Expert":
+    eligible: true
+    transcript_fidelity: verbatim
+    # This course has been module-classified (Task 11 Step 1: every lesson's
+    # opening read for guest-handoff language), so it opts into per-module
+    # approval: a module NOT listed here is ineligible, rather than eligible
+    # by default. The 39 entries are all 40 Level-6 modules minus "Unseen
+    # Trends in Bio-Technology" (the guest module carrying no `-by-<person>`
+    # marker). The two `-by-` guest modules appear below for completeness of
+    # the classification record and are separately, explicitly excluded in
+    # `excluded_modules` -- exclusion always wins over the allow-list.
+    modules_allowlist:
+      - "Decode Indian & Global Watch Industry"
+      - "Decode EV Ecosystem In India"
+      - "Is Software Making A Comeback?"
+      - "Fission to Alpha: India’s Nuclear Energy Sector Decoded"
+      - "Power Piping Companies"
+      - "All CDMOs Decoded with Business Triggers"
+      - "Moated Companies: AI Value Chain"
+      - "Commercial Vehicles"
+      - "Aerospace & Precision Engineering"
+      - "Drone & Anti-Drone Sector"
+      - "Future of Indian Shipyards: From Defence To Cargo"
+      - "Alcohol Sector"
+      - "Identifying Scalable Businesses"
+      - "Premiumisation: India’s Next Consumption Boom"
+      - "Highly Moated Value Chains"
+      - "Capital Goods: Proxy to Nation Building"
+      - "CDMO: A Multiyear Trend?"
+      - "The Capital Code: Capital Market Value Chain"
+      - "Lab Grown Diamonds Sector Analysis"
+      - "Aroma Chemicals & Their Hidden Potential"
+      - "Pre-Engineered Buildings Sector"
+      - "Spotting Turnarounds"
+      - "A Primer To SAAS by Siddharth Bhandari"
+      - "How to Find the Most Profitable Business in a Value Chain"
+      - "Oil & Gas Sector Simplified"
+      - "Uncover Hidden Gems in Metals & Mining Sector"
+      - "Decoding the Hotel Industry"
+      - "Decoding Indian Banking Space 2.0"
+      - "Masterclass on Banks & NBFCs by Digant Haria"
+      - "Agrochemicals: Where India is Winning"
+      - "SOIC Hospital Sectoral Webinar Analysis"
+      - "Masterclass on Low Float Stocks"
+      - "Fluorine Industry! Megatrend or Fad?"
+      - "Detailed Analysis of Real Estate Sector"
+      - "Understand Insurance Landscape: Simplifying a Complex Sector"
+      - "Gold NBFCs (Niche Financiers)"
+      - "API Sectoral Analysis"
+      - "Modern Monopolies: Platform Businesses"
+      - "Understanding Speciality Chemical Sector"
+  "Crash Course":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Ask SOIC on Saturdays at 11 a.m.":
+    eligible: true
+    transcript_fidelity: verbatim
+  "SOIC Market Signals + StockScans":
+    eligible: true
+    transcript_fidelity: verbatim
+  "Masterclass on Investing Using AI":
+    eligible: true
+    transcript_fidelity: verbatim
+  "SOIC Labs: Become an AI-Powered Investor":
+    eligible: true
+    transcript_fidelity: verbatim
+  # Guest interviews — no speaker labels, unattributable by construction.
+  "Conversation with India's Super Investors":
+    eligible: false
+    transcript_fidelity: verbatim
+  # Confirmed member/guest presentations.
+  "Rising Stars":
+    eligible: false
+    transcript_fidelity: verbatim
+  "Important Membership Updates":
+    eligible: false
+    transcript_fidelity: verbatim
+
+# Modules excluded even though their course is eligible (guest-taught).
+# Matched case-insensitively as a substring of the module title.
+#
+# All 40 Level-6 modules were classified 2026-07-21 (Task 11 Step 1) by
+# scanning EVERY lesson's opening for guest-handoff language, not by reading
+# titles. Result: 3 guest-led modules, not the 2 the `-by-<person>` naming
+# convention suggests.
+excluded_modules:
+  - "by Siddharth Bhandari"
+  - "by Digant Haria"
+  # The same two, spelled out in full rather than left to the `-by-` substring
+  # heuristic the spec predicted would be fallible.
+  - "A Primer To SAAS by Siddharth Bhandari"
+  - "Masterclass on Banks & NBFCs by Digant Haria"
+  # Guest: Sajal Kapoor ("today we have with us Mr. Sajjal Kapoor" [ASR sp.]).
+  # 11 lessons. The title carries NO `-by-<person>` marker, so the slug
+  # heuristic alone would have admitted an external investor's independent
+  # views as SOIC's own method. This is exactly the case the plan predicted
+  # the naming convention would miss.
+  - "Unseen Trends in Bio-Technology"
+
+# Borderline, deliberately kept ELIGIBLE (recorded so the call is auditable):
+#   "Oil & Gas Sector Simplified" is presented by SOIC team members
+#   ("team members, Neel and Shoochi will cover it"), not by Ishmohit and not
+#   by an external guest. Treated as SOIC's own institutional voice teaching
+#   SOIC's framework, which is what rules eligibility is about — the guest
+#   exclusion exists to stop a THIRD PARTY's independent methodology being
+#   attributed to SOIC, which does not apply here. Revisit if pilot output
+#   shows this module's rules diverging in character from the rest.
+#
+# Also note: "Spotting Turnarounds" and "Fluorine Industry! Megatrend or Fad?"
+# both OPEN with a host introducing Ishmohit ("over to you Ishmohit"), which
+# trips a naive guest-language scan. They are Ishmohit teaching and stay
+# eligible — the introducer is a host, not the instructor.
+
+# =============================================================================
+# A3 (2026-07-22): eligibility scan for the 46 modules in the other 9
+# already-course-eligible courses (Level 1/2/3/5, Crash Course, L4,
+# Masterclass on Investing Using AI, SOIC Labs, Market Signals, Ask SOIC) --
+# the pass the plan's risk #6 flagged as never having been run outside
+# Level 6. Method: (a) full-body-text scan of all ~86 modules' lessons for
+# guest-handoff language, (b) lesson-title scan for person-name/interview
+# markers, (c) manual read of every hit before deciding.
+#
+# Result: no course or module needed reclassification -- all 10 courses'
+# `eligible: true` entries in the `courses:` mapping above stand unchanged.
+# Two genuine LESSON-level guests found, which the module-only mechanism
+# could not express (both live inside otherwise-legitimate, Ishmohit-taught
+# modules) -- extending eligibility.py with `excluded_lessons` to fix that.
+excluded_lessons:
+  # SOIC Labs: Become an AI-Powered Investor > same-name module.
+  # Confirmed guest by reading the full opening: "we have with us Mrs.
+  # [Mr.] Shachang Ji" -- an anesthesiologist (SOIC student, not staff,
+  # not Ishmohit) who "took voluntary retirement" and built his own AI
+  # dashboard tool, presenting it himself. Host explicitly thanks
+  # "Ishmoid" (Ishmohit) as a separate person in the room. Same shape as
+  # Sajal Kapoor: an outsider's own work being taught inside an SOIC
+  # course. Has content (39,920 chars) -- a real exclusion, not defensive.
+  - "Stocks Dashboard with Dr. Shashank"
+  # Ask SOIC on Saturdays > SOIC Exclusive Newsletter. Confirmed guest by
+  # TITLE ALONE (an external fund manager interview, RC Capital). Currently
+  # 0 chars (no transcript captured), so this exclusion is DEFENSIVE: if a
+  # transcript is captured for this lesson in a future re-scrape, it must
+  # not be silently admitted just because its module is fine.
+  - "Interview with Mr.Rohit Chauhan (RC Capital)"
+
+# Borderline, deliberately kept ELIGIBLE (A3, recorded so the call is
+# auditable): "Q&A with Ishmohit & Sarthak" (Ask SOIC > SOIC Exclusive MEET
+# (Live), 67,202 chars). Investigated the "Sarthak" name specifically: it
+# occurs exactly ONCE in the full transcript, as an unrelated illustrative
+# example ("Sarthak Garg" used to explain what a HUF-linked PAN card looks
+# like) -- not a self-introduction, not a host introducing him, no guest-
+# handoff language anywhere in the lesson. No positive evidence of an
+# external guest. "Ask SOIC on Saturdays" is a recurring, team-hosted live
+# Q&A format; treated the same as the Oil & Gas / Neel-Shuchi precedent
+# above -- Sarthak read as an SOIC team co-host, not an outside guest,
+# absent evidence otherwise. Revisit if later listening surfaces a
+# self-introduction that contradicts this.

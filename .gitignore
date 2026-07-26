@@ -1,43 +1,43 @@
-# Secrets & saved session — NEVER commit these
-.env
-.auth/
-data/
-output/
-vault/
 
+# Also matches a `data` symlink (e.g. into a sibling worktree's corpus copy) —
 # Local Phase-2 DOM-tuning helper + its captured HTML (scraped content)
-debug_dom/
-dump_dom.py
-
-# UI backend database
-webapp/backend/toolkit.db
-
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-.eggs/
-build/
-dist/
-.venv/
-venv/
-.pytest_cache/
-
 # OS / editor
-.DS_Store
-.idea/
-.vscode/
-.superpowers/
-
+# Python
+# Secrets & saved session — NEVER commit these
+# UI backend database
+# fully-regenerable artifacts (Obsidian vault, interactive HTML, extraction cache).
 # graphify knowledge graph — commit the core graph (graph.json, GRAPH_REPORT.md,
 # manifest.json, cost.json) so new sessions can read it; ignore the heavy,
-# fully-regenerable artifacts (Obsidian vault, interactive HTML, extraction cache).
-graphify-out/obsidian/
-graphify-out/cache/
-graphify-out/memory/
-graphify-out/graph.html
-graphify-out/*.svg
-graphify-out/*.graphml
-graphify-out/.needs_update
+# the trailing-slash pattern above only matches a real directory.
+*.egg-info/
+*.py[cod]
+.DS_Store
+.auth/
+.eggs/
+.env
 .graphify_*.json
 .graphify_*.txt
+.idea/
+.pytest_cache/
+.superpowers/
+.venv/
+.vscode/
+/data
+__pycache__/
+build/
+data/
+debug_dom/
+dist/
+dump_dom.py
+graphify-out/*.graphml
+graphify-out/*.svg
+graphify-out/.needs_update
+graphify-out/cache/
+graphify-out/graph.html
+graphify-out/memory/
+graphify-out/obsidian/
+out/
+output/
+vault/
+venv/
+webapp/backend/toolkit.db

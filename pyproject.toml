@@ -22,6 +22,7 @@ dependencies = [
     "youtube-transcript-api>=0.6",
     "trafilatura>=1.6",
     "instaloader>=4.14",
+    "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
@@ -35,6 +36,7 @@ substack-toolkit = "substack_toolkit.cli:app"
 youtube-toolkit = "youtube_toolkit.cli:app"
 web-toolkit = "web_toolkit.cli:app"
 instagram-toolkit = "instagram_toolkit.cli:app"
+soic-method = "soic_method.cli:app"
 
 [tool.setuptools.packages.find]
 where = ["src"]

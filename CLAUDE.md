@@ -209,6 +209,225 @@ doing source-specific work.
   without Instaloader or a login. Requires `pip install instaloader` (in
   `pyproject.toml` deps).
 
+## SOIC persona-wiki pipeline (sector synthesis + Phase C senses)
+
+**Read this first if you touch anything under `src/soic_wiki/`,
+`src/soic_senses/`, `src/soic_method/`, `configs/course_eligibility.yaml`,
+`configs/sector_notebooks.yaml`, `scripts/sector_report.py`, or
+`scripts/sync_notes_to_vault.py`.** This is a separate project from the
+capture toolkits above: it builds a transcript-grounded "persona wiki" of
+SOIC's investing method from the `learn.soic.in` corpus (`data/content.json`,
+loaded via `soic_method.corpus.load_corpus()`), gates every generated note
+against the raw transcripts so it can never hallucinate a quote, and
+publishes the result into a separate repo, `learning-vault-invest`
+(`wiki/personas/soic/`) — **not** into this repo's own vault.
+
+### The original pipeline: Claude does the synthesis (map → propose → write → gate)
+
+For the first ~19 "Level 6 Become a Sectoral Expert" sector modules, a Claude
+subagent did all three thinking steps per sector, dispatched by hand each
+time (there is no CLI/orchestrator for this path):
+
+1. **`map_lesson`** (`soic_wiki/pipeline.py`) — one Claude call per lesson
+   transcript, emitting timestamped `Beat` outlines (gist + offsets only,
+   never fed forward as prose — the write stage always re-reads the raw
+   `body_text` slice, so a beat's gist can never get quoted as if it were the
+   instructor's own words).
+2. **`propose_concepts`** (`soic_wiki/reduce.py`) — partitions a sector's
+   beats into 3-7 concept slugs.
+3. **Write** (`build_write_prompt` in `pipeline.py`) — one Claude call per
+   concept, demanding `(REF HH:MM:SS)` / `(REF HH:MM:SS-HH:MM:SS)` citations
+   for every quote/number, `"garbled"` / `"[likely X]"` annotation instead of
+   silently fixing ASR errors, and a fixed `## The mechanism / ## Why it
+   matters / ## Caveats and limits` structure.
+4. **Gate** (`scripts/sector_report.py`, wraps `soic_wiki/gates.py`) —
+   deterministic, zero-LLM: G1 (hapax/summary-inflation frequency check over
+   uncited terms — informational), G2 (**cited-quote verification**: does
+   each cited phrase actually appear, normalized, in the ref'd lesson's raw
+   `body_text`? — the load-bearing gate, hard pass threshold **80%**), G3
+   (zero citations pointing at an ineligible/guest lesson), G4 (hollow
+   "excerpts don't support X" admissions — informational).
+
+Convention per sector: intermediate artifacts (`lesson.json`, `map_prompt.txt`,
+`beats_validated.json`, `propose_result.json`, `refs.json`, `write_prompts/`,
+`notes/*.md`) live under `out/a5_<slug>/` — **gitignored scratch**, not
+committed anywhere on its own. A REF code is a 3-6 letter mnemonic per lesson
+(e.g. `PIPE`, `OILA`/`OILB` for a 2-lesson module), recorded in that sector's
+`refs.json`.
+
+### The NotebookLM-brain redesign: NotebookLM does the synthesis instead
+
+Confirmed working end-to-end (14/14 modules passed, 2026-07-26) and now the
+default approach for any new sector module. The insight: NotebookLM is
+already paid for and used elsewhere in this ecosystem, so offloading the
+*thinking* steps (concept partitioning + note writing) to it — while Claude
+does only mechanical orchestration — cuts Claude token spend to a fraction of
+the original pipeline's cost. Model tiering used for this rollout:
+**Sonnet** for mechanical orchestration (REF-code assignment, notebook
+creation, source upload, running the *unchanged* gates, vault sync),
+**Opus-tier** for issuing the NotebookLM queries and consolidating the
+freeform answer into the gates' expected format (not a blind regex parse),
+**Fable** for periodic independent verification (see the pilot below).
+
+```
+Per sector module:
+  1. Load lesson(s) from data/content.json (soic_method.corpus)
+  2. assign_ref_codes() -- deterministic REF mnemonic per lesson, collision-
+     avoiding against every REF code already used corpus-wide
+     (soic_wiki.notebooklm_sector_pipeline)
+  3. ensure_sector_notebook() -- create-or-reuse a NotebookLM notebook;
+     configs/sector_notebooks.yaml persists slug -> notebook_id so a re-run
+     never creates a duplicate
+  4. seed_sector_sources() -- add_text_source() per lesson, titled
+     "<REF> <lesson title>" (notebooklm_mcp has NO raw-file upload API --
+     only pasted-text, URL, and Drive-doc sources exist, which is exactly
+     why add_text_source with the raw transcript text is the ingestion path)
+  5. ONE query: ask NotebookLM to partition the sector into 3-10 concepts,
+     each with a Scope + Sources + Timestamps line (soic_senses.notebook_client
+     .ask_notebook) -- consolidate the freeform answer into structured
+     concepts (judgment step, not regex)
+  6. ONE query PER CONCEPT: ask NotebookLM to write the note, demanding the
+     exact same citation format/structure the Claude-authored pipeline used
+     (see the exact wording rule below)
+  7. Run the SAME UNCHANGED scripts/sector_report.py gates against
+     NotebookLM's own prose -- this is the load-bearing invariant: swap the
+     brain, keep the judge
+  8. Bounded retry on gate failure (not yet needed in practice -- every
+     module passed on the first try)
+  9. scripts/sync_notes_to_vault.py -- sync + commit to the vault
+     immediately per sector, not batched, so nothing sits as scratch
+```
+
+**The exact citation-format wording matters and has already bitten once.**
+NotebookLM's native citation style is footnote-numbered (`[1]`, `[2-4]`), not
+inline timestamps, so the write prompt must explicitly override this. Early
+in the rollout one note used a malformed pattern throughout —
+`(DECODA 00:01:08-DECODA 00:01:22)` (repeating the REF code before the
+second timestamp) instead of `(DECODA 00:01:08-00:01:22)` — which broke the
+G2 regex entirely for that file (0/13 quotes recognized as cited) even
+though the underlying quotes/timestamps were genuine; a one-off `re.sub`
+recovered it. Showing the model a "wrong, don't do this" example risks priming it to
+reproduce exactly that pattern, so the fix was to state the correct format
+more precisely instead (REF appears exactly once, immediately followed by
+one or two `HH:MM:SS` values) rather than including the malformed example
+in the prompt at all.
+
+**Pilot-first discipline (already exercised, keep it for anything new).**
+Before trusting this pipeline on a new corpus/course, run it on ONE small
+module first and require: G2 ≥80% (the same hard threshold as every
+Claude-authored batch), the citation format actually sticking, no source
+upload silently truncating, and an independent second-model review (a
+Fable-tier pass explicitly checking for fabricated/misattributed citations,
+boilerplate "Caveats and limits" sections, and general-knowledge injection
+that couldn't plausibly come from one lecture transcript) — that review
+should **sign off or delegate a specific fix**, not just flag concern. The
+2026-07-26 Real Estate Sector pilot (single lesson, 217K chars) hit 96% G2
+and got a clean Fable sign-off before the remaining 13 modules were run;
+individual module results ranged 91-100% G2 across all 14.
+
+**Part 3 — built (2026-07-26): sector auto-discovery + human-reviewed framework evolution.**
+`src/soic_senses/sector_router.py` structurally mirrors `framework_router.py`
+(`load_sectors`/`match_sectors` over `configs/sector_notebooks.yaml`, whose
+14 entries now each carry a human-curated `keywords:` list). `decision_engine
+.build_briefing` gained an optional `sector_registry_path` param (default
+`None` → old callers unaffected) and a `sectors` field on `Briefing`,
+auto-discovering any sector whose keywords match — growing the yaml is the
+only wiring a new sector needs; `decision_engine.py` itself never changes
+again. `src/soic_wiki/framework_evolution.py` builds the per-sector
+evolution prompt (feeding the CURRENT framework list fresh each time),
+parses `### NEW FRAMEWORK` / `### REINFORCES F<n>` blocks, assigns the next
+sequential F-number, and renders a preview diff — **it never writes to
+`decision-frameworks-v1.md` itself**; that's a separate, human-approved step.
+
+**Real defect caught on the first live framework-evolution query
+(Fluorine Industry):** the initial run fabricated a quote — `"cash cow"`
+attributed to a specific timestamp where that phrase never appears in the
+transcript — caught by running the SAME `verify_cited_quotes` check used
+for concept notes against the framework-evolution answer (71% pass, below
+the 80% bar). A retry with tightened prompt wording ("quotation marks are a
+promise: only quote text you're copying character-for-character; state
+your own labels/paraphrases without quotes") fixed it — 100% (7/7) on the
+accepted run, manually spot-checked. **Lesson: framework-evolution answers
+need the exact same citation-verification discipline as concept notes —
+plausible structure is not evidence of truthfulness.** F18-F20 (+ grounding
+additions to F3/F4/F9) are now committed in `decision-frameworks-v1.md`
+(20 frameworks total), with a provenance note in the file itself recording
+the discarded fabricated-quote attempt.
+
+### CLI (`soic_wiki.cli`, built 2026-07-27)
+
+Every sector this session was originally run via hand-typed one-off Python
+snippets. That's now wrapped in a real Typer CLI:
+
+```bash
+# Live decision briefing (screener ratios + matching frameworks + sector context)
+python -m soic_wiki.cli briefing NAVINFLUOR \
+  --keyword fluorine --keyword "navin fluorine" \
+  --frameworks path/to/decision-frameworks-v1.md \
+  --sectors configs/sector_notebooks.yaml
+
+# Run the NotebookLM-brain pipeline for one sector module end-to-end
+python -m soic_wiki.cli run-sector "Fluorine Industry! Megatrend or Fad?" \
+  --slug fluorine-industry-megatrend-or-fad \
+  --sector-registry configs/sector_notebooks.yaml \
+  --out-dir out/a5_fluorine_industry
+# writes out-dir/notes/*.md + out-dir/refs.json, runs the SAME
+# sector_gate.run_sector_acceptance_report every prior batch used,
+# exits non-zero on FAIL
+
+# Propose a framework-file diff for a sector -- writes a PREVIEW only
+python -m soic_wiki.cli evolve-frameworks \
+  --notebook-id <sector's notebook_id> --sector-title "Fluorine Industry" \
+  --frameworks path/to/decision-frameworks-v1.md --out /tmp/diff.md
+# NEVER writes to the real frameworks file -- review /tmp/diff.md and
+# apply an approved diff by hand, same as every framework diff this
+# session was reviewed
+```
+
+`run-sector` still does NOT sync to the vault or run framework evolution
+automatically -- `scripts/sync_notes_to_vault.py` and `evolve-frameworks`
+stay separate, deliberate steps so nothing gets published without a look.
+The gate logic itself now lives in `soic_wiki/sector_gate.py` (extracted
+from `scripts/sector_report.py`, which is now a thin wrapper over it,
+verified byte-for-byte identical output against real committed data) --
+both the CLI and the standalone script check output the exact same way.
+
+### Example questions / how to start a conversation with this system
+
+**Important distinction, established the hard way in conversation:** `briefing`
+(and the underlying `decision_engine.build_briefing`) NEVER calls NotebookLM
+live -- not even for a brand-new question it has no local answer to. It only
+reads `decision-frameworks-v1.md` + `configs/sector_notebooks.yaml` off disk
+plus one live screener.in HTTP call. There is no auto-escalation from "nothing
+matched locally" to "so go ask NotebookLM live" -- that only happens if you
+explicitly call `ask_notebook(notebook_id, question)` yourself, as its own
+separate step. Keep that distinction in mind when picking from the examples
+below -- the first two groups are cheap/fast/static; the third actually
+fires a live query and needs a working NotebookLM session.
+
+**Live briefings** (screener data + local frameworks + sector pointer, no NotebookLM call):
+1. "Give me a decision briefing for Navin Fluorine — keywords fluorine, backward integration."
+2. "Pull a briefing on SRF using the fluorine sector frameworks."
+3. "What does the framework file say I should check before looking at a hospital stock like Max Healthcare?"
+4. "Give me a briefing on HDFC Life — keywords insurance, life insurance, VNB margin."
+5. "I'm looking at DLF — what frameworks and sector context apply?"
+
+**Reading the knowledge base directly** (no live call at all, fastest/free):
+6. "What does SOIC's method say about backward integration and margins?"
+7. "Explain the SOTP conglomerate stub-valuation framework and where it came from."
+8. "Summarize the concept note on SRF's capital allocation strategy."
+9. "What are all the frameworks that mention 'China plus one'?"
+
+**Live NotebookLM follow-ups** (genuinely new question, actually queries a sector notebook -- needs a working session):
+10. "Ask the Fluorine Industry notebook whether the instructor discusses any domestic Indian environmental risk to HF producers."
+11. "Ask the Insurance notebook what specific numbers were given for HDFC Life's VNB margin."
+12. "Query the Banking Sector notebook — does the instructor say anything about Bandhan Bank specifically?"
+
+**Extending the system itself** (real orchestration commands, take a few minutes each):
+13. "Run the sector pipeline on [an untouched Level-1/2/3 module] and show me the gate result."
+14. "Propose a framework-evolution diff for the Insurance sector notebook and show me the preview — don't apply it."
+15. "Which of the 14 sectors' keywords would match if I searched for 'NBFC' — check for gaps or overlaps."
+
 ## Learning packs, verification loop & Google Drive
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
