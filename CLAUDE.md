@@ -325,14 +325,34 @@ should **sign off or delegate a specific fix**, not just flag concern. The
 and got a clean Fable sign-off before the remaining 13 modules were run;
 individual module results ranged 91-100% G2 across all 14.
 
-**Deliberately NOT built yet (Part 3, gated on human review):**
-`sector_router.py` (a `framework_router.py`-style keyword index over
-`configs/sector_notebooks.yaml` so `decision_engine` could auto-discover
-sector context), the corresponding `decision_engine.py` extension, and
-automated per-sector `decision-frameworks-v1.md` evolution. If you build
-these, framework-file diffs must get **explicit human sign-off before
-commit** — header-parseability alone is not a content-quality check, and a
-bad framework poisons every downstream briefing.
+**Part 3 — built (2026-07-26): sector auto-discovery + human-reviewed framework evolution.**
+`src/soic_senses/sector_router.py` structurally mirrors `framework_router.py`
+(`load_sectors`/`match_sectors` over `configs/sector_notebooks.yaml`, whose
+14 entries now each carry a human-curated `keywords:` list). `decision_engine
+.build_briefing` gained an optional `sector_registry_path` param (default
+`None` → old callers unaffected) and a `sectors` field on `Briefing`,
+auto-discovering any sector whose keywords match — growing the yaml is the
+only wiring a new sector needs; `decision_engine.py` itself never changes
+again. `src/soic_wiki/framework_evolution.py` builds the per-sector
+evolution prompt (feeding the CURRENT framework list fresh each time),
+parses `### NEW FRAMEWORK` / `### REINFORCES F<n>` blocks, assigns the next
+sequential F-number, and renders a preview diff — **it never writes to
+`decision-frameworks-v1.md` itself**; that's a separate, human-approved step.
+
+**Real defect caught on the first live framework-evolution query
+(Fluorine Industry):** the initial run fabricated a quote — `"cash cow"`
+attributed to a specific timestamp where that phrase never appears in the
+transcript — caught by running the SAME `verify_cited_quotes` check used
+for concept notes against the framework-evolution answer (71% pass, below
+the 80% bar). A retry with tightened prompt wording ("quotation marks are a
+promise: only quote text you're copying character-for-character; state
+your own labels/paraphrases without quotes") fixed it — 100% (7/7) on the
+accepted run, manually spot-checked. **Lesson: framework-evolution answers
+need the exact same citation-verification discipline as concept notes —
+plausible structure is not evidence of truthfulness.** F18-F20 (+ grounding
+additions to F3/F4/F9) are now committed in `decision-frameworks-v1.md`
+(20 frameworks total), with a provenance note in the file itself recording
+the discarded fabricated-quote attempt.
 
 ## Learning packs, verification loop & Google Drive
 
