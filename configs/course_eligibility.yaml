@@ -18,6 +18,22 @@ courses:
   "L4- When to Hold, Buy & Sell using Technicals for Long Term!":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: 3 modules, 21 lessons total.
+    # Full-text scan (not just opening lines) for guest-handoff markers
+    # (welcome/introduce/joining us/founder of/CEO of/etc.) across all 21
+    # lessons found zero real guest introductions -- every regex hit was a
+    # false positive: product introductions ("introduced new products like
+    # cloud computing"), tool/feature introductions by Ishmohit himself
+    # ("I'll just introduce the first ranking sheet"), membership-pitch
+    # boilerplate ("introduce what we do at SOIC membership"), and generic
+    # sign-offs ("thank you so much for joining us"). "founder of Zeroza" in
+    # "Framework on How to Sell Stocks" is an aside reference to an external
+    # person's opinion, not a guest self-introduction or handoff. All core
+    # SOIC/Ishmohit framing throughout. No lesson-level exclusions needed.
+    modules_allowlist:
+    - "Technical Analysis Masterclass"
+    - "Additional Classes"
+    - "Framework For Buying & Selling A Stock"
   "Level 5- How to Screen & Filter Epic Stocks":
     eligible: true
     transcript_fidelity: verbatim
