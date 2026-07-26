@@ -1,26 +1,28 @@
-"""Part 2 (pilot-scope) orchestration: NotebookLM does the synthesis,
-this module does only the mechanical plumbing around it.
+"""Sector-batch orchestration: NotebookLM does the synthesis, this module
+does the plumbing AND the mechanical parts of the judgment loop.
 
-Sonnet-tier per the NotebookLM-brain plan: REF-code assignment, idempotent
-notebook creation/reuse, and source seeding are all deterministic string/IO
-work with no judgment call, so they're plain functions with no LLM
-involvement whatsoever. The judgment steps (partitioning a sector into
-concepts, writing each note, consolidating NotebookLM's answer into the
-gates' expected format) are deliberately NOT modeled as functions here --
-they're one-off prompt/response exchanges an Opus-tier caller drives
-directly via notebook_client.ask_notebook, exactly as the pilot itself was
-run.
+REF-code assignment, idempotent notebook creation/reuse, and source seeding
+are deterministic string/IO work with no LLM involvement. Across all 14
+sectors run this session, NotebookLM's propose-concepts answer followed the
+SAME parseable format every single time (### <title> / Scope: / Sources: /
+Timestamps:) -- so that parsing, and the write-prompt construction, are now
+modeled as real functions too. What's still deliberately NOT automated here:
+judging whether NotebookLM's answer is actually good (gate PASS/FAIL is
+still the real arbiter, and a human still decides whether to accept a
+framework-evolution diff) -- this module gets you from "notebook exists" to
+"gated notes on disk," nothing more.
 """
 
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Set, Union
+from typing import Dict, List, Optional, Set, Tuple, Union
 
 import yaml
 
-from soic_senses.notebook_client import add_text_source, create_notebook
+from soic_senses.notebook_client import add_text_source, ask_notebook, create_notebook
 
 _SUFFIXES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
@@ -94,3 +96,196 @@ def seed_sector_sources(notebook_id: str, lessons_with_codes: List[Dict[str, str
             lesson["body_text"],
             title=f"{lesson['ref_code']} {lesson['title']}",
         )
+
+
+@dataclass
+class ConceptProposal:
+    title: str
+    scope: str
+    sources: List[str]
+    timestamps: str
+
+
+_CONCEPT_BLOCK = re.compile(
+    r"###\s*(.+?)\s*\n"
+    r"Scope:\s*(.+?)\s*\n"
+    r"Sources:\s*(.+?)\s*\n"
+    r"Timestamps:\s*(.+?)\s*(?=\n###|\Z)",
+    re.DOTALL,
+)
+
+
+def build_propose_prompt(module_title: str, ref_codes: List[str], min_concepts: int = 3, max_concepts: int = 8) -> str:
+    """Build the propose-concepts prompt, exactly matching the format used
+    live across all 14 sectors this session -- the format NotebookLM
+    reliably followed every time, which is what makes parse_propose_response
+    a real parser instead of a best-effort guess.
+    """
+    sources_list = ", ".join(ref_codes)
+    return (
+        f"You have several sources loaded: lecture transcript segments from an Indian "
+        f"stock-market educational series (SOIC) on {module_title}, titled with REF codes "
+        f"{sources_list}. Each has inline timestamp markers like [HH:MM:SS] before each "
+        f"spoken segment.\n\n"
+        f"Task: partition the substantive investing content across ALL these sources into "
+        f"a minimum of {min_concepts} and a maximum of {max_concepts} distinct concepts "
+        f"(topics), each concept covering one coherent teaching point (a framework, a "
+        f"company case study, a value-chain segment, a risk factor, etc. -- not a vague "
+        f"summary). A concept may draw on more than one source if they cover the same topic.\n\n"
+        f"For each concept, respond in this exact format, one block per concept:\n\n"
+        f"### <short-title-in-title-case>\n"
+        f"Scope: <one sentence describing what this concept covers>\n"
+        f"Sources: <which REF code(s) this concept draws from>\n"
+        f"Timestamps: <comma-separated list of the [HH:MM:SS] ranges where this concept is "
+        f"discussed, per source>\n\n"
+        f"Do not write the full note content yet -- only the concept list in the format above."
+    )
+
+
+def parse_propose_response(response_text: str) -> List[ConceptProposal]:
+    """Parse a propose-concepts answer into structured ConceptProposals.
+
+    Returns an empty list (not an error) if the text doesn't match the
+    expected format at all -- an empty result is itself a real signal
+    ("this answer wasn't usable"), for the caller to act on, not something
+    to paper over with a fallback guess.
+    """
+    concepts = []
+    for m in _CONCEPT_BLOCK.finditer(response_text):
+        title, scope, sources_raw, timestamps = m.groups()
+        sources = [s.strip() for s in sources_raw.split(",") if s.strip()]
+        concepts.append(ConceptProposal(title=title, scope=scope, sources=sources, timestamps=timestamps.strip()))
+    return concepts
+
+
+def slugify_concept_title(title: str) -> str:
+    """Turn a concept title into the filesystem-safe slug used for its
+    note filename, matching the slug style already used across every
+    committed concept note this session.
+    """
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower())
+    return slug.strip("-")
+
+
+def build_write_prompt(concept: ConceptProposal) -> str:
+    """Build the write-concept prompt for one proposed concept, with the
+    citation-format wording tightened after two real defects found this
+    session: (1) the write stage must never repeat the REF code before the
+    second timestamp in a range (broke G2 entirely for one file until
+    fixed), and (2) quotation marks must be reserved for verbatim transcript
+    text (a framework-evolution run fabricated a quote inside quote marks
+    before this wording was added). Positive-only framing throughout --
+    never show the malformed pattern as a "don't do this" example.
+    """
+    sources_list = ", ".join(concept.sources)
+    return (
+        f'Write a detailed analysis note on the concept "{concept.title}" using ONLY the '
+        f"loaded source transcripts. This concept draws from sources {sources_list}, roughly "
+        f"at {concept.timestamps}, but you may cite anything relevant from those sources.\n\n"
+        f"STRICT citation rule: every specific claim, number, or quote MUST be followed "
+        f"immediately by a citation in this exact format: (REF HH:MM:SS) for a single "
+        f"timestamp, or (REF HH:MM:SS-HH:MM:SS) for a range -- the REF code is written "
+        f"exactly once, at the very start of the parenthetical, immediately followed by one "
+        f"or two HH:MM:SS values separated by a single hyphen, where REF is the exact source "
+        f"code (e.g. {concept.sources[0] if concept.sources else 'FLUORA'}) for the source "
+        f"you are citing, and HH:MM:SS is an actual [HH:MM:SS] timestamp marker embedded in "
+        f"that source's transcript. Do NOT use your own footnote-style citations like [1] or "
+        f"[2].\n\n"
+        f"Quotation marks are a promise: only put quotation marks around text you are "
+        f"copying character-for-character from the transcript at the exact cited timestamp. "
+        f"When you want to give your own label or paraphrase, state it in your own words "
+        f"WITHOUT quotation marks, and still cite the timestamp that supports the underlying "
+        f"fact. Reserve quotation marks strictly for the instructor's own exact words.\n\n"
+        f"If a passage is garbled or ambiguous in the transcript, say so explicitly (e.g. "
+        f'write "garbled" or "[likely X]") rather than silently guessing or smoothing it over.\n\n'
+        f"Structure the note with exactly these three headings:\n"
+        f"## The mechanism\n"
+        f"## Why it matters\n"
+        f"## Caveats and limits\n\n"
+        f"Write the mechanism section as a step-by-step explanation of HOW this concept "
+        f"works, not a summary of that it exists."
+    )
+
+
+def propose_concepts_via_notebook(
+    notebook_id: str,
+    module_title: str,
+    ref_codes: List[str],
+    min_concepts: int = 3,
+    max_concepts: int = 8,
+) -> Tuple[List[ConceptProposal], Optional[str]]:
+    """Fire the propose-concepts query and parse the answer. Returns
+    (concepts, conversation_id) so the caller can thread the same
+    conversation through the write-concept queries that follow.
+    """
+    prompt = build_propose_prompt(module_title, ref_codes, min_concepts, max_concepts)
+    result = ask_notebook(notebook_id, prompt, timeout=180.0)
+    concepts = parse_propose_response(result["answer"])
+    return concepts, result.get("conversation_id")
+
+
+def write_concept_via_notebook(
+    notebook_id: str,
+    concept: ConceptProposal,
+    conversation_id: Optional[str] = None,
+) -> str:
+    """Fire the write-concept query for one concept, returning the raw
+    note text (not yet gated -- the caller runs the existing deterministic
+    gates against it, exactly as scripts/sector_report.py already does).
+    """
+    prompt = build_write_prompt(concept)
+    result = ask_notebook(notebook_id, prompt, conversation_id=conversation_id, timeout=180.0)
+    return result["answer"]
+
+
+@dataclass
+class SectorRunResult:
+    slug: str
+    notebook_id: str
+    ref_codes: Dict[str, str]
+    concepts: List[ConceptProposal]
+    notes: Dict[str, str]
+
+
+def run_sector_pipeline(
+    module_title: str,
+    slug: str,
+    lessons: List[Dict[str, str]],
+    sector_registry_path: Union[str, Path],
+    existing_codes: Set[str],
+    min_concepts: int = 3,
+    max_concepts: int = 8,
+    reseed: bool = True,
+) -> SectorRunResult:
+    """Run steps 1-6 of the NotebookLM-brain loop for one sector module:
+    assign REF codes, ensure/reuse the notebook, seed sources (unless
+    reseed=False, e.g. a re-run against an already-seeded notebook),
+    propose concepts, then write each one.
+
+    Deliberately does NOT run the gates or sync to the vault -- those need
+    a real notes directory / vault path and are already one-line calls
+    (scripts/sector_report.py, scripts/sync_notes_to_vault.py); keeping
+    them out of this function keeps its own testing simple and keeps the
+    "did NotebookLM's output actually pass" judgment where it belongs, in
+    the deterministic gate script, not buried inside this orchestrator.
+    """
+    ref_codes = assign_ref_codes(lessons, module_title=module_title, existing_codes=existing_codes)
+    notebook_id = ensure_sector_notebook(slug=slug, title=f"SOIC L6 -- {module_title}", registry_path=sector_registry_path)
+
+    if reseed:
+        lessons_with_codes = [{**lesson, "ref_code": ref_codes[lesson["lesson_id"]]} for lesson in lessons]
+        seed_sector_sources(notebook_id, lessons_with_codes)
+
+    concepts, conversation_id = propose_concepts_via_notebook(
+        notebook_id, module_title=module_title, ref_codes=list(set(ref_codes.values())),
+        min_concepts=min_concepts, max_concepts=max_concepts,
+    )
+
+    notes = {}
+    for concept in concepts:
+        note_text = write_concept_via_notebook(notebook_id, concept, conversation_id=conversation_id)
+        notes[slugify_concept_title(concept.title)] = note_text
+
+    return SectorRunResult(
+        slug=slug, notebook_id=notebook_id, ref_codes=ref_codes, concepts=concepts, notes=notes
+    )
