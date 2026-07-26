@@ -209,6 +209,131 @@ doing source-specific work.
   without Instaloader or a login. Requires `pip install instaloader` (in
   `pyproject.toml` deps).
 
+## SOIC persona-wiki pipeline (sector synthesis + Phase C senses)
+
+**Read this first if you touch anything under `src/soic_wiki/`,
+`src/soic_senses/`, `src/soic_method/`, `configs/course_eligibility.yaml`,
+`configs/sector_notebooks.yaml`, `scripts/sector_report.py`, or
+`scripts/sync_notes_to_vault.py`.** This is a separate project from the
+capture toolkits above: it builds a transcript-grounded "persona wiki" of
+SOIC's investing method from the `learn.soic.in` corpus (`data/content.json`,
+loaded via `soic_method.corpus.load_corpus()`), gates every generated note
+against the raw transcripts so it can never hallucinate a quote, and
+publishes the result into a separate repo, `learning-vault-invest`
+(`wiki/personas/soic/`) — **not** into this repo's own vault.
+
+### The original pipeline: Claude does the synthesis (map → propose → write → gate)
+
+For the first ~19 "Level 6 Become a Sectoral Expert" sector modules, a Claude
+subagent did all three thinking steps per sector, dispatched by hand each
+time (there is no CLI/orchestrator for this path):
+
+1. **`map_lesson`** (`soic_wiki/pipeline.py`) — one Claude call per lesson
+   transcript, emitting timestamped `Beat` outlines (gist + offsets only,
+   never fed forward as prose — the write stage always re-reads the raw
+   `body_text` slice, so a beat's gist can never get quoted as if it were the
+   instructor's own words).
+2. **`propose_concepts`** (`soic_wiki/reduce.py`) — partitions a sector's
+   beats into 3-7 concept slugs.
+3. **Write** (`build_write_prompt` in `pipeline.py`) — one Claude call per
+   concept, demanding `(REF HH:MM:SS)` / `(REF HH:MM:SS-HH:MM:SS)` citations
+   for every quote/number, `"garbled"` / `"[likely X]"` annotation instead of
+   silently fixing ASR errors, and a fixed `## The mechanism / ## Why it
+   matters / ## Caveats and limits` structure.
+4. **Gate** (`scripts/sector_report.py`, wraps `soic_wiki/gates.py`) —
+   deterministic, zero-LLM: G1 (hapax/summary-inflation frequency check over
+   uncited terms — informational), G2 (**cited-quote verification**: does
+   each cited phrase actually appear, normalized, in the ref'd lesson's raw
+   `body_text`? — the load-bearing gate, hard pass threshold **80%**), G3
+   (zero citations pointing at an ineligible/guest lesson), G4 (hollow
+   "excerpts don't support X" admissions — informational).
+
+Convention per sector: intermediate artifacts (`lesson.json`, `map_prompt.txt`,
+`beats_validated.json`, `propose_result.json`, `refs.json`, `write_prompts/`,
+`notes/*.md`) live under `out/a5_<slug>/` — **gitignored scratch**, not
+committed anywhere on its own. A REF code is a 3-6 letter mnemonic per lesson
+(e.g. `PIPE`, `OILA`/`OILB` for a 2-lesson module), recorded in that sector's
+`refs.json`.
+
+### The NotebookLM-brain redesign: NotebookLM does the synthesis instead
+
+Confirmed working end-to-end (14/14 modules passed, 2026-07-26) and now the
+default approach for any new sector module. The insight: NotebookLM is
+already paid for and used elsewhere in this ecosystem, so offloading the
+*thinking* steps (concept partitioning + note writing) to it — while Claude
+does only mechanical orchestration — cuts Claude token spend to a fraction of
+the original pipeline's cost. Model tiering used for this rollout:
+**Sonnet** for mechanical orchestration (REF-code assignment, notebook
+creation, source upload, running the *unchanged* gates, vault sync),
+**Opus-tier** for issuing the NotebookLM queries and consolidating the
+freeform answer into the gates' expected format (not a blind regex parse),
+**Fable** for periodic independent verification (see the pilot below).
+
+```
+Per sector module:
+  1. Load lesson(s) from data/content.json (soic_method.corpus)
+  2. assign_ref_codes() -- deterministic REF mnemonic per lesson, collision-
+     avoiding against every REF code already used corpus-wide
+     (soic_wiki.notebooklm_sector_pipeline)
+  3. ensure_sector_notebook() -- create-or-reuse a NotebookLM notebook;
+     configs/sector_notebooks.yaml persists slug -> notebook_id so a re-run
+     never creates a duplicate
+  4. seed_sector_sources() -- add_text_source() per lesson, titled
+     "<REF> <lesson title>" (notebooklm_mcp has NO raw-file upload API --
+     only pasted-text, URL, and Drive-doc sources exist, which is exactly
+     why add_text_source with the raw transcript text is the ingestion path)
+  5. ONE query: ask NotebookLM to partition the sector into 3-10 concepts,
+     each with a Scope + Sources + Timestamps line (soic_senses.notebook_client
+     .ask_notebook) -- consolidate the freeform answer into structured
+     concepts (judgment step, not regex)
+  6. ONE query PER CONCEPT: ask NotebookLM to write the note, demanding the
+     exact same citation format/structure the Claude-authored pipeline used
+     (see the exact wording rule below)
+  7. Run the SAME UNCHANGED scripts/sector_report.py gates against
+     NotebookLM's own prose -- this is the load-bearing invariant: swap the
+     brain, keep the judge
+  8. Bounded retry on gate failure (not yet needed in practice -- every
+     module passed on the first try)
+  9. scripts/sync_notes_to_vault.py -- sync + commit to the vault
+     immediately per sector, not batched, so nothing sits as scratch
+```
+
+**The exact citation-format wording matters and has already bitten once.**
+NotebookLM's native citation style is footnote-numbered (`[1]`, `[2-4]`), not
+inline timestamps, so the write prompt must explicitly override this. Early
+in the rollout one note used a malformed pattern throughout —
+`(DECODA 00:01:08-DECODA 00:01:22)` (repeating the REF code before the
+second timestamp) instead of `(DECODA 00:01:08-00:01:22)` — which broke the
+G2 regex entirely for that file (0/13 quotes recognized as cited) even
+though the underlying quotes/timestamps were genuine; a one-off `re.sub`
+recovered it. Showing the model a "wrong, don't do this" example risks priming it to
+reproduce exactly that pattern, so the fix was to state the correct format
+more precisely instead (REF appears exactly once, immediately followed by
+one or two `HH:MM:SS` values) rather than including the malformed example
+in the prompt at all.
+
+**Pilot-first discipline (already exercised, keep it for anything new).**
+Before trusting this pipeline on a new corpus/course, run it on ONE small
+module first and require: G2 ≥80% (the same hard threshold as every
+Claude-authored batch), the citation format actually sticking, no source
+upload silently truncating, and an independent second-model review (a
+Fable-tier pass explicitly checking for fabricated/misattributed citations,
+boilerplate "Caveats and limits" sections, and general-knowledge injection
+that couldn't plausibly come from one lecture transcript) — that review
+should **sign off or delegate a specific fix**, not just flag concern. The
+2026-07-26 Real Estate Sector pilot (single lesson, 217K chars) hit 96% G2
+and got a clean Fable sign-off before the remaining 13 modules were run;
+individual module results ranged 91-100% G2 across all 14.
+
+**Deliberately NOT built yet (Part 3, gated on human review):**
+`sector_router.py` (a `framework_router.py`-style keyword index over
+`configs/sector_notebooks.yaml` so `decision_engine` could auto-discover
+sector context), the corresponding `decision_engine.py` extension, and
+automated per-sector `decision-frameworks-v1.md` evolution. If you build
+these, framework-file diffs must get **explicit human sign-off before
+commit** — header-parseability alone is not a content-quality check, and a
+bad framework poisons every downstream briefing.
+
 ## Learning packs, verification loop & Google Drive
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
