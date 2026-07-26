@@ -58,6 +58,34 @@ pool to 3-5 players (FLUORB 00:14:22-00:19:47).
     assert "Manchester Organics" in addition
 
 
+def test_parse_framework_response_handles_no_blank_line_between_title_and_model():
+    """Regression test: a real live NotebookLM answer put NO blank line
+    between '## FNEW. <title>' and '**Model.**' -- confirmed to make the
+    original regex's title capture swallow the entire framework body
+    (including subsequent blocks) because it required a literal blank
+    line (\\n\\n) that wasn't actually there."""
+    from soic_wiki.framework_evolution import parse_framework_response
+
+    response = (
+        "### NEW FRAMEWORK\n"
+        "## FNEW. First New One\n"
+        "**Model.** Body A text.\n"
+        "**Grounding.** Some grounding A.\n"
+        "### NEW FRAMEWORK\n"
+        "## FNEW. Second New One\n"
+        "**Model.** Body B text.\n"
+        "**Grounding.** Some grounding B.\n"
+    )
+    proposal = parse_framework_response(response)
+
+    assert len(proposal.new_frameworks) == 2
+    assert proposal.new_frameworks[0].title == "First New One"
+    assert "Body A text" in proposal.new_frameworks[0].body
+    assert "Body B" not in proposal.new_frameworks[0].body
+    assert proposal.new_frameworks[1].title == "Second New One"
+    assert "Body B text" in proposal.new_frameworks[1].body
+
+
 def test_parse_framework_response_handles_multiple_blocks():
     from soic_wiki.framework_evolution import parse_framework_response
 

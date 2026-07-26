@@ -19,7 +19,7 @@ from typing import List, Tuple
 from soic_senses.framework_router import Framework
 
 _NEW_BLOCK = re.compile(
-    r"###\s*NEW FRAMEWORK\s*\n##\s*FNEW\.\s*(.+?)\s*\n\n(.*?)(?=\n###|\Z)",
+    r"###\s*NEW FRAMEWORK\s*\n##\s*FNEW\.[ \t]*(.+?)[ \t]*\n(.*?)(?=\n###|\Z)",
     re.DOTALL,
 )
 _REINFORCE_BLOCK = re.compile(
