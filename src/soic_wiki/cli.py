@@ -33,10 +33,12 @@ from soic_wiki.framework_evolution import (
 from soic_wiki.notebooklm_sector_pipeline import run_sector_pipeline
 from soic_wiki.sector_gate import print_report, run_sector_acceptance_report
 from soic_method.corpus import load_corpus
+from soic_method.eligibility import apply_eligibility, load_eligibility
 
 app = typer.Typer(help="NotebookLM-brain sector pipeline + decision engine CLI.")
 
 DEFAULT_CORPUS = Path("data/content.json")
+DEFAULT_COURSE_ELIGIBILITY = Path("configs/course_eligibility.yaml")
 
 
 @app.command("briefing")
@@ -74,6 +76,16 @@ def run_sector_cmd(
             "31-lesson notebook fabricated citations that smaller notebooks didn't."
         ),
     ),
+    course_eligibility: Path = typer.Option(
+        DEFAULT_COURSE_ELIGIBILITY,
+        help=(
+            "Path to configs/course_eligibility.yaml. Lessons this file marks ineligible "
+            "(e.g. a guest-taught segment inside an otherwise-fine module) are dropped "
+            "BEFORE being seeded to NotebookLM as a source -- the sector_gate G3 check "
+            "is a safety net for a stray citation, not a substitute for never seeding the "
+            "excluded content in the first place."
+        ),
+    ),
 ) -> None:
     """Run the NotebookLM-brain pipeline for one sector module: assign REF
     codes, ensure/seed the notebook, propose concepts, write each note,
@@ -83,6 +95,17 @@ def run_sector_cmd(
     if not matching:
         typer.echo(f"ERROR: no lessons found for module title {module_title!r} in {corpus}", err=True)
         raise typer.Exit(code=1)
+
+    if course_eligibility.exists():
+        elig = load_eligibility(course_eligibility)
+        matching = [l for l in apply_eligibility(matching, elig) if l.eligible]
+        if not matching:
+            typer.echo(
+                f"ERROR: all lessons for module title {module_title!r} were excluded by "
+                f"{course_eligibility}",
+                err=True,
+            )
+            raise typer.Exit(code=1)
 
     lessons = [{"lesson_id": l.lesson_id, "title": l.title, "body_text": l.body_text} for l in matching]
 

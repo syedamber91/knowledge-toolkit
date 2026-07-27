@@ -118,6 +118,82 @@ def test_run_sector_command_writes_notes_and_refs_and_reports_gate_verdict(tmp_p
     assert "PASS" in result.stdout
 
 
+def test_run_sector_command_excludes_ineligible_lessons_before_seeding(tmp_path, monkeypatch):
+    """A lesson excluded via configs/course_eligibility.yaml's
+    excluded_lessons (e.g. a real guest handoff mid-lesson) must never be
+    seeded to NotebookLM as a source -- the 2026-07-27 "SOIC Market
+    Signals" incident showed the CLI feeding an excluded lesson's content
+    to NotebookLM anyway, only caught after the fact when a note happened
+    to cite it (the sector_gate G3 check). This test locks in the fix:
+    filtering must happen before run_sector_pipeline is ever called."""
+    from soic_method.models import LessonRecord
+    from soic_wiki.cli import app
+    from soic_wiki.notebooklm_sector_pipeline import SectorRunResult
+
+    monkeypatch.chdir(tmp_path)
+
+    eligibility_path = tmp_path / "configs" / "course_eligibility.yaml"
+    eligibility_path.parent.mkdir(parents=True)
+    eligibility_path.write_text(
+        yaml.safe_dump(
+            {
+                "courses": {"Market Signals Course": {"eligible": True, "transcript_fidelity": "verbatim"}},
+                "excluded_lessons": ["Guest Segment Lesson"],
+            }
+        )
+    )
+
+    registry_path = tmp_path / "sector_notebooks.yaml"
+    registry_path.write_text(yaml.safe_dump({"notebooks": {}}))
+
+    fake_lessons = [
+        LessonRecord(
+            lesson_id="111",
+            course_title="Market Signals Course",
+            module_title="Market Signals",
+            title="Eligible Lesson",
+            url="u1",
+            body_text="raw text",
+        ),
+        LessonRecord(
+            lesson_id="222",
+            course_title="Market Signals Course",
+            module_title="Market Signals",
+            title="Guest Segment Lesson",
+            url="u2",
+            body_text="guest text",
+        ),
+    ]
+    fake_result = SectorRunResult(
+        slug="market-signals", notebook_id="nb-1", ref_codes={"111": "MARKA"}, concepts=[], notes={}
+    )
+
+    from soic_wiki.sector_gate import AcceptanceReport
+
+    fake_report = AcceptanceReport(verdict=True, g2_verified=0, g2_total=0)
+
+    with patch("soic_wiki.cli.load_corpus", return_value=fake_lessons), patch(
+        "soic_wiki.cli.run_sector_pipeline", return_value=fake_result
+    ) as mock_run, patch("soic_wiki.cli.run_sector_acceptance_report", return_value=fake_report):
+        runner.invoke(
+            app,
+            [
+                "run-sector",
+                "Market Signals",
+                "--slug", "market-signals",
+                "--corpus", "data/content.json",
+                "--sector-registry", str(registry_path),
+                "--out-dir", str(tmp_path / "out"),
+                "--course-eligibility", str(eligibility_path),
+            ],
+        )
+
+    mock_run.assert_called_once()
+    passed_lessons = mock_run.call_args.kwargs["lessons"]
+    passed_ids = {l["lesson_id"] for l in passed_lessons}
+    assert passed_ids == {"111"}  # "222" (the excluded guest lesson) never reaches the pipeline
+
+
 def test_run_sector_command_fails_loudly_when_module_title_not_found(tmp_path, monkeypatch):
     from soic_wiki.cli import app
 
