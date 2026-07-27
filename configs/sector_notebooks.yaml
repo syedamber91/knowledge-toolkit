@@ -14,7 +14,8 @@
 # matching). Entries for non-L6 courses below are corrected by hand each
 # time this file is regenerated: how-to-screen-and-filter-epic-stocks (L5),
 # the three L4 modules, how-to-value-a-company-and-portfolio-creation (L3),
-# the 10 Level-2-Intensive-Course modules, and the 4 Crash Course modules.
+# the 10 Level-2-Intensive-Course modules, the 4 Crash Course modules, and
+# the 2 SOIC Market Signals + StockScans modules.
 notebooks:
   detailed-analysis-of-real-estate-sector:
     notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
@@ -244,10 +245,16 @@ notebooks:
     title: 'SOIC Crash Course -- Class 1 | Behavioral Finance: How to Conquer Yourself!'
   mastering-fundamental-analysis:
     notebook_id: 41b61d7d-73e3-48d9-9d98-b23d8a9d7c0c
-    title: 'SOIC Crash Course -- Mastering Fundamental Analysis'
+    title: SOIC Crash Course -- Mastering Fundamental Analysis
   tvgp-framework-and-checklist-course:
     notebook_id: 7159c1f4-99d3-4d33-b291-98dc6ab1b71e
-    title: 'SOIC Crash Course -- TVGP Framework & Checklist Course'
+    title: SOIC Crash Course -- TVGP Framework & Checklist Course
   class-2-to-class-9:
     notebook_id: 98ac20cc-ed02-4639-8ee4-57ca9b548b20
-    title: 'SOIC Crash Course -- Class 2 to Class 9'
+    title: SOIC Crash Course -- Class 2 to Class 9
+  insights-with-ishmohit:
+    notebook_id: 27a9a1e5-100e-4913-815e-679588791e51
+    title: 'SOIC Market Signals + StockScans -- Insights With Ishmohit'
+  soic-market-signals:
+    notebook_id: e9deb84d-75fb-4bff-9e0c-15b597c510a6
+    title: 'SOIC Market Signals + StockScans -- SOIC Market Signals'
