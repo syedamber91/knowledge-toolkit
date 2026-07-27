@@ -27,6 +27,20 @@ from soic_senses.notebook_client import add_text_source, ask_notebook, create_no
 _SUFFIXES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
+def _suffix_for(i: int) -> str:
+    """Spreadsheet-column-style suffix for a 0-based lesson index: A, B, ...,
+    Z, AA, AB, ..., AZ, BA, ... Unlike a fixed-length alphabet string, this
+    never runs out -- a module with more than 26 real lessons (confirmed
+    live for "SOIC Market Signals", 31 lessons after the 2026-07-27
+    timestamp-marker re-capture) must still get a unique code per lesson
+    instead of an IndexError.
+    """
+    if i < len(_SUFFIXES):
+        return _SUFFIXES[i]
+    first, second = divmod(i - len(_SUFFIXES), len(_SUFFIXES))
+    return _SUFFIXES[first] + _SUFFIXES[second]
+
+
 def _mnemonic(module_title: str) -> str:
     first_word = re.sub(r"[^A-Za-z]", "", module_title.split()[0]) if module_title.split() else ""
     return (first_word[:5].upper() or "SECTOR")
@@ -50,7 +64,7 @@ def assign_ref_codes(
     used = set(existing_codes)
 
     for i, lesson in enumerate(lessons):
-        candidate = base if len(lessons) == 1 else base + _SUFFIXES[i]
+        candidate = base if len(lessons) == 1 else base + _suffix_for(i)
         if candidate in used:
             n = 2
             while f"{candidate}{n}" in used:

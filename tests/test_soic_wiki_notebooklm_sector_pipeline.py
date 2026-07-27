@@ -33,6 +33,19 @@ def test_assign_ref_codes_avoids_collision_with_existing_codes():
     assert codes == {"111": "REAL2"}
 
 
+def test_assign_ref_codes_extends_past_z_for_more_than_26_lessons():
+    from soic_wiki.notebooklm_sector_pipeline import assign_ref_codes
+
+    lessons = [{"lesson_id": str(i), "title": f"Part {i}"} for i in range(1, 32)]
+    codes = assign_ref_codes(lessons, module_title="Market Signals", existing_codes=set())
+
+    assert codes["1"] == "MARKEA"
+    assert codes["26"] == "MARKEZ"
+    assert codes["27"] == "MARKEAA"
+    assert codes["31"] == "MARKEAE"
+    assert len(set(codes.values())) == 31
+
+
 def test_ensure_sector_notebook_reuses_existing_entry_without_creating(tmp_path):
     from soic_wiki.notebooklm_sector_pipeline import ensure_sector_notebook
 
