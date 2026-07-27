@@ -1,0 +1,32 @@
+- id: F1
+  status: machine
+  class: safety_gate
+  signals:
+    - name: wc_days_gate
+      metric: wc_days
+      rule: "<= 90"
+      weight: 1.0
+- id: F2
+  status: machine
+  class: valuation
+  signals:
+    - name: moat_pe_band
+      metric: stock_pe
+      rule: "between 10 40"
+      weight: 1.0
+- id: F3
+  status: machine
+  class: quality
+  signals:
+    - name: leverage_check
+      metric: debt_to_equity
+      rule: "<= 1.0"
+      weight: 1.0
+- id: F10
+  status: machine
+  class: valuation
+  signals:
+    - name: growth_above_embedded
+      metric: profit_growth_3y_pct
+      rule: ">= 20"
+      weight: 1.0
