@@ -15,7 +15,9 @@
 # time this file is regenerated: how-to-screen-and-filter-epic-stocks (L5),
 # the three L4 modules, how-to-value-a-company-and-portfolio-creation (L3),
 # the 10 Level-2-Intensive-Course modules, the 4 Crash Course modules, and
-# the 2 SOIC Market Signals + StockScans modules.
+# the 2 SOIC Market Signals + StockScans modules (plus its 6
+# soic-market-signals-batchN sub-notebooks, split per the max-lessons-per-
+# batch citation-fabrication fix).
 notebooks:
   detailed-analysis-of-real-estate-sector:
     notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
@@ -254,7 +256,25 @@ notebooks:
     title: SOIC Crash Course -- Class 2 to Class 9
   insights-with-ishmohit:
     notebook_id: 27a9a1e5-100e-4913-815e-679588791e51
-    title: 'SOIC Market Signals + StockScans -- Insights With Ishmohit'
+    title: SOIC Market Signals + StockScans -- Insights With Ishmohit
   soic-market-signals:
     notebook_id: e9deb84d-75fb-4bff-9e0c-15b597c510a6
-    title: 'SOIC Market Signals + StockScans -- SOIC Market Signals'
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals
+  soic-market-signals-batch1:
+    notebook_id: c567337e-e0f4-45bb-a228-d03248a6cb84
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 1)
+  soic-market-signals-batch2:
+    notebook_id: 6d3868ae-5715-4ff0-81d4-eda3a7bdefcd
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 2)
+  soic-market-signals-batch3:
+    notebook_id: 270692a0-6e0f-49e3-9b5b-55c59ffbc6d3
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 3)
+  soic-market-signals-batch4:
+    notebook_id: a03ff7a5-579d-4f18-9685-c4e6f1cedff3
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 4)
+  soic-market-signals-batch5:
+    notebook_id: 87724563-fa6d-4334-9702-65adb61c8cd3
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 5)
+  soic-market-signals-batch6:
+    notebook_id: 60373fba-f656-419c-961e-075a90bb6323
+    title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 6)
