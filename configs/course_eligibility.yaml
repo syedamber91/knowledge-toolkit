@@ -138,12 +138,51 @@ courses:
   "Crash Course":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: 4 modules, 41 lessons. Full-text
+    # guest-handoff scan found zero real guests -- every hit was a false
+    # positive: "co-founder of our SOIC" (Ishmohit joking about Messi vs
+    # Ronaldo), "founder of that company" (an anecdote about a beverage
+    # taste-test controversy), "CIO of ICICI"/"CEO of HDFC AMC" (hypothetical
+    # illustrative examples), and Ishmohit introducing his own concepts
+    # ("introduce a concept of Late Stage Basis", "the epigraph that
+    # introduced Benjamin Graham's security analysis"). All core
+    # Ishmohit/SOIC framing throughout. No lesson-level exclusions needed.
+    modules_allowlist:
+    - "TVGP Framework & Checklist Course"
+    - "Class 1 | Behavioral Finance: How to Conquer Yourself!"
+    - "Class 2 to Class 9"
+    - "Mastering Fundamental Analysis"
   "Ask SOIC on Saturdays at 11 a.m.":
     eligible: true
     transcript_fidelity: verbatim
   "SOIC Market Signals + StockScans":
     eligible: true
     transcript_fidelity: verbatim
+    # Module + lesson-classified 2026-07-27: 3 modules (SOIC Market Signals
+    # 30 lessons, Insights With Ishmohit 27 lessons, Explore StockScans is a
+    # 0-char placeholder -- excluded from the allowlist). Full-text
+    # guest-handoff scan flagged 12 high-risk lessons (CEO/founder/guest/
+    # joined-by hits) across the two real modules; all individually
+    # checked. Confirmed false positives: "Guest" in the Watch Industry
+    # lesson is the brand "Guess" (ASR-garbled, listed alongside Furla/
+    # Aston Martin/Timex/Versace), "founder of Nvidia"/"founder of that
+    # company"/"CEO of HDFC AMC" style hits are illustrative or biographical
+    # facts Ishmohit narrates about third-party companies (no guest ever
+    # speaks), and the CFO segment in "Spot Frauds Before They Come Out"
+    # is Ishmohit explicitly replaying "an interview which we did... on TV...
+    # a five month old interview" as case-study material -- the same
+    # concall/annual-report-narration pattern already ruled eligible for
+    # Level 2. ONE confirmed real guest: "24.02.26 Where is the smart money
+    # going?" has Ishmohit bring on a live co-host ("I have a special guest
+    # with me"; "let's drop a welcome... give him a warm welcome... he's
+    # been tracking the IT sectors") to cover the IT services sector
+    # partway through the lesson -- excluded below (excluded_lessons),
+    # matching the Dr. Shashank/Sajal Kapoor/Rohit Chauhan precedent since
+    # the lesson mixes Ishmohit's own content with a substantial guest
+    # segment that can't be cleanly split.
+    modules_allowlist:
+    - "SOIC Market Signals"
+    - "Insights With Ishmohit"
   "Masterclass on Investing Using AI":
     eligible: true
     transcript_fidelity: verbatim
@@ -227,6 +266,16 @@ excluded_lessons:
   # transcript is captured for this lesson in a future re-scrape, it must
   # not be silently admitted just because its module is fine.
   - "Interview with Mr.Rohit Chauhan (RC Capital)"
+  # SOIC Market Signals + StockScans > SOIC Market Signals module.
+  # Confirmed guest 2026-07-27: Ishmohit brings on a live co-host partway
+  # through ("I have a special guest with me, he'll also come and join";
+  # "let's drop a welcome... give him a warm welcome... he's been tracking
+  # the IT sectors, I was like, why not just cover it once with him") to
+  # cover the IT services sector. The lesson mixes ~38K chars of Ishmohit's
+  # own market-temperature-check content with a substantial guest segment
+  # starting mid-lesson that can't be cleanly split -- same shape as
+  # Dr. Shashank, excluded wholesale rather than partially admitted.
+  - "24.02.26 Where is the smart money going?"
 
 # Borderline, deliberately kept ELIGIBLE (A3, recorded so the call is
 # auditable): "Q&A with Ishmohit & Sarthak" (Ask SOIC > SOIC Exclusive MEET

@@ -15,7 +15,7 @@ def _lesson(course, module):
 
 def test_solo_course_is_eligible():
     e = load_eligibility(CONFIG)
-    assert e.is_eligible("Crash Course", "any")
+    assert e.is_eligible("Masterclass on Investing Using AI", "any")
 
 
 def test_interview_course_is_excluded():
@@ -44,7 +44,7 @@ def test_level_one_is_marked_translated():
 def test_apply_eligibility_stamps_records():
     e = load_eligibility(CONFIG)
     lessons = [
-        _lesson("Crash Course", "m"),
+        _lesson("Masterclass on Investing Using AI", "m"),
         _lesson("Conversation with India's Super Investors", "m"),
     ]
     out = apply_eligibility(lessons, e)
@@ -83,9 +83,10 @@ def test_allowlist_does_not_override_the_deny_list():
 
 
 def test_course_without_an_allowlist_keeps_deny_list_behaviour():
-    # Crash Course declares no modules_allowlist, so any non-denied module passes.
+    # Masterclass on Investing Using AI declares no modules_allowlist, so
+    # any non-denied module passes.
     e = load_eligibility(CONFIG)
-    assert e.is_eligible("Crash Course", "A Module Nobody Classified")
+    assert e.is_eligible("Masterclass on Investing Using AI", "A Module Nobody Classified")
 
 
 def test_allowlist_matching_is_case_insensitive():
@@ -124,7 +125,7 @@ def test_lesson_title_omitted_does_not_break_module_level_checks():
     # apply_eligibility always passes lesson_title, but is_eligible must
     # still work when called without one (backward compatible).
     e = load_eligibility(CONFIG)
-    assert e.is_eligible("Crash Course", "any")
+    assert e.is_eligible("Masterclass on Investing Using AI", "any")
 
 
 def test_defensive_lesson_exclusion_matches_even_with_no_content_yet():
