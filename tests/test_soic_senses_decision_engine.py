@@ -139,3 +139,105 @@ def test_adding_a_second_unrelated_sector_does_not_crowd_out_the_first():
 
     assert [s.slug for s in real_estate_briefing.sectors] == ["detailed-analysis-of-real-estate-sector"]
     assert [s.slug for s in fluorine_briefing.sectors] == ["fluorine-industry-megatrend-or-fad"]
+
+
+DECISION_RULES_FIXTURE = Path(__file__).parent / "fixtures" / "decision_rules_sample.yaml"
+METRIC_REGISTRY_FIXTURE = Path(__file__).parent / "fixtures" / "metric_registry_sample.yaml"
+
+
+def test_evaluate_veto_caps_verdict_at_avoid_even_when_other_signals_are_bullish():
+    from soic_senses.decision_engine import Briefing, evaluate
+    from soic_senses.framework_router import Framework
+
+    briefing = Briefing(
+        symbol="TESTCO",
+        keywords=[],
+        live_ratios={
+            "WC Days": 200.0,  # F1 safety gate fails: 200 > 90
+            "Stock P/E": 20.0,  # F2 valuation passes: within 10..40
+            "Profit growth 3Yr %": 25.0,  # F10 valuation passes: >= 20
+        },
+        frameworks=[
+            Framework(id="F1", title="WC gate", body=""),
+            Framework(id="F2", title="Moat PE band", body=""),
+            Framework(id="F10", title="Growth threshold", body=""),
+        ],
+    )
+
+    decision = evaluate(briefing, DECISION_RULES_FIXTURE, METRIC_REGISTRY_FIXTURE)
+
+    assert decision.verdict == "AVOID"
+    assert decision.per_framework_votes["F1"] == "veto"
+    veto_signal = next(s for s in decision.rule_trail if s.framework_id == "F1")
+    assert veto_signal.outcome == "fail"
+
+
+def test_evaluate_missing_metric_abstains_instead_of_crashing():
+    from soic_senses.decision_engine import Briefing, evaluate
+    from soic_senses.framework_router import Framework
+
+    briefing = Briefing(
+        symbol="TESTCO",
+        keywords=[],
+        live_ratios={"Stock P/E": 20.0},  # wc_days is absent entirely
+        frameworks=[Framework(id="F1", title="WC gate", body="")],
+    )
+
+    decision = evaluate(briefing, DECISION_RULES_FIXTURE, METRIC_REGISTRY_FIXTURE)
+
+    assert decision.per_framework_votes["F1"] == "abstain"
+    signal_outcome = next(s for s in decision.rule_trail if s.framework_id == "F1")
+    assert signal_outcome.outcome == "abstain"
+    assert signal_outcome.value is None
+
+
+def test_evaluate_refuses_with_insufficient_data_when_coverage_is_too_low():
+    from soic_senses.decision_engine import Briefing, evaluate
+    from soic_senses.framework_router import Framework
+
+    briefing = Briefing(
+        symbol="TESTCO",
+        keywords=[],
+        live_ratios={"WC Days": 50.0},  # only 1 of 4 rule signals is evaluable
+        frameworks=[
+            Framework(id="F1", title="WC gate", body=""),
+            Framework(id="F2", title="Moat PE band", body=""),
+            Framework(id="F3", title="Leverage check", body=""),
+            Framework(id="F10", title="Growth threshold", body=""),
+        ],
+    )
+
+    decision = evaluate(briefing, DECISION_RULES_FIXTURE, METRIC_REGISTRY_FIXTURE)
+
+    assert decision.verdict == "INSUFFICIENT_DATA"
+    assert decision.conviction != "HIGH"
+    assert decision.data_coverage < 0.5
+
+
+def test_evaluate_reports_contradictions_and_caps_conviction_at_low():
+    from soic_senses.decision_engine import Briefing, evaluate
+    from soic_senses.framework_router import Framework
+
+    briefing = Briefing(
+        symbol="TESTCO",
+        keywords=[],
+        live_ratios={
+            "WC Days": 50.0,  # F1 safety gate passes: 50 <= 90, no veto
+            "Stock P/E": 20.0,  # F2 valuation bullish: within 10..40
+            "Debt to Equity": 3.0,  # F3 quality bearish: fails <= 1.0
+            # profit_growth_3y_pct absent -> F10 abstains
+        },
+        frameworks=[
+            Framework(id="F1", title="WC gate", body=""),
+            Framework(id="F2", title="Moat PE band", body=""),
+            Framework(id="F3", title="Leverage check", body=""),
+            Framework(id="F10", title="Growth threshold", body=""),
+        ],
+    )
+
+    decision = evaluate(briefing, DECISION_RULES_FIXTURE, METRIC_REGISTRY_FIXTURE)
+
+    assert decision.contradictions != []
+    assert "F2" in decision.contradictions[0]
+    assert "F3" in decision.contradictions[0]
+    assert decision.conviction == "LOW"
