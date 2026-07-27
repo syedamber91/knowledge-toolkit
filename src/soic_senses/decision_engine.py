@@ -26,6 +26,27 @@ from soic_senses.decision_rules import (
 from soic_senses.framework_router import Framework, load_frameworks, match_frameworks
 from soic_senses.screener_client import fetch_screener_ratios
 from soic_senses.sector_router import Sector, load_sectors, match_sectors
+from soic_senses.tradingview_client import fetch_technicals
+
+# Unified label scheme a merged Briefing.live_ratios uses for TradingView
+# fields -- screener.in's own labels ("Stock P/E", "ROCE", ...) are used
+# verbatim, so these are named to never collide with anything screener
+# returns. metric-registry.yaml's `label:` values must match these exactly
+# for evaluate() to ever see a technicals signal as fetchable.
+_TECHNICALS_LABELS = {
+    "rsi": "RSI (Weekly)",
+    "adx": "ADX (Weekly)",
+    "ema10": "EMA10 (Weekly)",
+    "ema20": "EMA20 (Weekly)",
+    "ema30": "EMA30 (Weekly)",
+    "ema50": "EMA50 (Weekly)",
+    "ema100": "EMA100 (Weekly)",
+    "ema200": "EMA200 (Weekly)",
+    "close": "TradingView Close (Weekly)",
+    "recommendation": "TradingView Recommendation",
+    "oscillators_recommendation": "TradingView Oscillators Recommendation",
+    "moving_averages_recommendation": "TradingView Moving Averages Recommendation",
+}
 
 
 @dataclass
@@ -97,11 +118,30 @@ def build_briefing(
     this function never changes again as more sectors are registered.
     """
     briefing = Briefing(symbol=symbol, keywords=keywords)
+    errors: List[str] = []
 
     try:
         briefing.live_ratios = fetch_screener_ratios(symbol)
     except Exception as exc:  # noqa: BLE001 - deliberately broad: record, never crash the briefing
-        briefing.data_error = str(exc)
+        errors.append(str(exc))
+
+    try:
+        snapshot = fetch_technicals(symbol)
+    except Exception as exc:  # noqa: BLE001 - independent of screener: one source failing must not hide the other's data
+        errors.append(str(exc))
+    else:
+        technicals = {
+            label: getattr(snapshot, field)
+            for field, label in _TECHNICALS_LABELS.items()
+            if getattr(snapshot, field) is not None
+        }
+        if briefing.live_ratios is None:
+            briefing.live_ratios = technicals
+        else:
+            briefing.live_ratios.update(technicals)
+
+    if errors:
+        briefing.data_error = "; ".join(errors)
 
     frameworks = load_frameworks(frameworks_path)
     briefing.frameworks = match_frameworks(frameworks, keywords)
