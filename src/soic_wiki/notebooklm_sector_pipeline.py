@@ -27,6 +27,23 @@ from soic_senses.notebook_client import add_text_source, ask_notebook, create_no
 _SUFFIXES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 
+def chunk_lessons(
+    lessons: List[Dict[str, str]], max_per_batch: int
+) -> List[List[Dict[str, str]]]:
+    """Split a module's lessons into batches of at most max_per_batch each,
+    preserving order. A module already at or under the limit comes back
+    as a single batch, unchanged -- this is a ceiling, not a forced split.
+
+    Exists because a single oversized NotebookLM notebook (31 lessons, the
+    "SOIC Market Signals" module) fabricated citations that a smaller
+    notebook context didn't -- see run_sector_pipeline's
+    max_lessons_per_batch parameter.
+    """
+    if max_per_batch <= 0:
+        raise ValueError(f"max_per_batch must be positive, got {max_per_batch}")
+    return [lessons[i : i + max_per_batch] for i in range(0, len(lessons), max_per_batch)]
+
+
 def _suffix_for(i: int) -> str:
     """Spreadsheet-column-style suffix for a 0-based lesson index: A, B, ...,
     Z, AA, AB, ..., AZ, BA, ... Unlike a fixed-length alphabet string, this
@@ -183,13 +200,19 @@ def slugify_concept_title(title: str) -> str:
 
 def build_write_prompt(concept: ConceptProposal) -> str:
     """Build the write-concept prompt for one proposed concept, with the
-    citation-format wording tightened after two real defects found this
+    citation-format wording tightened after three real defects found this
     session: (1) the write stage must never repeat the REF code before the
     second timestamp in a range (broke G2 entirely for one file until
-    fixed), and (2) quotation marks must be reserved for verbatim transcript
+    fixed), (2) quotation marks must be reserved for verbatim transcript
     text (a framework-evolution run fabricated a quote inside quote marks
-    before this wording was added). Positive-only framing throughout --
-    never show the malformed pattern as a "don't do this" example.
+    before this wording was added), and (3) an explicit self-verification
+    step (added 2026-07-27 after "SOIC Market Signals", a 31-lesson
+    notebook -- the largest single-notebook context run this session --
+    fabricated two citations whose quoted text and timestamp were both
+    invented, not just mismatched; quotation-mark discipline alone wasn't
+    enough once the notebook held far more source material than usual).
+    Positive-only framing throughout -- never show the malformed pattern
+    as a "don't do this" example.
     """
     sources_list = ", ".join(concept.sources)
     return (
@@ -210,6 +233,11 @@ def build_write_prompt(concept: ConceptProposal) -> str:
         f"When you want to give your own label or paraphrase, state it in your own words "
         f"WITHOUT quotation marks, and still cite the timestamp that supports the underlying "
         f"fact. Reserve quotation marks strictly for the instructor's own exact words.\n\n"
+        f"Before finalizing each citation, silently re-read the exact source text at that "
+        f"timestamp in the named source and confirm the quoted words genuinely appear there. "
+        f"If you cannot find the exact phrase at that timestamp, do not invent it -- search "
+        f"nearby moments in the same source for the correct timestamp, or drop the quotation "
+        f"marks and state the underlying fact in your own words instead.\n\n"
         f"If a passage is garbled or ambiguous in the transcript, say so explicitly (e.g. "
         f'write "garbled" or "[likely X]") rather than silently guessing or smoothing it over.\n\n'
         f"Structure the note with exactly these three headings:\n"
@@ -270,11 +298,26 @@ def run_sector_pipeline(
     min_concepts: int = 3,
     max_concepts: int = 8,
     reseed: bool = True,
+    max_lessons_per_batch: Optional[int] = None,
 ) -> SectorRunResult:
     """Run steps 1-6 of the NotebookLM-brain loop for one sector module:
     assign REF codes, ensure/reuse the notebook, seed sources (unless
     reseed=False, e.g. a re-run against an already-seeded notebook),
     propose concepts, then write each one.
+
+    max_lessons_per_batch is a ceiling, not a forced split: a module at or
+    under the limit runs exactly as before, one notebook. A module over the
+    limit is split (via chunk_lessons) into several smaller batches, each
+    with its OWN notebook (slug suffixed "-batchN") so no single NotebookLM
+    context ever holds more than max_lessons_per_batch lessons' worth of
+    source material -- added 2026-07-27 after "SOIC Market Signals" (31
+    lessons, this session's largest single-notebook context) fabricated
+    two citations that a smaller notebook didn't. REF codes stay globally
+    unique across batches (existing_codes threads forward batch to batch,
+    same collision discipline as a single-batch run), and results
+    (ref_codes, concepts, notes) are merged into one SectorRunResult so the
+    caller (the CLI, the gate script, the vault sync) sees one module's
+    worth of output regardless of how many notebooks it took to produce.
 
     Deliberately does NOT run the gates or sync to the vault -- those need
     a real notes directory / vault path and are already one-line calls
@@ -283,23 +326,57 @@ def run_sector_pipeline(
     "did NotebookLM's output actually pass" judgment where it belongs, in
     the deterministic gate script, not buried inside this orchestrator.
     """
-    ref_codes = assign_ref_codes(lessons, module_title=module_title, existing_codes=existing_codes)
-    notebook_id = ensure_sector_notebook(slug=slug, title=f"SOIC L6 -- {module_title}", registry_path=sector_registry_path)
-
-    if reseed:
-        lessons_with_codes = [{**lesson, "ref_code": ref_codes[lesson["lesson_id"]]} for lesson in lessons]
-        seed_sector_sources(notebook_id, lessons_with_codes)
-
-    concepts, conversation_id = propose_concepts_via_notebook(
-        notebook_id, module_title=module_title, ref_codes=list(set(ref_codes.values())),
-        min_concepts=min_concepts, max_concepts=max_concepts,
+    batches = (
+        chunk_lessons(lessons, max_lessons_per_batch)
+        if max_lessons_per_batch and len(lessons) > max_lessons_per_batch
+        else [lessons]
     )
+    single_batch = len(batches) == 1
 
-    notes = {}
-    for concept in concepts:
-        note_text = write_concept_via_notebook(notebook_id, concept, conversation_id=conversation_id)
-        notes[slugify_concept_title(concept.title)] = note_text
+    all_ref_codes: Dict[str, str] = {}
+    all_concepts: List[ConceptProposal] = []
+    all_notes: Dict[str, str] = {}
+    used_codes = set(existing_codes)
+    first_notebook_id: Optional[str] = None
+
+    for batch_index, batch in enumerate(batches):
+        batch_slug = slug if single_batch else f"{slug}-batch{batch_index + 1}"
+        batch_ref_codes = assign_ref_codes(batch, module_title=module_title, existing_codes=used_codes)
+        used_codes.update(batch_ref_codes.values())
+        all_ref_codes.update(batch_ref_codes)
+
+        notebook_id = ensure_sector_notebook(
+            slug=batch_slug, title=f"SOIC L6 -- {module_title}", registry_path=sector_registry_path
+        )
+        if first_notebook_id is None:
+            first_notebook_id = notebook_id
+
+        if reseed:
+            lessons_with_codes = [
+                {**lesson, "ref_code": batch_ref_codes[lesson["lesson_id"]]} for lesson in batch
+            ]
+            seed_sector_sources(notebook_id, lessons_with_codes)
+
+        concepts, conversation_id = propose_concepts_via_notebook(
+            notebook_id, module_title=module_title, ref_codes=list(set(batch_ref_codes.values())),
+            min_concepts=min_concepts, max_concepts=max_concepts,
+        )
+        all_concepts.extend(concepts)
+
+        for concept in concepts:
+            note_text = write_concept_via_notebook(notebook_id, concept, conversation_id=conversation_id)
+            concept_slug = slugify_concept_title(concept.title)
+            if concept_slug in all_notes:
+                n = 2
+                while f"{concept_slug}-{n}" in all_notes:
+                    n += 1
+                concept_slug = f"{concept_slug}-{n}"
+            all_notes[concept_slug] = note_text
 
     return SectorRunResult(
-        slug=slug, notebook_id=notebook_id, ref_codes=ref_codes, concepts=concepts, notes=notes
+        slug=slug,
+        notebook_id=first_notebook_id,
+        ref_codes=all_ref_codes,
+        concepts=all_concepts,
+        notes=all_notes,
     )

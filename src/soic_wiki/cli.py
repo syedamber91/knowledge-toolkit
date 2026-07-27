@@ -65,6 +65,15 @@ def run_sector_cmd(
     sector_registry: Path = typer.Option(Path("configs/sector_notebooks.yaml")),
     out_dir: Path = typer.Option(..., help="Where to write notes/ and refs.json"),
     reseed: bool = typer.Option(True, help="Re-upload sources even if the notebook already exists"),
+    max_lessons_per_batch: Optional[int] = typer.Option(
+        None,
+        help=(
+            "Split the module into several smaller notebooks of at most this many lessons "
+            "each, instead of one notebook holding every lesson. A ceiling, not a forced "
+            "split -- a module already at or under this size is unaffected. Added after a "
+            "31-lesson notebook fabricated citations that smaller notebooks didn't."
+        ),
+    ),
 ) -> None:
     """Run the NotebookLM-brain pipeline for one sector module: assign REF
     codes, ensure/seed the notebook, propose concepts, write each note,
@@ -84,6 +93,7 @@ def run_sector_cmd(
         sector_registry_path=sector_registry,
         existing_codes=set(),
         reseed=reseed,
+        max_lessons_per_batch=max_lessons_per_batch,
     )
 
     notes_dir = out_dir / "notes"
