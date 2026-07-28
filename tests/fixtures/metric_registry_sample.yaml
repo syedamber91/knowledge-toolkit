@@ -1,0 +1,13 @@
+metrics:
+  wc_days:
+    label: "WC Days"
+    status: fetchable
+  stock_pe:
+    label: "Stock P/E"
+    status: fetchable
+  debt_to_equity:
+    label: "Debt to Equity"
+    status: fetchable
+  profit_growth_3y_pct:
+    label: "Profit growth 3Yr %"
+    status: fetchable

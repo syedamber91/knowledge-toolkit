@@ -23,6 +23,7 @@ dependencies = [
     "trafilatura>=1.6",
     "instaloader>=4.14",
     "pyyaml>=6.0",
+    "tradingview-ta>=3.3",
 ]
 
 [project.optional-dependencies]

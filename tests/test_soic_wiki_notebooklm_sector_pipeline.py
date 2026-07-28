@@ -1,3 +1,4 @@
+import pytest
 import yaml
 from unittest.mock import patch
 
@@ -31,6 +32,58 @@ def test_assign_ref_codes_avoids_collision_with_existing_codes():
     codes = assign_ref_codes(lessons, module_title="Real Estate", existing_codes={"REAL"})
 
     assert codes == {"111": "REAL2"}
+
+
+def test_assign_ref_codes_extends_past_z_for_more_than_26_lessons():
+    from soic_wiki.notebooklm_sector_pipeline import assign_ref_codes
+
+    lessons = [{"lesson_id": str(i), "title": f"Part {i}"} for i in range(1, 32)]
+    codes = assign_ref_codes(lessons, module_title="Market Signals", existing_codes=set())
+
+    assert codes["1"] == "MARKEA"
+    assert codes["26"] == "MARKEZ"
+    assert codes["27"] == "MARKEAA"
+    assert codes["31"] == "MARKEAE"
+
+
+def test_chunk_lessons_splits_into_batches_of_max_size():
+    from soic_wiki.notebooklm_sector_pipeline import chunk_lessons
+
+    lessons = [{"lesson_id": str(i)} for i in range(1, 12)]  # 11 lessons
+    batches = chunk_lessons(lessons, max_per_batch=5)
+
+    assert [len(b) for b in batches] == [5, 5, 1]
+    assert batches[0][0]["lesson_id"] == "1"
+    assert batches[1][0]["lesson_id"] == "6"
+    assert batches[2][0]["lesson_id"] == "11"
+
+
+def test_chunk_lessons_single_batch_when_under_limit():
+    from soic_wiki.notebooklm_sector_pipeline import chunk_lessons
+
+    lessons = [{"lesson_id": str(i)} for i in range(1, 4)]
+    batches = chunk_lessons(lessons, max_per_batch=5)
+
+    assert batches == [lessons]
+
+
+def test_chunk_lessons_rejects_non_positive_max_per_batch():
+    from soic_wiki.notebooklm_sector_pipeline import chunk_lessons
+
+    with pytest.raises(ValueError):
+        chunk_lessons([{"lesson_id": "1"}], max_per_batch=0)
+
+
+def test_build_write_prompt_includes_the_self_verification_instruction():
+    from soic_wiki.notebooklm_sector_pipeline import ConceptProposal, build_write_prompt
+
+    concept = ConceptProposal(
+        title="Test Concept", scope="s", sources=["FLUORA"], timestamps="FLUORA [00:00:00]-[00:01:00]"
+    )
+    prompt = build_write_prompt(concept)
+
+    assert "re-read the exact source text at that timestamp" in prompt
+    assert "do not invent it" in prompt
 
 
 def test_ensure_sector_notebook_reuses_existing_entry_without_creating(tmp_path):
@@ -281,3 +334,89 @@ def test_run_sector_pipeline_reuses_existing_notebook_without_reseeding(tmp_path
     mock_create.assert_not_called()
     mock_add.assert_not_called()
     assert result.notebook_id == "nb-existing"
+
+
+def test_run_sector_pipeline_splits_into_multiple_notebooks_when_over_batch_size(tmp_path):
+    """A module with more lessons than max_lessons_per_batch must run as
+    several smaller notebook batches (one notebook per batch, keeping each
+    NotebookLM context small) rather than one oversized notebook -- the
+    fix for the 2026-07-27 fabricated-citation incident on the 31-lesson
+    "SOIC Market Signals" module."""
+    from soic_wiki.notebooklm_sector_pipeline import ConceptProposal, run_sector_pipeline
+
+    registry_path = tmp_path / "sector_notebooks.yaml"
+    registry_path.write_text(yaml.safe_dump({"notebooks": {}}))
+
+    lessons = [
+        {"lesson_id": str(i), "title": f"Part {i}", "body_text": f"transcript {i}"} for i in range(1, 8)
+    ]  # 7 lessons, batch size 5 -> batches of 5 + 2
+
+    batch1_concepts = [
+        ConceptProposal(title="Batch1 Concept", scope="s", sources=["MARKEA"], timestamps="MARKEA [00:00:00]")
+    ]
+    batch2_concepts = [
+        ConceptProposal(title="Batch2 Concept", scope="s", sources=["MARKEF"], timestamps="MARKEF [00:00:00]")
+    ]
+
+    with patch(
+        "soic_wiki.notebooklm_sector_pipeline.create_notebook", side_effect=["nb-batch1", "nb-batch2"]
+    ) as mock_create, patch(
+        "soic_wiki.notebooklm_sector_pipeline.add_text_source"
+    ) as mock_add, patch(
+        "soic_wiki.notebooklm_sector_pipeline.propose_concepts_via_notebook",
+        side_effect=[(batch1_concepts, "conv-1"), (batch2_concepts, "conv-2")],
+    ) as mock_propose, patch(
+        "soic_wiki.notebooklm_sector_pipeline.write_concept_via_notebook",
+        side_effect=["## The mechanism\n\nBatch1 note.", "## The mechanism\n\nBatch2 note."],
+    ):
+        result = run_sector_pipeline(
+            module_title="Market Signals",
+            slug="soic-market-signals",
+            lessons=lessons,
+            sector_registry_path=registry_path,
+            existing_codes=set(),
+            max_lessons_per_batch=5,
+        )
+
+    assert mock_create.call_count == 2
+    assert mock_propose.call_count == 2
+    assert mock_add.call_count == 7  # one add_text_source call per lesson, across both batches
+
+    # REF codes stay unique across batches: batch 2 re-derives from index 0 (its own
+    # local numbering), so its first code collides with batch 1's "MARKEA" and the
+    # existing numeric-suffix collision handling (same mechanism a same-batch collision
+    # already uses) disambiguates it to "MARKEA2" rather than reusing it silently.
+    assert result.ref_codes["1"] == "MARKEA"
+    assert result.ref_codes["6"] == "MARKEA2"
+    assert len(set(result.ref_codes.values())) == 7
+
+    assert set(result.notes.keys()) == {"batch1-concept", "batch2-concept"}
+
+
+def test_run_sector_pipeline_does_not_batch_when_under_the_limit(tmp_path):
+    """max_lessons_per_batch is a ceiling, not a forced split -- a module
+    already under the limit runs as a single notebook, unchanged."""
+    from soic_wiki.notebooklm_sector_pipeline import run_sector_pipeline
+
+    registry_path = tmp_path / "sector_notebooks.yaml"
+    registry_path.write_text(yaml.safe_dump({"notebooks": {}}))
+
+    lessons = [{"lesson_id": "111", "title": "Fluorine Part 1", "body_text": "raw transcript text"}]
+
+    with patch(
+        "soic_wiki.notebooklm_sector_pipeline.create_notebook", return_value="nb-1"
+    ) as mock_create, patch(
+        "soic_wiki.notebooklm_sector_pipeline.add_text_source"
+    ), patch(
+        "soic_wiki.notebooklm_sector_pipeline.propose_concepts_via_notebook", return_value=([], "conv-1")
+    ):
+        run_sector_pipeline(
+            module_title="Fluorine Industry",
+            slug="fluorine-industry",
+            lessons=lessons,
+            sector_registry_path=registry_path,
+            existing_codes=set(),
+            max_lessons_per_batch=5,
+        )
+
+    mock_create.assert_called_once()
