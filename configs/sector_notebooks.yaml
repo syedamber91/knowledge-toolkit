@@ -3,21 +3,23 @@
 # Populated by soic_wiki.notebooklm_sector_pipeline.ensure_sector_notebook,
 # which creates a notebook the first time a slug is seen and reuses it on
 # every subsequent run (idempotent -- never creates a duplicate for the
-# same slug). `keywords:` is human-curated per sector (drafted here from
-# each sector's actual concept-note content) and is what sector_router.py
-# ranks on -- a sector with no keywords can never be matched. Adding a new
-# sector here is the ONLY wiring decision_engine needs; it never changes.
+# same slug). `keywords:` is human-curated per sector and is what
+# sector_router.py ranks on -- a sector with no keywords can never be
+# matched. Adding a new sector here is the ONLY wiring decision_engine
+# needs; it never changes.
 #
 # NOTE: ensure_sector_notebook() titles every new entry "SOIC L6 -- <name>"
 # regardless of which course the module actually belongs to (a pre-existing
 # cosmetic bug -- the title field is documentation-only, not used for
-# matching). Entries for non-L6 courses below are corrected by hand each
-# time this file is regenerated: how-to-screen-and-filter-epic-stocks (L5),
-# the three L4 modules, how-to-value-a-company-and-portfolio-creation (L3),
-# the 10 Level-2-Intensive-Course modules, the 4 Crash Course modules, and
-# the 2 SOIC Market Signals + StockScans modules (plus its 6
-# soic-market-signals-batchN sub-notebooks, split per the max-lessons-per-
-# batch citation-fabrication fix).
+# matching). Entries for non-L6 courses are corrected by hand each time
+# this file is regenerated: how-to-screen-and-filter-epic-stocks (L5), the
+# three L4 modules, how-to-value-a-company-and-portfolio-creation (L3), the
+# 10 Level-2-Intensive-Course modules, the 4 Crash Course modules, and the
+# 2 SOIC Market Signals + StockScans modules (plus its 6
+# soic-market-signals-batchN sub-notebooks). The four batch-6 entries added
+# 2026-07-28 (spotting-turnarounds, highly-moated-value-chains,
+# identifying-scalable-businesses, how-to-find-the-most-profitable-business-
+# in-a-value-chain) ARE genuinely L6, so their auto-titles are correct.
 notebooks:
   detailed-analysis-of-real-estate-sector:
     notebook_id: 462f4864-4414-4e11-b8b6-548077f46a3c
@@ -278,3 +280,15 @@ notebooks:
   soic-market-signals-batch6:
     notebook_id: 60373fba-f656-419c-961e-075a90bb6323
     title: SOIC Market Signals + StockScans -- SOIC Market Signals (batch 6)
+  spotting-turnarounds:
+    notebook_id: b2d98cbc-94d0-4c4f-bc2d-048cb0987bbb
+    title: SOIC L6 -- Spotting Turnarounds
+  highly-moated-value-chains:
+    notebook_id: 995905d0-c263-4a65-98e6-47e06d22efad
+    title: SOIC L6 -- Highly Moated Value Chains
+  identifying-scalable-businesses:
+    notebook_id: 5d214ce6-eb51-461d-82ea-c977a23c4a95
+    title: SOIC L6 -- Identifying Scalable Businesses
+  how-to-find-the-most-profitable-business-in-a-value-chain:
+    notebook_id: c9fda64d-25e0-44d5-aa7c-94dea65caea5
+    title: SOIC L6 -- How to Find the Most Profitable Business in a Value Chain
