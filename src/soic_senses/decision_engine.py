@@ -24,7 +24,11 @@ from soic_senses.decision_rules import (
     load_metric_registry,
 )
 from soic_senses.framework_router import Framework, load_frameworks, match_frameworks
-from soic_senses.screener_client import fetch_screener_ratios
+from soic_senses.screener_client import (
+    derive_registry_metrics,
+    fetch_screener_ratios,
+    fetch_screener_statements,
+)
 from soic_senses.sector_router import Sector, load_sectors, match_sectors
 from soic_senses.tradingview_client import fetch_technicals
 
@@ -124,6 +128,20 @@ def build_briefing(
         briefing.live_ratios = fetch_screener_ratios(symbol)
     except Exception as exc:  # noqa: BLE001 - deliberately broad: record, never crash the briefing
         errors.append(str(exc))
+
+    try:
+        statements = derive_registry_metrics(fetch_screener_statements(symbol))
+    except Exception as exc:  # noqa: BLE001 - independent of the other two sources
+        errors.append(str(exc))
+    else:
+        if briefing.live_ratios is None:
+            briefing.live_ratios = dict(statements)
+        else:
+            # Statement rows never overwrite a top-ratios value: where both
+            # publish the same fact, the top-ratios grid is screener's own
+            # headline figure and stays authoritative.
+            for label, value in statements.items():
+                briefing.live_ratios.setdefault(label, value)
 
     try:
         snapshot = fetch_technicals(symbol)
