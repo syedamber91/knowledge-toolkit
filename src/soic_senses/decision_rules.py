@@ -28,11 +28,30 @@ class Signal:
 
 
 @dataclass
+class AdvisoryFlag:
+    """A CONDITIONAL pattern-warning a framework's prose authorises, where it
+    does NOT authorise an unconditional machine gate.
+
+    F29 is the motivating case: its prose says its job is "to flag when a
+    valuation setup should be AVOIDED on pattern-recognition grounds", and it
+    names a 30-50x+ growth-trap band -- but resolving it needs a judgment call
+    its own caveats warn against automating ("calling a trap too early is
+    often indistinguishable from being wrong"). So a firing flag is SURFACED
+    to the human as an unresolved question and never contributes to a score.
+    """
+
+    metric: str
+    rule: str
+    message: str
+
+
+@dataclass
 class RuleEntry:
     id: str
     status: str  # machine | advisory-only | advisory-numeric | deprecated
     cls: str  # safety_gate | valuation | quality | timing | routing
     signals: List[Signal] = field(default_factory=list)
+    advisory_flag: Optional[AdvisoryFlag] = None
 
 
 @dataclass
@@ -89,12 +108,23 @@ def load_decision_rules(path: Union[str, Path]) -> List[RuleEntry]:
             )
             for s in entry.get("signals", [])
         ]
+        raw_flag = entry.get("advisory_flag")
+        flag = (
+            AdvisoryFlag(
+                metric=raw_flag["metric"],
+                rule=raw_flag["rule"],
+                message=raw_flag["message"],
+            )
+            if raw_flag
+            else None
+        )
         rules.append(
             RuleEntry(
                 id=entry["id"],
                 status=entry.get("status", "machine"),
                 cls=entry.get("class", "valuation"),
                 signals=signals,
+                advisory_flag=flag,
             )
         )
     return rules

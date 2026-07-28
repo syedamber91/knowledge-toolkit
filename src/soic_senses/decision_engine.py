@@ -298,11 +298,29 @@ def evaluate(
 
     vetoed = [fid for fid, vote in per_framework_votes.items() if vote == "veto"]
 
+    # Conditional pattern-warnings a framework's prose authorises without
+    # authorising an unconditional gate (F29's growth-trap band). Surfaced to
+    # the human, never scored -- see decision_rules.AdvisoryFlag.
+    advisory_hits: List[str] = []
+    for fid in matched_ids:
+        flag = rules[fid].advisory_flag
+        if flag is None:
+            continue
+        metric_info = registry.get(flag.metric)
+        if metric_info is None or metric_info.status != "fetchable":
+            continue
+        raw = briefing.live_ratios.get(metric_info.label) if briefing.live_ratios else None
+        if isinstance(raw, (int, float)) and check_rule(float(raw), flag.rule):
+            advisory_hits.append(
+                f"{fid} advisory flag: {metric_info.label} is {raw} "
+                f"({flag.rule}) -- {flag.message}"
+            )
+
     # A safety gate that could not be evaluated must never vanish silently --
     # otherwise a veto-class framework whose metric isn't fetchable lets a
     # confident BUY through with nothing in the Decision saying the gate
     # never ran (the F21-on-POLYCAB hole).
-    unresolved: List[str] = []
+    unresolved: List[str] = list(advisory_hits)
     abstained_gates = sorted(
         fid
         for fid in matched_ids
