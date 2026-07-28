@@ -19,7 +19,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Optional
 
-from tradingview_ta import TA_Handler
+try:  # optional dependency -- see the note below
+    from tradingview_ta import TA_Handler
+except ImportError:  # pragma: no cover - exercised only where the dep is absent
+    TA_Handler = None
+
+# tradingview-ta is OPTIONAL. decision_engine imports this module, and
+# decision_engine is in turn imported by soic_wiki.cli -- which runs under the
+# notebooklm-mcp tool venv, where tradingview-ta is not installed. A hard
+# module-level import there breaks every `run-sector` invocation with a
+# ModuleNotFoundError that has nothing to do with the sector pipeline. Keeping
+# the name bound (to None) rather than importing lazily inside the function
+# preserves the patchable `tradingview_client.TA_Handler` seam the tests use,
+# and mirrors notebook_client's treatment of notebooklm_mcp.
 
 
 class TechnicalsUnavailableError(Exception):
@@ -61,6 +73,12 @@ def fetch_technicals(
     loudly, not return a snapshot of Nones indistinguishable from a
     genuine "indicator not computed yet" gap.
     """
+    if TA_Handler is None:
+        raise TechnicalsUnavailableError(
+            "tradingview-ta is not installed in this environment, so no technicals "
+            f"could be fetched for {symbol!r}. Install it, or run in an environment "
+            "that has it -- callers that only need screener data are unaffected."
+        )
     handler = TA_Handler(symbol=symbol, exchange=exchange, screener=screener, interval=interval)
     try:
         analysis = handler.get_analysis()

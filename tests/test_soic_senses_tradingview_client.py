@@ -89,3 +89,20 @@ def test_fetch_technicals_raises_technicals_unavailable_error_when_handler_fails
             assert False, "expected TechnicalsUnavailableError"
         except TechnicalsUnavailableError as exc:
             assert "NOSUCHSYMBOL" in str(exc)
+
+
+def test_fetch_technicals_raises_clearly_when_the_optional_dep_is_absent():
+    """tradingview-ta is optional: decision_engine imports this module, and
+    decision_engine is imported by soic_wiki.cli, which runs under the
+    notebooklm-mcp tool venv where the package isn't installed. A missing dep
+    must surface as a normal TechnicalsUnavailableError (which build_briefing
+    already records into data_error), not a ModuleNotFoundError at import."""
+    from soic_senses.tradingview_client import TechnicalsUnavailableError, fetch_technicals
+
+    with patch("soic_senses.tradingview_client.TA_Handler", None):
+        try:
+            fetch_technicals("TCS")
+            assert False, "expected TechnicalsUnavailableError"
+        except TechnicalsUnavailableError as exc:
+            assert "tradingview-ta is not installed" in str(exc)
+            assert "TCS" in str(exc)
