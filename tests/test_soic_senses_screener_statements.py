@@ -107,3 +107,39 @@ def test_derive_registry_metrics_omits_what_it_cannot_derive():
         profit_loss={}, balance_sheet={}, cash_flow={}, ratios={}, quarters={}, growth={}
     )
     assert derive_registry_metrics(empty) == {}
+
+
+def test_derive_registry_metrics_uses_quarterly_periodicity_for_yoy_growth():
+    """F25 (CANSLIM) asks for quarterly acceleration specifically. Taking the
+    figure from the annual P&L was a real defect -- YoY must compare the
+    latest quarter against the same quarter a year earlier (4 columns back)."""
+    from soic_senses.screener_client import ScreenerStatements, derive_registry_metrics
+
+    st = ScreenerStatements(
+        profit_loss={"Sales": {"Mar 2025": 100.0, "Mar 2026": 400.0}},  # +300% annually
+        balance_sheet={},
+        cash_flow={},
+        ratios={},
+        quarters={
+            "Sales": {
+                "Jun 2025": 100.0, "Sep 2025": 105.0, "Dec 2025": 110.0,
+                "Mar 2026": 115.0, "Jun 2026": 120.0,
+            }
+        },
+        growth={},
+    )
+    m = derive_registry_metrics(st)
+
+    # Jun 2026 vs Jun 2025 = +20%, NOT the +300% the annual rows would imply.
+    assert round(m["Quarterly Sales Growth YoY %"], 1) == 20.0
+
+
+def test_derive_registry_metrics_skips_yoy_without_a_year_ago_quarter():
+    from soic_senses.screener_client import ScreenerStatements, derive_registry_metrics
+
+    st = ScreenerStatements(
+        profit_loss={}, balance_sheet={}, cash_flow={}, ratios={},
+        quarters={"Sales": {"Mar 2026": 115.0, "Jun 2026": 120.0}},  # only 2 columns
+        growth={},
+    )
+    assert "Quarterly Sales Growth YoY %" not in derive_registry_metrics(st)

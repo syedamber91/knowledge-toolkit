@@ -194,7 +194,17 @@ class Decision:
     data_coverage: float = 0.0
 
 
+# Classes deliberately excluded from the weighted combination:
+#   safety_gate -- vetoes before weighting ever runs (handled above).
+#   routing     -- selects WHICH metric a valuation framework should use
+#                  (F24); it has no bullish/bearish opinion to weight.
+# Any other class is an authoring error and must not be silently zeroed.
+_NON_SCORING_CLASSES = {"safety_gate", "routing"}
 _CLASS_WEIGHTS = {"valuation": 0.5, "quality": 0.3, "timing": 0.2}
+
+# The score at or above which a framework -- and, under class gating, a whole
+# class -- counts as bullish.
+_BULLISH_AT = 0.7
 
 
 def evaluate(
@@ -288,6 +298,22 @@ def evaluate(
 
     vetoed = [fid for fid, vote in per_framework_votes.items() if vote == "veto"]
 
+    # A safety gate that could not be evaluated must never vanish silently --
+    # otherwise a veto-class framework whose metric isn't fetchable lets a
+    # confident BUY through with nothing in the Decision saying the gate
+    # never ran (the F21-on-POLYCAB hole).
+    unresolved: List[str] = []
+    abstained_gates = sorted(
+        fid
+        for fid in matched_ids
+        if rules[fid].cls == "safety_gate" and per_framework_votes.get(fid) == "abstain"
+    )
+    if abstained_gates:
+        unresolved.append(
+            f"Safety gate(s) {', '.join(abstained_gates)} could not be evaluated "
+            "(metric not fetchable) -- verify manually before acting."
+        )
+
     total_signals = len(rule_trail)
     evaluated_signals = sum(1 for s in rule_trail if s.outcome != "abstain")
     data_coverage = evaluated_signals / total_signals if total_signals else 0.0
@@ -302,7 +328,20 @@ def evaluate(
             conviction=conviction,
             per_framework_votes=per_framework_votes,
             rule_trail=rule_trail,
+            unresolved_human_questions=unresolved,
             data_coverage=data_coverage,
+        )
+
+    # Contradictions are computed BEFORE the coverage floor so an
+    # INSUFFICIENT_DATA verdict still reports a disagreement its own votes
+    # show -- the POLYCAB v1 defect, where F10-bearish vs F23-bullish never
+    # reached the field built to surface it.
+    bullish_ids = [fid for fid, v in per_framework_votes.items() if v == "bullish"]
+    bearish_ids = [fid for fid, v in per_framework_votes.items() if v == "bearish"]
+    contradictions: List[str] = []
+    if bullish_ids and bearish_ids:
+        contradictions.append(
+            f"{', '.join(bullish_ids)} (bullish) vs {', '.join(bearish_ids)} (bearish)"
         )
 
     if data_coverage < 0.5:
@@ -312,26 +351,22 @@ def evaluate(
             conviction="LOW",
             per_framework_votes=per_framework_votes,
             rule_trail=rule_trail,
+            contradictions=contradictions,
+            unresolved_human_questions=unresolved,
             data_coverage=data_coverage,
-        )
-
-    bullish_ids = [fid for fid, v in per_framework_votes.items() if v == "bullish"]
-    bearish_ids = [fid for fid, v in per_framework_votes.items() if v == "bearish"]
-    contradictions: List[str] = []
-    if bullish_ids and bearish_ids:
-        contradictions.append(
-            f"{', '.join(bullish_ids)} (bullish) vs {', '.join(bearish_ids)} (bearish)"
         )
 
     weighted_sum = 0.0
     weight_total = 0.0
+    class_scores: Dict[str, List[float]] = {}
     for fid, score in framework_scores.items():
         cls = rules[fid].cls
-        if cls == "safety_gate":
+        if cls in _NON_SCORING_CLASSES:
             continue
-        w = _CLASS_WEIGHTS.get(cls, 0.0)
+        w = _CLASS_WEIGHTS[cls]  # KeyError, not a silent 0.0 -- see above
         weighted_sum += w * score
         weight_total += w
+        class_scores.setdefault(cls, []).append(score)
 
     combined_score = weighted_sum / weight_total if weight_total else 0.0
 
@@ -341,6 +376,43 @@ def evaluate(
         verdict = "SELL"
     else:
         verdict = "HOLD"
+
+    # Conjunctive class gating. Additive weighted averaging is the wrong
+    # algebra for a method whose essence is "wonderful business AND fair
+    # price": quality frameworks structurally outnumber valuation ones
+    # (prose rarely states a valuation number), so any additive scheme lets
+    # quality outvote price forever -- the POLYCAB defect, where nine
+    # passing quality/growth signals produced BUY/HIGH at a P/E of 47.
+    # So a BUY additionally requires EVERY evaluated class to clear the same
+    # bar on its own; a class below it caps the verdict at HOLD and is named.
+    # This invents no threshold: it reuses the existing 0.7 constant, and the
+    # no-invented-thresholds rule governs financial signals sourced from the
+    # framework prose, not the engine's aggregation design.
+    failing_classes = sorted(
+        cls
+        for cls, scores in class_scores.items()
+        if sum(scores) / len(scores) < _BULLISH_AT
+    )
+    if failing_classes:
+        detail = ", ".join(
+            f"{cls} class scored "
+            f"{sum(class_scores[cls]) / len(class_scores[cls]):.2f}"
+            for cls in failing_classes
+        )
+        if verdict == "BUY":
+            verdict = "HOLD"
+            unresolved.append(
+                f"Capped at HOLD: {detail} (below the {_BULLISH_AT:.1f} bar) while "
+                "other classes were strong. A BUY requires every evaluated class to "
+                "clear it independently."
+            )
+        else:
+            # Not verdict-changing here, but still the reason a BUY is out of
+            # reach -- report it rather than leaving the caller to infer it.
+            unresolved.append(
+                f"{detail} (below the {_BULLISH_AT:.1f} bar) -- a BUY would require "
+                "every evaluated class to clear it independently."
+            )
 
     if contradictions:
         conviction = "LOW"
@@ -356,5 +428,6 @@ def evaluate(
         per_framework_votes=per_framework_votes,
         rule_trail=rule_trail,
         contradictions=contradictions,
+        unresolved_human_questions=unresolved,
         data_coverage=data_coverage,
     )

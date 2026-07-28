@@ -362,3 +362,64 @@ def test_build_briefing_records_screener_error_without_losing_technicals_data():
 
     assert briefing.live_ratios["RSI (Weekly)"] == 40.0
     assert "no page for XYZ" in briefing.data_error
+
+
+def test_evaluate_caps_at_hold_when_one_class_fails_even_if_others_are_strong():
+    """Conjunctive class gating (the POLYCAB BUY/HIGH defect, 2026-07-28).
+
+    Additive weighted averaging is the wrong algebra for a method whose
+    essence is "wonderful business AND fair price": quality frameworks
+    structurally outnumber valuation ones, so any additive scheme lets
+    quality outvote price forever. Every evaluated class must clear the
+    same 0.7 bar for a BUY -- a class below it caps the verdict at HOLD
+    and is named in the decision.
+    """
+    from soic_senses.decision_engine import Briefing, evaluate
+    from soic_senses.framework_router import Framework
+
+    briefing = Briefing(
+        symbol="TESTCO",
+        keywords=[],
+        live_ratios={
+            "Stock P/E": 90.0,        # F2 valuation FAILS its 10..40 band
+            "Debt to Equity": 0.1,    # F3 quality passes <= 1.0
+            "WC Days": 50.0,          # F1 safety gate passes <= 90
+        },
+        frameworks=[
+            Framework(id="F1", title="WC gate", body=""),
+            Framework(id="F2", title="Moat PE band", body=""),
+            Framework(id="F3", title="Leverage check", body=""),
+        ],
+    )
+
+    decision = evaluate(briefing, DECISION_RULES_FIXTURE, METRIC_REGISTRY_FIXTURE)
+
+    # Quality is perfect and the safety gate passes, but valuation is 0.0 --
+    # the verdict must not reach BUY on the strength of the other classes.
+    assert decision.verdict == "HOLD"
+    assert any("valuation" in q for q in decision.unresolved_human_questions)
+
+
+def test_evaluate_still_reaches_buy_when_every_class_clears_the_bar():
+    from soic_senses.decision_engine import Briefing, evaluate
+    from soic_senses.framework_router import Framework
+
+    briefing = Briefing(
+        symbol="TESTCO",
+        keywords=[],
+        live_ratios={
+            "Stock P/E": 20.0,        # F2 valuation passes 10..40
+            "Debt to Equity": 0.1,    # F3 quality passes
+            "WC Days": 50.0,          # F1 safety gate passes
+        },
+        frameworks=[
+            Framework(id="F1", title="WC gate", body=""),
+            Framework(id="F2", title="Moat PE band", body=""),
+            Framework(id="F3", title="Leverage check", body=""),
+        ],
+    )
+
+    decision = evaluate(briefing, DECISION_RULES_FIXTURE, METRIC_REGISTRY_FIXTURE)
+
+    assert decision.verdict == "BUY"
+    assert decision.unresolved_human_questions == []

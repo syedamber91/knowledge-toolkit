@@ -269,20 +269,30 @@ def derive_registry_metrics(st: ScreenerStatements) -> Dict[str, float]:
     if sales_growth_3y is not None:
         out["Compounded Sales Growth 3Yr %"] = sales_growth_3y
 
-    # F7 / F25 -- latest full-year YoY on the annual P&L.
-    sales = st.profit_loss.get("Sales")
-    if sales:
-        cur, prev = _latest(sales), _latest(sales, 1)
-        if cur is not None and prev not in (None, 0):
-            out["Quarterly Sales Growth YoY %"] = (cur / prev - 1) * 100
-    net_profit = st.profit_loss.get("Net Profit")
-    if net_profit:
-        cur, prev = _latest(net_profit), _latest(net_profit, 1)
-        if cur is not None and prev not in (None, 0):
-            out["Quarterly PAT Growth YoY %"] = (cur / prev - 1) * 100
+    # F7 / F25 -- QUARTERLY YoY: latest quarter vs the same quarter a year
+    # earlier (4 columns back in the #quarters table). F25 (CANSLIM) asks for
+    # quarterly *acceleration* specifically, so an annual FY-over-FY figure is
+    # the wrong periodicity even though it is directionally similar -- taking
+    # it from the annual P&L was a real defect, caught 2026-07-28.
+    for row_name, label in (
+        ("Sales", "Quarterly Sales Growth YoY %"),
+        ("Net Profit", "Quarterly PAT Growth YoY %"),
+    ):
+        quarters = st.quarters.get(row_name)
+        if not quarters:
+            continue
+        periods = list(quarters)
+        if len(periods) < 5:
+            continue  # need the year-ago quarter to compute YoY at all
+        cur, year_ago = quarters[periods[-1]], quarters[periods[-5]]
+        if year_ago:
+            out[label] = (cur / year_ago - 1) * 100
 
     # F22 -- DuPont components, surfaced for the human even though F22 itself
     # stays advisory-numeric (SOIC states no leverage-share ceiling to gate on).
+    # These stay ANNUAL: DuPont decomposes a full-year return, not a quarter.
+    sales = st.profit_loss.get("Sales")
+    net_profit = st.profit_loss.get("Net Profit")
     total_assets = st.balance_sheet.get("Total Assets")
     if net_profit and sales:
         np_v, s_v = _latest(net_profit), _latest(sales)
