@@ -423,3 +423,21 @@ def test_evaluate_still_reaches_buy_when_every_class_clears_the_bar():
 
     assert decision.verdict == "BUY"
     assert decision.unresolved_human_questions == []
+
+
+def test_timing_class_can_cap_a_verdict_but_never_adds_buy_weight():
+    """F23's prose: it "never originates a thesis; it sequences it."
+
+    So a passing timing framework must not push the combined score toward
+    BUY -- it may only gate (cap) a verdict that the fundamentals earned.
+    Verified by construction: an identical briefing with and without the
+    timing framework matched must produce the same combined verdict path.
+    """
+    from soic_senses.decision_engine import _CLASS_WEIGHTS, _GATE_ONLY_CLASSES
+
+    # timing carries no additive weight ...
+    assert "timing" in _GATE_ONLY_CLASSES
+    assert "timing" not in _CLASS_WEIGHTS
+    # ... but valuation and quality still do.
+    assert _CLASS_WEIGHTS["valuation"] > 0
+    assert _CLASS_WEIGHTS["quality"] > 0

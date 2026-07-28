@@ -200,7 +200,14 @@ class Decision:
 #                  (F24); it has no bullish/bearish opinion to weight.
 # Any other class is an authoring error and must not be silently zeroed.
 _NON_SCORING_CLASSES = {"safety_gate", "routing"}
-_CLASS_WEIGHTS = {"valuation": 0.5, "quality": 0.3, "timing": 0.2}
+
+# GATE-ONLY classes participate in class gating (a weak one caps the verdict)
+# but contribute NO additive weight toward a BUY. This is F23's own stated
+# scope: it "never originates a thesis; it sequences it." A well-timed chart
+# must not add buy-pressure to a thesis the fundamentals have not earned --
+# it may only block a badly-timed entry.
+_GATE_ONLY_CLASSES = {"timing"}
+_CLASS_WEIGHTS = {"valuation": 0.5, "quality": 0.3}
 
 # The score at or above which a framework -- and, under class gating, a whole
 # class -- counts as bullish.
@@ -381,10 +388,14 @@ def evaluate(
         cls = rules[fid].cls
         if cls in _NON_SCORING_CLASSES:
             continue
+        # Gate-only classes enter class_scores (so they can cap) but never
+        # weighted_sum (so they cannot push toward BUY).
+        class_scores.setdefault(cls, []).append(score)
+        if cls in _GATE_ONLY_CLASSES:
+            continue
         w = _CLASS_WEIGHTS[cls]  # KeyError, not a silent 0.0 -- see above
         weighted_sum += w * score
         weight_total += w
-        class_scores.setdefault(cls, []).append(score)
 
     combined_score = weighted_sum / weight_total if weight_total else 0.0
 
