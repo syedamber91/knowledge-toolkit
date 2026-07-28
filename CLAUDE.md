@@ -490,6 +490,19 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
+- `karpathy-guidelines` (`/karpathy-guidelines`) — behavioural guardrails against
+  the common LLM coding failure modes: think-before-coding (surface assumptions,
+  don't silently pick between interpretations), simplicity-first (no speculative
+  abstraction), surgical changes (every changed line traces to the request; don't
+  "improve" adjacent code), and goal-driven execution (turn the task into a
+  verifiable success criterion, then loop until it's met). **Vendored** from
+  `multica-ai/andrej-karpathy-skills` @ `2c60614`, MIT — pinned in-repo rather
+  than plugin-installed so the text can't change under us; see the provenance
+  block at the top of its `SKILL.md`. Consult it when writing/reviewing/
+  refactoring; it is a *general prior* that yields to the repo-specific skills
+  below (`test-driven-development`, `verification-before-completion`,
+  `writing-plans`, `systematic-debugging`) wherever they overlap or conflict.
+  `EXAMPLES.md` alongside it has before/after cases.
 - `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture`,
   `instagram-capture` — source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
