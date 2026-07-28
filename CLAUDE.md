@@ -428,6 +428,76 @@ fires a live query and needs a working NotebookLM session.
 14. "Propose a framework-evolution diff for the Insurance sector notebook and show me the preview — don't apply it."
 15. "Which of the 14 sectors' keywords would match if I searched for 'NBFC' — check for gaps or overlaps."
 
+### Vault cross-linking pass (2026-07-28) — a hygienic vault is not the same as a linked one
+
+**Read this before adding a new sector/course batch, or before touching frontmatter fields
+in `wiki/personas/soic/concepts/*.md` or `topics/*.md`.** A cross-reference audit of the
+459 concept notes + 58 topic notes found the link *hygiene* was perfect — 459 files, 459
+distinct link targets, exactly 462 topic→concept link instances, **zero dangling links,
+zero orphan files** — but the *depth* was near-zero: **0 concept-to-concept links**, no
+`tags:` field anywhere, and `decision-frameworks-v1.md` cited 66 concept slugs as inert
+`` `backtick` `` text rather than real `[[wikilinks]]`. Every note was correctly filed and
+nothing was broken, but Obsidian's graph view showed 58 disconnected stars, not a web. Five
+deterministic, no-new-claims passes fixed this — reuse this exact pattern for any future
+sector/course sync rather than re-deriving it:
+
+1. **Convert already-correct inert citations into real links.** A regex over
+   `decision-frameworks-v1.md`'s `` `slug` `` spans, resolved against BOTH `concepts/*.md`
+   and `topics/*.md` (a slug can legitimately be either), turned 67 occurrences into
+   `[[slug]]`. Two edge cases matter: an expander shorthand like `` `venus-pipes-*` ``
+   must be expanded to the actual files it stands for (not left as a literal glob, which
+   Obsidian can't resolve), and a citation that has drifted from the real filename (e.g.
+   `` `venus-pipes-business-model` `` when the file is actually
+   `venus-pipes-business-model-and-platform-strategy.md`) should alias-link
+   (`[[real-slug|old-shorthand]]`) rather than silently drop the reference or leave it
+   dead. One genuinely non-vault reference (`` `tradingview-ta` ``, a Python package name)
+   correctly stayed as code — not everything backtick-wrapped is a broken link.
+2. **Add a NEW field for a new capability; never rewrite one code already reads.** Every
+   concept's frontmatter already has a machine-read `topics:` plain-string list (confirmed
+   write-only: `vault_sync.py`'s `build_concept_frontmatter` writes it, nothing in this repo
+   parses it back). Turning it into wikilinks in place would have been a smaller diff, but
+   risks breaking that write path's assumptions later. Instead add a **parallel**
+   `topic_links:` field (wikilink-quoted) right after it — purely additive, and it makes
+   Obsidian's backlinks pane populate for free. Do the insertion as **regex text surgery on
+   the exact `topics:` block**, not a full `yaml.safe_dump` re-serialize — re-dumping
+   reformats unrelated fields (e.g. a folded `merge_note: >` block scalar) and turns a
+   one-field change into vault-wide formatting noise.
+3. **One MOC, grouped against the authoritative course map, with a hard-fail assertion.**
+   `soic-home.md` groups all 58 topics by course level using `course_eligibility.yaml`'s
+   `courses:`/`modules_allowlist` mapping as ground truth (not slug-guessing). The build
+   script asserts the grouping's slug set is byte-identical to the actual `topics/*.md`
+   file set — raise, don't silently drop a topic that doesn't fit a bucket.
+4. **Invert the frameworks file's own citations into a per-topic backlink.** Parse every
+   `## F<n>. Title` block, collect its `[[wikilinks]]`, resolve each cited concept back to
+   its topic(s) (or use the topic directly if a framework cites a topic slug rather than a
+   concept), then write one `**Frameworks grounded here:** [[decision-frameworks-v1#F12.
+   Exact Heading Text|F12]]` line per topic that has ≥1 citation (24 of 58 did). The
+   Obsidian heading-anchor link (`#F12. Exact Heading Text`) must match the heading text
+   verbatim, including punctuation — copy it, don't reconstruct it.
+5. **Tag from a small FIXED vocabulary, fanned out over parallel subagents, verified by one
+   consolidated script — never trust N agents' self-reports as the check.** 12 tags
+   (`valuation`, `quality-moat`, `forensic`, `growth-drivers`, `cyclicality`,
+   `leverage-risk`, `capital-allocation`, `sector-macro`, `technicals-timing`,
+   `position-sizing-portfolio`, `behavioral-psychology`, `company-case-study`) were fixed
+   *before* dispatch, and 12 parallel subagents (one per ~39-file batch) were each told to
+   pick 1-3 tags per file **from that list only, never inventing a new one**. Each agent
+   self-reported success, but the real verification was a single Python pass afterward that
+   parsed every file's `tags:` block and checked (a) every one of the 459 files actually
+   has the field and (b) every tag used is in the fixed 12 — this caught one file
+   (`forensic-accounting-and-spotting-financial-red-flags.md`) that fell through a seam
+   between two batches' file-list splits and had zero tags, while confirming zero vocabulary
+   drift across all 12 independently-run agents. **The lesson generalizes: whenever N
+   subagents each edit their own slice of a large file set, verify with one script that
+   reads the whole set afterward — don't rely on each agent's own count.**
+
+Net effect: the vault's own discipline (every claim traces to a cited transcript quote) was
+never touched — every link/tag added here either makes an already-true fact clickable or is
+a plain content-read classification against a closed vocabulary. Re-run steps 1/2/4/5
+(scoped to just the new files) whenever a new sector or course batch lands — L6's 37th
+module ("All CDMOs Decoded with Business Triggers", still blocked on SOIC portal auth),
+Level 1, Masterclass on Investing Using AI, SOIC Labs, and Ask SOIC are all still pending
+and will need this same treatment once captured.
+
 ## Learning packs, verification loop & Google Drive
 
 `scripts/generate_learning_pack.py` builds an HTML learning pack on database
