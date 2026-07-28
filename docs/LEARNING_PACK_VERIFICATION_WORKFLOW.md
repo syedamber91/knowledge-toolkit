@@ -162,3 +162,29 @@ The same workflow applies to additional Ben Dicken content (phases 2+):
 5. Commit and push
 
 Output files (`output/`) are gitignored. Only the generator script and persona files are committed.
+
+---
+
+## Generated packs (chapters.json) — wiki-grounded pipeline
+
+For packs generated from a persona wiki via `scripts/learning_pack_wiki.py`
+(the `/learn-topic` Stage C), the per-chapter content lives in
+`output/packs/<topic>/chapters.json` — **data, not code**. This is the single
+content source for BOTH the rendered PDF and the examiner prompts, so the
+"keep CHAPTERS in sync with the generator script" invariant above does not
+apply to generated packs.
+
+Rules:
+
+- **Fix rounds edit `chapters.json`** (never a generator script), then re-run
+  `--stage render` to refresh the HTML/PDF.
+- **`grounding_check` runs after every fix round.** Any numeric claim outside
+  a `<div class="beyond">` box that does not appear in the wiki notes / cited
+  raw posts is a defect: move it into a beyond-box, source it, or drop it.
+- **Halt rule:** a chapter still <9.0 (accuracy or coverage) after **3 fix
+  rounds** halts the pipeline with a report naming the failing chapter and
+  dimension — never silently ship.
+- Examiners for data-engineering topics: `vutr` (+ `sdcourse` for Kafka /
+  distributed-log topics). Justin answers from chapter text; Alex audits
+  clarity in parallel; tri-agent sign-off gates the final render — identical
+  to the loop above.
