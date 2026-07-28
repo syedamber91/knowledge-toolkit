@@ -428,6 +428,34 @@ fires a live query and needs a working NotebookLM session.
 14. "Propose a framework-evolution diff for the Insurance sector notebook and show me the preview — don't apply it."
 15. "Which of the 14 sectors' keywords would match if I searched for 'NBFC' — check for gaps or overlaps."
 
+### Extracting machine-checkable rules from the notes — read the pilot first
+
+**Before building any "turn the concept notes into checkable rules" pass, read
+`docs/CHECK-EXTRACTION-PILOT-2026-07-29.md`.** It records a measured pilot over
+the 38 forensic-tagged notes using NotebookLM thematic querying (10 queries
+instead of 38 note reads) with deterministic verification of every proposed
+threshold: 104 proposals → 54 numeric-verified → **37 distinct checks, 0
+fabrications**, at ~200k tokens instead of the ~1.5–2.5M a full per-note read
+would cost. Tooling lives in `scripts/check_extraction/` (seed → query → verify,
+plus `route_company.py` for the per-note admissibility gate).
+
+Three findings that will otherwise be rediscovered the hard way:
+- **Coverage was 66%, not 100%.** Thematic querying has a genuine recall gap —
+  13 notes were cited by nothing. The residual per-note pass over uncited notes
+  is load-bearing, not optional.
+- **The verifier accused the model wrongly on its first run** (10 "fabrications"
+  that were all citation-apparatus artifacts in the checker). When a verifier
+  accuses a generator, suspect the verifier first.
+- **Verification proves provenance, never applicability.** A number from a worked
+  example verifies exactly as cleanly as a real threshold; separating them is a
+  human step.
+
+`src/soic_senses/notebook_preflight.py` exists because of this pilot: an
+age-only auth check reported 156h of headroom on a session Google had already
+killed, and the job died mid-run anyway. `check_auth()` now makes a live probe
+by default. It is deliberately not an auto-refresher — minting a session needs a
+human-supplied cookie.
+
 ### Vault cross-linking pass (2026-07-28) — a hygienic vault is not the same as a linked one
 
 **Read this before adding a new sector/course batch, or before touching frontmatter fields
