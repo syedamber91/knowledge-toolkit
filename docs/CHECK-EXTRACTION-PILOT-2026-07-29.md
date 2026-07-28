@@ -153,16 +153,68 @@ failed on a read timeout and a DNS blip; those are worth retrying. An
 
 ---
 
-## 7. Extrapolation and next steps
+## 7. Full-corpus results (all 222 admitted notes, 2026-07-29)
 
-If the forensic rates hold across the other 11 tags, Phase 2 lands at roughly
-**250–350 distinct verified checks for ~200k tokens**, versus ~1.5–2.5M for a
-full per-note read.
+The pilot was extrapolated to the whole admitted corpus: 184 further notes
+seeded across 5 notebooks (`seed_corpus.py`, 0 failures), 11 themes asked of
+every notebook (`query_corpus.py`, 55 slots), verified by `verify_corpus.py`.
 
-Required, in order:
-1. Run the remaining 11 tags through `seed_notebook.py` → `query_themes.py` →
-   `verify_claims.py`.
-2. **Residual per-note pass over every note cited by nothing** (the 66% gap).
-3. Human triage separating rules from illustrative figures (§4).
-4. Only then wire surviving numeric checks into a scoring layer; everything
-   else stays advisory, per the standing no-invented-thresholds invariant.
+| Metric | Forensic pilot | Full corpus |
+|---|---|---|
+| Proposals | 104 | **547** |
+| NUMERIC-VERIFIED | 54 | **267** (**219 distinct**) |
+| ADVISORY | 50 | 276 |
+| REJECTED | 0 | **1** |
+| ADVISORY-UNGROUNDED | 0 | 3 |
+| Note coverage | 66% | **74% (165/222)** |
+
+**Fabrication rate 4/547 = 0.7%, and none is an invented number.** All four are
+source misattribution or loose paraphrase — real content, wrong note or
+non-verbatim quote. The deterministic gate catches this class exactly as it
+catches fabrication, which is the point.
+
+Coverage rose 66% → 74% by asking **every theme of every notebook** rather than
+guessing which notebook holds a tag. Notes are chunked by seeding order, not by
+topic, so guessing would reintroduce the blind spot §3's residual pass proved
+expensive. The extra queries are cheap; the missed rules are not.
+
+### Numeric density is a property of the material, not the method
+
+| Theme | verified/total | Theme | verified/total |
+|---|---|---|---|
+| technicals_timing | 39/62 | cyclicality | 12/28 |
+| quality_moat | 28/47 | behavioral | 14/48 |
+| position_sizing | 28/38 | valuation | 8/25 |
+| growth | 27/44 | **leverage_risk** | **1/24** |
+
+`leverage_risk` at 1/24 looked like a prompt defect and was checked rather than
+assumed. It is not: the 21 advisories are genuine leverage tests that happen to
+be qualitative (debt-funded acquisition strategy, working-capital-heavy
+liquidity, the DuPont leverage component, masked off-balance-sheet debt), while
+the *numeric* leverage rules — D/E `< 0.7 times`, SpiceJet's `15 to 16 times` as
+a bankruptcy signal — were already captured under the forensic tag. **Cross-tag
+overlap means a rule found once does not need finding again**; a low per-theme
+yield is not evidence of a broken query.
+
+### Residual pass, measured (13 uncited forensic notes)
+
+144 tests, 35 numeric (**24%**) — against 52% for the thematic pass. An earlier
+reading of this document claimed the uncited notes were ~4× less numeric and
+therefore safe to skip; that was based on one batch of six and was **wrong**.
+The second batch of seven ran 36% numeric and recovered rules the thematic query
+missed entirely: `fundamentals-of-free-float-and-shareholder-types` (8/12 —
+the >1% disclosure line, the "90% or more cornered" supply-collapse screen,
+order-size-vs-daily-volume circuit risk, promoter indirect control at 75%
+official vs 86% actual) and `bombed-out-ipo-framework` (7/12 — a complete
+post-IPO timing model). **The residual pass is load-bearing. Do not skip it.**
+
+## 8. Next steps
+
+1. **Residual per-note pass over the 57 still-uncited notes.** Non-optional,
+   for the reason measured above.
+2. **Human triage separating rules from illustrative figures** (§4) — now
+   corroborated by four independent passes. Verified-but-illustrative figures
+   (`47% to 42%`, DMART at `122X`, Apple's `35%` buyback) must not reach a
+   scoring layer.
+3. Only then wire surviving numeric checks into scoring; everything else stays
+   advisory, per the standing no-invented-thresholds invariant.

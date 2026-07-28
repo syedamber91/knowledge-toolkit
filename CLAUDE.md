@@ -432,17 +432,22 @@ fires a live query and needs a working NotebookLM session.
 
 **Before building any "turn the concept notes into checkable rules" pass, read
 `docs/CHECK-EXTRACTION-PILOT-2026-07-29.md`.** It records a measured pilot over
-the 38 forensic-tagged notes using NotebookLM thematic querying (10 queries
-instead of 38 note reads) with deterministic verification of every proposed
-threshold: 104 proposals → 54 numeric-verified → **37 distinct checks, 0
-fabrications**, at ~200k tokens instead of the ~1.5–2.5M a full per-note read
-would cost. Tooling lives in `scripts/check_extraction/` (seed → query → verify,
+the whole 222-note admitted corpus using NotebookLM thematic querying with
+deterministic verification of every proposed threshold: **547 proposals → 267
+numeric-verified → 219 distinct checks, 4 flagged (0.7%), none an invented
+number**, at a small fraction of the ~1.5–2.5M tokens a full per-note read
+would cost. Coverage 74% (165/222). Tooling lives in `scripts/check_extraction/` (seed → query → verify,
 plus `route_company.py` for the per-note admissibility gate).
 
 Three findings that will otherwise be rediscovered the hard way:
-- **Coverage was 66%, not 100%.** Thematic querying has a genuine recall gap —
-  13 notes were cited by nothing. The residual per-note pass over uncited notes
-  is load-bearing, not optional.
+- **Coverage is 74%, not 100%.** Thematic querying has a genuine recall gap —
+  57 notes are cited by nothing. The residual per-note pass is load-bearing, and
+  measured: on the forensic tag it recovered the free-float and bombed-out-IPO
+  rule sets the thematic query missed entirely. Do not skip it.
+- **A low per-theme yield is not a broken query.** `leverage_risk` scored 1/24;
+  checking rather than assuming showed its numeric rules were already captured
+  under the forensic tag. Cross-tag overlap means a rule found once needs no
+  re-finding.
 - **The verifier accused the model wrongly on its first run** (10 "fabrications"
   that were all citation-apparatus artifacts in the checker). When a verifier
   accuses a generator, suspect the verifier first.
