@@ -43,6 +43,7 @@ ATTRS_FALSE = {
     "lending_book", "platform_network_effect", "regulated_pharma",
     "natural_monopoly_asset", "commodity_producer", "turnaround_situation",
     "low_float", "cyclical_deep_trough", "capital_markets_intermediary",
+    "insurance_float", "occupancy_asset_cycle", "land_bank_revenue_recognition",
 }
 
 # ---------------------------------------------------------------------------
@@ -166,16 +167,38 @@ TIER_C_NOTES = {
         "value-chain mapping method for Polycab's own chain",
 }
 
+# Each excluded topic names the SUBJECT ATTRIBUTE its mechanisms require. This
+# is what makes the gate a gate: a note is excluded because the subject lacks
+# the attribute, not because its slug was hand-listed for one company.
+#
+# This existed as prose before it existed as code. ATTRS_TRUE/ATTRS_FALSE were
+# declared, printed in a banner, and never consulted -- routing ran purely on
+# hand-written slug allowlists, so the documented "attribute-based gate" was
+# fiction and the F12 defence was really the hardcoded string below. Caught in
+# adversarial review 2026-07-29. `test_attribute_gate` now fails if the wiring
+# is ever cut again.
+TOPIC_REQUIRES_ATTR = {
+    "gold-nbfcs-niche-financiers": "lending_book",
+    "decoding-indian-banking-space-2": "lending_book",
+    "understand-insurance-landscape-simplifying-a-complex-sector": "insurance_float",
+    "the-capital-code-capital-market-value-chain": "capital_markets_intermediary",
+    "modern-monopolies-platform-businesses": "platform_network_effect",
+    "api-sectoral-analysis": "regulated_pharma",
+    "cdmo-a-multiyear-trend": "regulated_pharma",
+    "uncover-hidden-gems-in-metals-and-mining-sector": "commodity_producer",
+    "oil-and-gas-sector-simplified": "commodity_producer",
+    "masterclass-on-low-float-stocks": "low_float",
+    "decoding-the-hotel-industry": "occupancy_asset_cycle",
+    "soic-hospital-sectoral-webinar-analysis": "occupancy_asset_cycle",
+    "detailed-analysis-of-real-estate-sector": "land_bank_revenue_recognition",
+}
+
 EXCLUDE_TOPIC_REASONS = {
-    "gold-nbfcs-niche-financiers": "lending-book mechanics; Polycab has no loan book (the F12 failure mode)",
-    "decoding-indian-banking-space-2": "bank/NBFC ROA-tree mechanics; not applicable",
-    "understand-insurance-landscape-simplifying-a-complex-sector": "insurance float/VNB mechanics; not applicable",
-    "the-capital-code-capital-market-value-chain": "capital-markets intermediary economics; not applicable",
-    "decoding-the-hotel-industry": "occupancy/ARR asset-cycle mechanics; not applicable",
-    "detailed-analysis-of-real-estate-sector": "real-estate revenue-recognition + land-bank mechanics; not applicable",
-    "soic-hospital-sectoral-webinar-analysis": "hospital bed/occupancy unit economics; not applicable",
-    "api-sectoral-analysis": "regulated-pharma API mechanics; not applicable",
-    "cdmo-a-multiyear-trend": "CDMO contract/regulatory mechanics; not applicable",
+    # Topics governed by TOPIC_REQUIRES_ATTR are DELIBERATELY ABSENT here. Listing
+    # a topic in both places lets this hardcoded entry override the attribute
+    # gate, so the gate stops being authoritative and the routing silently
+    # reverts to a per-company slug list -- caught by
+    # test_routing_output_changes_when_the_attribute_set_changes.
     "understanding-speciality-chemical-sector": "chemistry-complexity moat mechanics; not applicable",
     "aroma-chemicals-and-their-hidden-potential": "specialty-chemical niche mechanics; not applicable",
     "fluorine-industry-megatrend-or-fad": "fluorine value-chain mechanics; not applicable",
@@ -183,17 +206,13 @@ EXCLUDE_TOPIC_REASONS = {
     "alcohol-sector": "excise/state-regulation mechanics; not applicable",
     "decode-indian-and-global-watch-industry": "luxury-brand/CPO mechanics; not applicable",
     "lab-grown-diamonds-sector-analysis": "LGD commodity/consumer mechanics; not applicable",
-    "uncover-hidden-gems-in-metals-and-mining-sector": "commodity PRODUCER mechanics; Polycab is a converter, not a miner",
-    "oil-and-gas-sector-simplified": "upstream/refining mechanics; not applicable",
     "fission-to-alpha-indias-nuclear-energy-sector-decoded": "nuclear tech/policy mechanics; demand read-across already captured via transmission notes",
     "future-of-indian-shipyards-from-defence-to-cargo": "shipbuilding order/defence mechanics; not applicable",
     "drone-and-anti-drone-sector": "defence/B2G order mechanics; not applicable",
     "aerospace-and-precision-engineering": "aero-tier qualification mechanics; supply-side note admitted separately",
     "is-software-making-a-comeback": "software/SaaS economics; not applicable",
-    "modern-monopolies-platform-businesses": "platform network-effect economics; Polycab is not a platform",
     "commercial-vehicles": "CV replacement-cycle mechanics; generic cyclicality already covered in Tier A",
     "decode-ev-ecosystem-in-india": "EV powertrain/battery mechanics; cable read-across too weak to admit",
-    "masterclass-on-low-float-stocks": "low-float reflexivity; Polycab is a large-cap with normal float",
 }
 
 # Confirmed-correct exclusions the audit surfaced, recorded so a re-run does not
@@ -209,8 +228,13 @@ NOTE_LEVEL_EXCLUDE_REASONS = {
 }
 
 
-def main() -> None:
-    rows = json.load(open("/tmp/concept_index.json"))
+def route(rows, attrs_false=None, attrs_true=None):
+    """Pure routing decision. Separated from main() so a test can flip the
+    subject's attribute set and assert the ADMITTED SET ACTUALLY CHANGES --
+    the only assertion that can distinguish a real gate from a hardcoded
+    slug list (see tests/test_check_extraction_attribute_gate.py)."""
+    attrs_false = ATTRS_FALSE if attrs_false is None else attrs_false
+    attrs_true = ATTRS_TRUE if attrs_true is None else attrs_true
     routed = []
     for r in rows:
         slug, topics = r["slug"], r["topics"]
@@ -220,12 +244,35 @@ def main() -> None:
             routed.append({**r, "tier": "B-method", "reason": "cross-sector method living inside a sector module"})
         elif any(t in TIER_A_TOPICS for t in topics):
             routed.append({**r, "tier": "A-universal", "reason": "core curriculum method (L2-L5 / Crash Course / meta)"})
+        elif any(TOPIC_REQUIRES_ATTR.get(t) in attrs_true for t in topics
+                 if t in TOPIC_REQUIRES_ATTR):
+            # POSITIVE half of the gate. Without this the gate could only ever
+            # subtract, so admission still ran off per-company tier allowlists
+            # and a lender would be denied its own lending notes. Sector
+            # mechanics are admitted when the subject HAS the attribute they
+            # require -- which is what makes the router reusable for company #2
+            # instead of needing ~120 hand-curated slugs per subject.
+            attr = next(TOPIC_REQUIRES_ATTR[t] for t in topics
+                        if TOPIC_REQUIRES_ATTR.get(t) in attrs_true)
+            routed.append({**r, "tier": "C-adjacent", "attribute_provenance": attr,
+                           "reason": f"sector mechanics admitted by subject attribute `{attr}`"})
+        elif any(TOPIC_REQUIRES_ATTR.get(t) in attrs_false for t in topics
+                 if t in TOPIC_REQUIRES_ATTR):
+            attr = next(TOPIC_REQUIRES_ATTR[t] for t in topics if t in TOPIC_REQUIRES_ATTR)
+            routed.append({**r, "tier": "D-excluded", "attribute_provenance": attr,
+                           "reason": f"requires subject attribute `{attr}`, which is FALSE for "
+                                     f"{SUBJECT['symbol']}"})
         else:
             why = NOTE_LEVEL_EXCLUDE_REASONS.get(slug) or next(
                 (EXCLUDE_TOPIC_REASONS[t] for t in topics if t in EXCLUDE_TOPIC_REASONS), None)
             routed.append({**r, "tier": "D-excluded",
                            "reason": why or f"sector-specific mechanics ({', '.join(topics)}); no admissible attribute"})
+    return routed
 
+
+def main() -> None:
+    rows = json.load(open("/tmp/concept_index.json"))
+    routed = route(rows)
     json.dump(routed, open("/tmp/polycab_routing.json", "w"), indent=1)
     c = Counter(x["tier"] for x in routed)
     print("PHASE 0 -- subject:", SUBJECT["symbol"], "|", SUBJECT["business"])
