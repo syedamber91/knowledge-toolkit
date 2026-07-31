@@ -176,15 +176,27 @@ they don't mix in with the unified content:
 | Unified (default) | `data/media.json` | `…/Documents/Obsidian Vault` |
 | **AI & Development** (Nate Herk + Jack Roberts) | `data/media_ai_dev.json` | `…/Documents/AI & Development` |
 
-**To refresh the AI & Development vault**, set both env vars for every command:
+**To refresh the AI & Development vault**, set all three env vars for every command:
 
 ```bash
 export MEDIA_CONTENT_PATH=data/media_ai_dev.json
 export MEDIA_VAULT_DIR="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/AI & Development"
+export SUBSTACK_CONTENT_PATH=/nonexistent/substack.json   # keep Substack OUT — see below
 .venv/bin/youtube-toolkit capture "https://www.youtube.com/@nateherk/videos"
 .venv/bin/youtube-toolkit capture "https://www.youtube.com/@Itssssss_Jack/videos"
 .venv/bin/youtube-toolkit build     # appends a Log.md entry with the new-item count
 ```
+
+> **`SUBSTACK_CONTENT_PATH` is not optional here.** `build` calls the *unified*
+> builder, which merges `data/substack.json` whenever that file exists —
+> regardless of `MEDIA_CONTENT_PATH`. On 2026-07-31 a build without this
+> override dumped 348 vutr/lucsystemdesign/sdcourse posts (a `Substack/` folder
+> plus ~11 data-engineering topic notes) into the AI & Development vault. The
+> fix: re-run the build with `SUBSTACK_CONTENT_PATH` pointed at a nonexistent
+> path, then delete the `Substack/` folder and any topic note whose only
+> sections are `## Substack · …` (a clean rebuild leaves them un-refreshed, so
+> `find topics -name '*.md' -not -newermt '<build time>'` lists exactly them).
+> `Log.md` self-corrects — the clean rebuild appends an "N item(s) removed" entry.
 
 The build writes into that vault's own `Home.md`/`topics/`/`sources/` **and its
 append-only `Log.md`** (the index+log+cross-links pattern — see root `CLAUDE.md`).
@@ -196,8 +208,8 @@ from the new transcripts.
 | Channel | URL | Videos | Vault | Notes |
 |---------|-----|--------|-------|-------|
 | Justin Sung | `@JustinSung/videos` | 221 | Obsidian Vault | Captured 2026-06-26. Learning/productivity. pytubefix primary. |
-| Nate Herk \| AI Automation | `@nateherk/videos` | 286 | AI & Development | 281 (2026-07-05) + 5 (2026-07-07 refresh). Folder `nate-herk-ai-automation`. |
-| Jack Roberts | `@Itssssss_Jack/videos` | 155 | AI & Development | 154 + 1 (2026-07-07 refresh). Folder `jack-roberts`. |
+| Nate Herk \| AI Automation | `@nateherk/videos` | 298 | AI & Development | 281 (2026-07-05) + 5 (2026-07-07) + 12 (2026-07-31 refresh). Folder `nate-herk-ai-automation`. |
+| Jack Roberts | `@Itssssss_Jack/videos` | 165 | AI & Development | 154 + 1 (2026-07-07) + 10 (2026-07-31 refresh). Folder `jack-roberts`. |
 
 ## Environment notes
 
