@@ -23,6 +23,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from soic_wiki.vault_sync import (  # noqa: E402
     ConceptSlugCollisionError,
     build_topic_file,
+    log_sector_sync,
+    sync_sector_refs,
     sync_sector_to_vault,
     update_index_yaml,
 )
@@ -41,6 +43,7 @@ def main() -> int:
     vault_root = Path(args.vault_root)
     concepts_dir = vault_root / "wiki" / "personas" / "soic" / "concepts"
     topics_dir = vault_root / "wiki" / "personas" / "soic" / "topics"
+    refs_dir = vault_root / "wiki" / "personas" / "soic" / "refs"
     index_path = vault_root / "wiki" / "personas" / "soic" / "index.yaml"
     topics_dir.mkdir(parents=True, exist_ok=True)
 
@@ -76,6 +79,21 @@ def main() -> int:
         topic_file=f"topics/{args.sector_slug}.md",
         concept_slugs=concept_slugs,
         last_updated=args.last_updated,
+    )
+
+    sync_sector_refs(
+        refs_json_path=args.refs,
+        vault_refs_dir=refs_dir,
+        sector_slug=args.sector_slug,
+    )
+
+    log_path = vault_root / "wiki" / "personas" / "soic" / "log.md"
+    log_sector_sync(
+        log_path=log_path,
+        concepts_dir=concepts_dir,
+        sector_slug=args.sector_slug,
+        n_synced=len(written),
+        stamp=args.last_updated,
     )
 
     print(f"Synced {len(written)} concepts for {args.sector_slug!r}: "

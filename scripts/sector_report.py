@@ -24,9 +24,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
+from soic_wiki.adjudication import load_adjudications  # noqa: E402
 from soic_wiki.sector_gate import print_report, run_sector_acceptance_report  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
+ADJUDICATIONS_PATH = ROOT / "configs" / "g1_adjudications.yaml"
 
 
 def report(notes_dir: Path, refs: dict, label: str) -> bool:
@@ -35,7 +37,7 @@ def report(notes_dir: Path, refs: dict, label: str) -> bool:
     print("notes on disk: %d" % len(list(Path(notes_dir).glob("*.md"))))
     print()
     acceptance = run_sector_acceptance_report(notes_dir, refs, label=label, repo_root=ROOT)
-    print_report(acceptance, label=label)
+    print_report(acceptance, label=label, adjudications=load_adjudications(ADJUDICATIONS_PATH))
     return acceptance.verdict
 
 

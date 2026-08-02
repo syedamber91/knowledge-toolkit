@@ -30,6 +30,7 @@ from soic_wiki.framework_evolution import (
     parse_framework_response,
     render_proposed_diff,
 )
+from soic_wiki.adjudication import load_adjudications
 from soic_wiki.notebooklm_sector_pipeline import run_sector_pipeline
 from soic_wiki.sector_gate import print_report, run_sector_acceptance_report
 from soic_method.corpus import load_corpus
@@ -39,6 +40,7 @@ app = typer.Typer(help="NotebookLM-brain sector pipeline + decision engine CLI."
 
 DEFAULT_CORPUS = Path("data/content.json")
 DEFAULT_COURSE_ELIGIBILITY = Path("configs/course_eligibility.yaml")
+DEFAULT_ADJUDICATIONS = Path("configs/g1_adjudications.yaml")
 
 
 @app.command("briefing")
@@ -127,7 +129,7 @@ def run_sector_cmd(
     (out_dir / "refs.json").write_text(json.dumps(result.ref_codes), encoding="utf-8")
 
     report = run_sector_acceptance_report(notes_dir, result.ref_codes, label=module_title)
-    print_report(report, label=module_title)
+    print_report(report, label=module_title, adjudications=load_adjudications(DEFAULT_ADJUDICATIONS))
 
     if not report.verdict:
         raise typer.Exit(code=1)

@@ -1,0 +1,18 @@
+diamond of profit pools:
+  date: '2026-07-13'
+  reason: 'ASR mangling: transcript reads ''lab ground diamond of profit pools'' --
+    ''lab-grown diamond'' (a case study) colliding with ''profit pools''. Hapax (1
+    lesson) -- documented in gates.py''s own module docstring as the motivating example
+    for the frequency-based gate design.'
+  verdict: artifact
+industry tail event:
+  date: '2026-07-13'
+  reason: Hapax (1 lesson), summary-inflated (3 summary vs 2 body mentions) -- documented
+    in gates.py's module docstring as a summarizer artifact.
+  verdict: artifact
+niche chemistry:
+  date: '2026-07-13'
+  reason: Hapax + summary-inflated (5 summary mentions vs 2 body mentions) -- documented
+    in gates.py's module docstring as a summarizer artifact, not terminology the instructor
+    actually repeats.
+  verdict: artifact

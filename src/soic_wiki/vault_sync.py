@@ -15,6 +15,8 @@ from typing import Dict, List, Union
 
 import yaml
 
+from soic_wiki.log import log_ingest
+
 _H1 = re.compile(r"^#\s+(.+?)\s*\n")
 
 
@@ -68,6 +70,64 @@ def build_concept_frontmatter(
         "topics": [sector_slug],
     }
     return "---\n" + yaml.safe_dump(data, sort_keys=False, allow_unicode=True).strip() + "\n---\n"
+
+
+def match_batch_to_sector(
+    batch_slugs: set,
+    sector_concepts: Dict[str, set],
+) -> Union[str, None]:
+    """Identify which vault sector a scratch batch's note stems belong to,
+    by concept-slug overlap against the vault's own index.yaml (ground
+    truth), for disaster-recovery re-linking of refs.json files that were
+    only ever gitignored scratch.
+
+    Returns the sector slug when the match is UNAMBIGUOUS and safe:
+    the batch's slugs are a subset of exactly one sector's concept set (a
+    batch may under-cover a sector that later grew a note from elsewhere,
+    but every note it DOES have must belong to that sector -- any note
+    absent from every sector's set, or present in more than one sector at
+    the required coverage, returns None rather than guessing).
+    """
+    candidates = []
+    for sector, concepts in sector_concepts.items():
+        if batch_slugs and batch_slugs <= concepts:
+            candidates.append(sector)
+    if len(candidates) == 1:
+        return candidates[0]
+    if len(candidates) > 1:
+        # Ambiguous: prefer the sector with the closest-sized concept set
+        # (least extra unaccounted-for concepts) -- but only if it's a
+        # unique closest match, otherwise still refuse to guess.
+        candidates.sort(key=lambda s: len(sector_concepts[s]))
+        if len(sector_concepts[candidates[0]]) < len(sector_concepts[candidates[1]]):
+            return candidates[0]
+        return None
+    return None
+
+
+def sync_sector_refs(
+    refs_json_path: Union[str, Path],
+    vault_refs_dir: Union[str, Path],
+    sector_slug: str,
+) -> Path:
+    """Persist a sector's ``lesson_id -> REF code`` mapping into the vault
+    at ``wiki/personas/soic/refs/<sector_slug>.json``.
+
+    This is the missing receipt: without it, a synced concept note's
+    ``(REF HH:MM:SS)`` citations can never be re-verified once the batch's
+    gitignored `out/a5_*/refs.json` scratch is gone -- the vault has 459
+    citation-carrying notes and, until this fix, zero durable way to map any
+    of their REF codes back to a corpus lesson_id. Re-running G2 needs only
+    this small mapping plus the live corpus (`data/content.json`) -- it does
+    NOT need a frozen snapshot of the cited text, which would go stale (or
+    worse, hide it) the moment a transcript is legitimately re-captured.
+    """
+    refs = json.loads(Path(refs_json_path).read_text(encoding="utf-8"))
+    vault_refs_dir = Path(vault_refs_dir)
+    vault_refs_dir.mkdir(parents=True, exist_ok=True)
+    dest = vault_refs_dir / f"{sector_slug}.json"
+    dest.write_text(json.dumps(refs, sort_keys=True, indent=2) + "\n", encoding="utf-8")
+    return dest
 
 
 def sync_sector_to_vault(
@@ -177,3 +237,28 @@ def build_topic_file(
         "synthesis pass (citation-verified against the raw lecture transcripts, "
         "gate-passed via `scripts/sector_report.py`).\n"
     )
+
+
+def log_sector_sync(
+    log_path: Union[str, Path],
+    concepts_dir: Union[str, Path],
+    sector_slug: str,
+    n_synced: int,
+    stamp: str,
+) -> bool:
+    """Append one Log.md entry for a sector sync (index + log + cross-links
+    pattern -- see root CLAUDE.md). ``total`` is the CURRENT count of concept
+    files on disk after the sync, not a running counter this module owns, so
+    a re-run always reflects reality even if concepts were added/removed by
+    some other path.
+
+    This is the call `scripts/sync_notes_to_vault.py` was missing: 437 of the
+    vault's 459 concept notes landed via `sync_sector_to_vault` /
+    `update_index_yaml` with no corresponding log line, silently breaking the
+    standing index+log+cross-links requirement. Wiring the call in here (the
+    tested unit) rather than only in the script keeps the two entry points
+    that call this module consistent.
+    """
+    total = len(list(Path(concepts_dir).glob("*.md")))
+    summary = f"{n_synced} {sector_slug} concept(s) synced from a gated A5 batch"
+    return log_ingest(log_path, total=total, summary=summary, stamp=stamp)
