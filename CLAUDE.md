@@ -631,6 +631,23 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   `storm_core` CLI (`python -m storm_core`). See
   `docs/superpowers/specs/2026-07-06-storm-business-research-design.md`. MVP is
   `idea` mode; `gap`/`rescore`/`research` are designed but not yet built.
+  **Optional Agent Reach breadth layer** (`src/storm_core/reach.py` +
+  `configs/reach_channels.yaml`, built 2026-08-03): gives lens agents structured
+  Exa/X/Reddit/RSS evidence via `python -m storm_core reach --query …`. **Off
+  unless `STORM_REACH_ENABLED` is truthy**, and absent-safe in every failure mode
+  (not installed / renamed command / non-zero exit / timeout / unparseable output
+  are all *skips with a reason*, never exceptions) — with no channels live, the
+  lens prompt is byte-for-byte the pre-layer one. **The argv per channel lives in
+  the YAML, never in Python**, because Agent Reach installs unpinned
+  (`archive/main.zip`) and deliberately swaps backends when a platform blocks one;
+  record the installed SHA in that file's `pinned_ref`. Confirm command names with
+  `python -m storm_core reach-probe` before first use, and **use burner accounts
+  for X and Reddit** (same guardrail as `instagram_toolkit`). Read
+  `docs/superpowers/specs/2026-08-03-agent-reach-evaluation.md` first — it records
+  why only 4 of Agent Reach's 15 channels are wired (3 would *regress*
+  youtube/web/instagram, 6 are Chinese-language platforms irrelevant here) and why
+  this is a research-lane tool that must never feed the capture catalogs: it emits
+  unstructured stdout with no schema contract.
 
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer`, `instagram-capturer` (capture orchestrators); `justin-sung`,

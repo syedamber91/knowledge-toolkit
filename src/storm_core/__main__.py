@@ -8,7 +8,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from storm_core import config
+from storm_core import config, reach
 from storm_core.html_render import render_html
 from storm_core.models import StormReport
 from storm_core.report import build_note_markdown
@@ -26,6 +26,29 @@ def _cmd_roster(_args) -> int:
     data = [p.model_dump() for p in discover_roster()]
     print(json.dumps(data))
     return 0
+
+
+def _cmd_reach_probe(args) -> int:
+    statuses = reach.probe(_split_channels(args.channels))
+    print(json.dumps({
+        "pinned_ref": reach.pinned_ref(),
+        "enabled": config.reach_enabled(),
+        "channels": [s.model_dump() for s in statuses],
+    }))
+    return 0
+
+
+def _cmd_reach(args) -> int:
+    found = reach.search(args.query, _split_channels(args.channels), limit=args.limit)
+    print(json.dumps(found.model_dump()))
+    # An unavailable reach layer is not a failure -- STORM continues without it.
+    return 0
+
+
+def _split_channels(value):
+    if not value:
+        return None
+    return [c.strip() for c in value.split(",") if c.strip()]
 
 
 def _cmd_build(args) -> int:
@@ -60,9 +83,19 @@ def main(argv=None) -> int:
     b.add_argument("--report", required=True)
     b.add_argument("--reports-dir")
     b.add_argument("--html-dir")
+    rp = sub.add_parser("reach-probe")
+    rp.add_argument("--channels", help="comma-separated subset, e.g. exa,x")
+    r = sub.add_parser("reach")
+    r.add_argument("--query", required=True)
+    r.add_argument("--channels", help="comma-separated subset, e.g. exa,x")
+    r.add_argument("--limit", type=int, default=5)
     args = parser.parse_args(argv)
     if args.cmd == "roster":
         return _cmd_roster(args)
+    if args.cmd == "reach-probe":
+        return _cmd_reach_probe(args)
+    if args.cmd == "reach":
+        return _cmd_reach(args)
     return _cmd_build(args)
 
 

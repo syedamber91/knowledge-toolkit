@@ -1,7 +1,8 @@
 # Agent Reach — evaluation & selective-adoption decision
 
 **Date:** 2026-08-03
-**Status:** Evaluation complete; recommendation pending owner sign-off on scope
+**Status:** Evaluation complete → **research lane BUILT** (2026-08-03, owner-approved
+scope: Exa + X + Reddit + RSS). Capture lane not built — see "What is built" below.
 **Subject:** [`Panniantong/Agent-Reach`](https://github.com/Panniantong/Agent-Reach) (MIT, Python 3.10+, ~30k+ stars)
 **Author:** researched from the upstream README/`docs/install.md`/`docs/README_en.md`;
 written as an anti-sycophantic review at the owner's standing request
@@ -107,20 +108,57 @@ and the capture toolkits solve different halves:
    would regress.
 4. **Do not** enable the Chinese-platform channels or LinkedIn.
 
-## Explicitly not done in this document
+## What is built (2026-08-03)
 
-- **No code written.** Building a multi-backend routing seam before there is a second
-  backend is speculative abstraction, which `/karpathy-guidelines` (vendored, and the
-  standing general prior for this repo) tells us not to do. The seam gets built when
-  the first concrete channel is chosen — not before.
-- **No installation performed.** Agent Reach installs to `~/.agent-reach` on the
-  owner's own machine; it cannot be installed from a remote session, and its
-  credentials are live browser cookies that a human must export.
+Owner picked the **research lane** with **all four** channels (Exa, X, Reddit, RSS).
 
-## Open decisions for the owner
+| File | Role |
+|---|---|
+| `configs/reach_channels.yaml` | Channel registry: name, auth requirement, enabled flag, **argv template**. The argv lives in config so a renamed upstream command is a YAML edit, not a code change — the direct mitigation for the unpinned-install risk. |
+| `src/storm_core/reach.py` | `load_channels` / `pinned_ref` / `probe` / `search` / `normalize`. Pydantic models (`ReachChannel`, `ChannelStatus`, `ReachResult`, `ReachSearch`), `run`/`which` seams injected for offline tests. |
+| `src/storm_core/config.py` | `REACH_CONFIG`, `REACH_TIMEOUT_SEC` (60s), `reach_enabled()` — reads `STORM_REACH_ENABLED`, **off unless truthy**. |
+| `src/storm_core/__main__.py` | `python -m storm_core reach-probe` and `… reach --query … [--channels …] [--limit N]`, both printing JSON like `roster` does. |
+| `.claude/workflows/storm.js` | Phase 0 runs `reach-probe` once and returns `reach_channels`; the Phase-1 lens prompt gains a hint **only when a channel is live**. Empty list ⇒ the prompt is byte-for-byte what it was before. |
+| `tests/test_storm_reach.py` | 23 offline tests — no Agent Reach install, no credentials, no network. |
 
-1. Which lane first — research (STORM breadth) or capture (a real `x_toolkit`)?
-2. Which platforms are actually wanted? (Assumption on file: X yes, Reddit maybe,
-   RSS yes-but-native, everything Chinese-language no.)
-3. Burner accounts: are they available for X/Reddit, or is this the owner's primary
-   account? This changes whether the capture lane should be built at all.
+**The absent-safe contract, which the tests pin:** layer disabled, registry missing,
+registry malformed, command not on PATH, non-zero exit, subprocess raising, timeout,
+empty stdout — **every one is a skip carrying a human-readable reason**, never an
+exception, and `reach --query …` exits 0 regardless so it can never fail a STORM run.
+
+**Output normalization is best-effort by design.** The channels front independent CLIs
+with no shared output contract, so `normalize()` tries JSON (list, `{results:[…]}`,
+or a single object, with key aliasing), then URL-bearing lines, then keeps the raw
+text as one result. Returning unparsed text is deliberate: a format change should
+surface as odd-looking evidence a lens can still read, not as a silently empty result.
+
+**One real bug found while building:** YAML 1.1 parses a bare `off`/`on`/`no`/`yes`
+as a boolean, so a channel named that way arrived as `False` and was silently dropped
+from the registry. `load_channels` now coerces the name instead of dropping it. Quote
+such names in the registry.
+
+**Verification:** `python -m pytest` → 523 passed (500 before), the same **9 pre-existing
+failures** in `test_storm_cli.py` / `test_soic_wiki_*` both before and after — those
+hardcode the author's macOS venv path and cannot run outside that machine. `node --check`
+passes on the workflow. Nothing new was broken.
+
+## Still not done, deliberately
+
+- **No capture-lane toolkit.** No `x_toolkit`; nothing writes to a catalog or a vault.
+  The research lane is read-only and ephemeral by design.
+- **No installation performed, and no argv confirmed against a live install.** Agent
+  Reach installs to `~/.agent-reach` on the owner's own machine with live browser
+  cookies a human must export. The registry's `reach_*` command names are what upstream
+  documents — `python -m storm_core reach-probe` is the one-command way to confirm them,
+  and a wrong name is a one-line YAML fix.
+
+## First-run checklist for the owner
+
+1. Install Agent Reach on the Mac, then **record the commit SHA in
+   `configs/reach_channels.yaml`'s `pinned_ref`** — it installs from `archive/main.zip`
+   (unpinned), so this is the only place drift becomes visible in git.
+2. `agent-reach doctor`, then `python -m storm_core reach-probe`. Fix any channel whose
+   `argv[0]` doesn't resolve, in the YAML.
+3. Configure X and Reddit **on burner accounts** — not the primary ones.
+4. `export STORM_REACH_ENABLED=1`, then run `/storm` as usual. With the flag unset,
+   STORM behaves exactly as it did before this layer existed.

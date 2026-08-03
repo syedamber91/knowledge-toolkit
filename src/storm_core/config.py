@@ -27,3 +27,19 @@ _PERSONAS = Path(
 ROSTER_DIR = Path(
     os.environ.get("STORM_ROSTER_DIR", _PERSONAS)
 ).expanduser()
+
+# --- Agent Reach retrieval breadth layer (optional, off by default) ---------
+# See docs/superpowers/specs/2026-08-03-agent-reach-evaluation.md.
+REACH_CONFIG = Path(
+    os.environ.get("STORM_REACH_CONFIG", _ROOT / "configs" / "reach_channels.yaml")
+).expanduser()
+
+# Per-channel subprocess timeout, seconds. A hung scraper must never wedge a run.
+REACH_TIMEOUT_SEC = int(os.environ.get("STORM_REACH_TIMEOUT", "60"))
+
+
+def reach_enabled() -> bool:
+    """The whole reach layer is opt-in. Absent/unset env => disabled."""
+    return os.environ.get("STORM_REACH_ENABLED", "").strip().lower() in {
+        "1", "true", "yes", "on",
+    }

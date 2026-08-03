@@ -1,0 +1,66 @@
+# Agent Reach channel registry for the STORM research lane.
+#
+# Consumed by src/storm_core/reach.py. This file exists so that a drifted
+# upstream command is a ONE-LINE YAML EDIT, never a code change -- Agent Reach
+# (Panniantong/Agent-Reach, MIT) deliberately swaps the backend behind a channel
+# when a platform blocks it (it retired yt-dlp for Bilibili in June 2026 after a
+# 412), and it installs from `archive/main.zip`, i.e. unpinned. Keeping the argv
+# in config is the mitigation for that, not a stylistic choice.
+# See docs/superpowers/specs/2026-08-03-agent-reach-evaluation.md for the full
+# evaluation and why only these four channels are wired.
+#
+# IMPORTANT -- the `argv` values below are the command names Agent Reach's own
+# docs advertise (`reach_<channel>`). They have NOT been executed against a live
+# install from this repo, because Agent Reach installs to ~/.agent-reach on the
+# owner's own machine. CONFIRM THEM ONCE with:
+#
+#     agent-reach doctor
+#     python -m storm_core reach probe
+#
+# `probe` reports, per channel, whether argv[0] actually resolves on PATH. If a
+# name is wrong, fix it HERE -- nothing in Python hardcodes it.
+#
+# Placeholders substituted at call time: {query} and {limit}.
+#
+# Everything here is OPT-IN. The whole layer is off unless STORM_REACH_ENABLED
+# is set to a truthy value, and any channel that is disabled, unresolvable, or
+# errors at run time is SKIPPED WITH A REASON -- STORM must behave exactly as it
+# did before this file existed when Agent Reach is not installed.
+
+version: 1
+
+# The Agent Reach commit this registry was written against. Agent Reach's own
+# installer is unpinned; record what you actually installed here so drift is
+# visible in git rather than discovered during a research run.
+pinned_ref: "UNPINNED — record the commit SHA you installed, see spec §Risks"
+
+channels:
+  - name: exa
+    label: Exa semantic web search (via mcporter)
+    requires_auth: false
+    enabled: true
+    argv: ["reach_exa", "{query}", "--limit", "{limit}"]
+
+  - name: x
+    label: X / Twitter search
+    # TWITTER_AUTH_TOKEN + TWITTER_CT0 cookies. USE A BURNER ACCOUNT — the same
+    # standing guardrail the instagram_toolkit carries. Scraping risks a lockout.
+    requires_auth: true
+    enabled: true
+    argv: ["reach_twitter", "search", "{query}", "--limit", "{limit}"]
+
+  - name: reddit
+    label: Reddit search
+    # Needs a logged-in session either way — upstream states anonymous endpoints
+    # are blocked. Burner account applies here too.
+    requires_auth: true
+    enabled: true
+    argv: ["reach_reddit", "search", "{query}", "--limit", "{limit}"]
+
+  - name: rss
+    label: RSS / Atom feed read
+    # {query} is a FEED URL here, not a search term. Kept in the same registry
+    # so a lens agent has one uniform way to ask for evidence.
+    requires_auth: false
+    enabled: true
+    argv: ["reach_rss", "{query}", "--limit", "{limit}"]

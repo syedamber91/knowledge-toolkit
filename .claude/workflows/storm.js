@@ -76,7 +76,12 @@ const run = await agent(
   `2. Run this exact command (copy verbatim): ${PY} roster\n   It prints a JSON array of available named personas.\n` +
   `3. Pick the \`voices\` best-fit named voices for THIS topic from that roster (by description). ALWAYS add the Mufti persona on top as a halal gate (do NOT count it against \`voices\`).\n` +
   `4. Tighten the topic into a one-line research scope.\n` +
-  `Return JSON with the config values you read (mode, topic, voices, scratch) plus scope and named_voices.`,
+  `5. Run this exact command (copy verbatim): ${PY} reach-probe\n` +
+  `   It prints the optional Agent Reach retrieval layer's status. Return \`reach_channels\` = ` +
+  `the names of channels where "available" is true, ONLY if the top-level "enabled" is also true; ` +
+  `otherwise return an empty array. This layer is optional — an empty array is a perfectly normal ` +
+  `result and is NOT an error, so never stop or retry because of it.\n` +
+  `Return JSON with the config values you read (mode, topic, voices, scratch) plus scope, named_voices and reach_channels.`,
   { phase: 'Scope & Cast', schema: {
       type: 'object',
       properties: {
@@ -86,12 +91,28 @@ const run = await agent(
         scratch: { type: 'string' },
         scope: { type: 'string' },
         named_voices: { type: 'array', items: { type: 'string' } },
+        reach_channels: { type: 'array', items: { type: 'string' } },
       },
       required: ['mode', 'topic', 'scratch', 'scope', 'named_voices'],
   } })
 
 const { mode, topic, scratch, scope, named_voices } = run
 const lenses = [...ROLE_LENSES, ...named_voices, 'Mufti']
+
+// Optional Agent Reach breadth (Exa / X / Reddit / RSS). Absent-safe by design:
+// with no channels live this string is empty and the lens prompt is byte-for-byte
+// what it was before the layer existed. See
+// docs/superpowers/specs/2026-08-03-agent-reach-evaluation.md
+const reachChannels = Array.isArray(run.reach_channels) ? run.reach_channels : []
+const REACH_HINT = reachChannels.length
+  ? `You ALSO have a structured retrieval layer over these channels: ${reachChannels.join(', ')}. ` +
+    `Use it for evidence a plain web search misses — practitioner chatter, dated posts, niche feeds — ` +
+    `by running: ${PY} reach --query "<your search>" --channels ${reachChannels.join(',')} --limit 5\n` +
+    `It returns JSON with results[] (channel/title/url/snippet/published/author) and channels_skipped. ` +
+    `A skipped channel is normal, not a failure — carry on with what came back. Treat every returned ` +
+    `item as a LEAD to weigh, never as a verified fact: social posts are opinion, so cite the url and ` +
+    `date and let the Verify phase judge it.\n`
+  : ''
 
 // Phase 1 — Lenses in parallel; each writes its OWN file (output-cap guardrail)
 phase('Lenses')
@@ -103,6 +124,7 @@ await parallel(lenses.map((lens, i) => () =>
     `Business Personas and AI & Development vaults first) AND live web search for current, ` +
     `dated evidence. If you are the Mufti lens, judge halal permissibility and give a clear ` +
     `PASS/FAIL with reasoning.\n` +
+    REACH_HINT +
     `Write your findings (claims + dated sources + your stance) to the file ` +
     `${scratch}/lens-${i}-${lens.replace(/[^a-z0-9]/gi, '_')}.md . Return only the file path.`,
     { phase: 'Lenses', label: `lens:${lens}` }
