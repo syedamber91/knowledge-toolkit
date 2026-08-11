@@ -168,8 +168,8 @@ def test_derive_registry_metrics_reads_top_ratios_scalars():
         profit_loss={}, balance_sheet={}, cash_flow={}, ratios={}, quarters={}, growth={},
         top_ratios={
             "Stock P/E": 15.0, "ROCE": 63.0, "ROE": 51.8,
-            "Market Cap": 802492.0, "Book Value": 296.0,
-            "High / Low": (3350.0, 1976.0),  # tuple shape -- must be skipped
+            "Market Cap": (802492.0, 1.0),  # tuple shape under a GUARDED key -- must be skipped
+            "Book Value": 296.0,
         },
     )
     m = derive_registry_metrics(st)
@@ -177,9 +177,8 @@ def test_derive_registry_metrics_reads_top_ratios_scalars():
     assert m["Stock P/E"] == 15.0
     assert m["ROCE"] == 63.0
     assert m["ROE"] == 51.8
-    assert m["Market Cap"] == 802492.0
     assert m["Book Value"] == 296.0
-    assert "High / Low" not in m
+    assert "Market Cap" not in m
 
 
 def test_derive_registry_metrics_top_ratios_absent_is_still_empty():
@@ -209,3 +208,51 @@ def test_fetch_and_derive_end_to_end_top_ratios():
     assert m["Stock P/E"] == 15.0
     assert m["Market Cap"] == 802492.0
     assert m["Book Value"] == 296.0
+
+
+_BLANK_TOP_RATIOS_HTML = """
+<html><body>
+<ul id="top-ratios">
+  <li class="flex flex-space-between" data-source="default">
+    <span class="name">Market Cap</span>
+    <span class="nowrap value">
+      Rs.
+      <span class="number"></span>
+      Cr.
+    </span>
+  </li>
+  <li class="flex flex-space-between" data-source="default">
+    <span class="name">Stock P/E</span>
+    <span class="nowrap value">
+      <span class="number"></span>
+    </span>
+  </li>
+</ul>
+</body></html>
+"""
+
+
+def test_parse_top_ratios_raises_on_blank_panel():
+    """Sanity check: this fixture must actually trigger IncompleteRatiosError,
+    mirroring the confirmed-live Venus Pipes & Tubes case (right #top-ratios
+    shape, every <span class="number"> blank)."""
+    from soic_senses.screener_client import IncompleteRatiosError, parse_top_ratios
+    import pytest
+
+    with pytest.raises(IncompleteRatiosError):
+        parse_top_ratios(_BLANK_TOP_RATIOS_HTML)
+
+
+def test_fetch_screener_statements_degrades_to_empty_top_ratios_on_blank_panel():
+    """A blank #top-ratios panel must not destroy the other 8 statement-table
+    metrics that parsed fine -- fetch_screener_statements should degrade to
+    top_ratios={} instead of letting IncompleteRatiosError propagate."""
+    from soic_senses.screener_client import fetch_screener_statements
+
+    with patch(
+        "soic_senses.screener_client.requests.get",
+        return_value=Mock(status_code=200, text=_BLANK_TOP_RATIOS_HTML),
+    ):
+        st = fetch_screener_statements("TCS")
+
+    assert st.top_ratios == {}
