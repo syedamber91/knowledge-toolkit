@@ -143,3 +143,19 @@ def test_derive_registry_metrics_skips_yoy_without_a_year_ago_quarter():
         growth={},
     )
     assert "Quarterly Sales Growth YoY %" not in derive_registry_metrics(st)
+
+
+def test_fetch_screener_statements_populates_top_ratios():
+    from soic_senses.screener_client import fetch_screener_statements
+
+    with patch(
+        "soic_senses.screener_client.requests.get",
+        return_value=Mock(status_code=200, text=_html()),
+    ):
+        st = fetch_screener_statements("TCS")
+
+    assert st.top_ratios["ROCE"] == 63.0
+    assert st.top_ratios["ROE"] == 51.8
+    assert st.top_ratios["Stock P/E"] == 15.0
+    assert st.top_ratios["Market Cap"] == 802492.0
+    assert st.top_ratios["Book Value"] == 296.0

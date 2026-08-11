@@ -8,7 +8,7 @@ numbers to check them against. Every number here is live, never a wiki value.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Tuple, Union
 
 import requests
@@ -131,6 +131,7 @@ class ScreenerStatements:
     ratios: StatementRows
     quarters: StatementRows
     growth: StatementRows  # {"Compounded Sales Growth": {"3 Years": 6.0}}
+    top_ratios: Dict[str, RatioValue] = field(default_factory=dict)
 
 
 def _norm_label(text: str) -> str:
@@ -223,6 +224,7 @@ def fetch_screener_statements(symbol: str) -> ScreenerStatements:
         ratios=parse_statement_section(html, "ratios"),
         quarters=parse_statement_section(html, "quarters"),
         growth=parse_growth_tables(html),
+        top_ratios=parse_top_ratios(html),
     )
 
 
