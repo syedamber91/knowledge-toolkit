@@ -8,7 +8,7 @@ numbers to check them against. Every number here is live, never a wiki value.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Tuple, Union
 
 import requests
@@ -131,6 +131,7 @@ class ScreenerStatements:
     ratios: StatementRows
     quarters: StatementRows
     growth: StatementRows  # {"Compounded Sales Growth": {"3 Years": 6.0}}
+    top_ratios: Dict[str, RatioValue] = field(default_factory=dict)
 
 
 def _norm_label(text: str) -> str:
@@ -216,6 +217,15 @@ def parse_growth_tables(html: str) -> StatementRows:
 def fetch_screener_statements(symbol: str) -> ScreenerStatements:
     """Fetch and parse every statement section for one symbol in a single GET."""
     html = _fetch_company_html(symbol)
+    try:
+        top_ratios = parse_top_ratios(html)
+    except IncompleteRatiosError:
+        # screener sometimes serves the #top-ratios panel with every value
+        # blank (a data gap on their side, confirmed live for Venus Pipes &
+        # Tubes). Degrade to the statement-table metrics rather than losing
+        # the whole company -- callers that need top-ratios specifically
+        # (fetch_screener_ratios) still raise.
+        top_ratios = {}
     return ScreenerStatements(
         profit_loss=parse_statement_section(html, "profit-loss"),
         balance_sheet=parse_statement_section(html, "balance-sheet"),
@@ -223,6 +233,7 @@ def fetch_screener_statements(symbol: str) -> ScreenerStatements:
         ratios=parse_statement_section(html, "ratios"),
         quarters=parse_statement_section(html, "quarters"),
         growth=parse_growth_tables(html),
+        top_ratios=top_ratios,
     )
 
 
@@ -302,5 +313,14 @@ def derive_registry_metrics(st: ScreenerStatements) -> Dict[str, float]:
         s_v, ta_v = _latest(sales), _latest(total_assets)
         if s_v is not None and ta_v not in (None, 0):
             out["Asset Turnover"] = s_v / ta_v
+
+    # metric-registry.yaml declares these 5 as "fetchable" via
+    # parse_top_ratios() -- read straight off screener's #top-ratios panel,
+    # already present in the same HTML fetch. Only scalar values are taken;
+    # "High / Low" (a tuple) is deliberately never read here.
+    for label in ("Stock P/E", "ROCE", "ROE", "Market Cap", "Book Value"):
+        value = st.top_ratios.get(label)
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            out[label] = float(value)
 
     return out
