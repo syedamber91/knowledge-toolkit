@@ -305,4 +305,13 @@ def derive_registry_metrics(st: ScreenerStatements) -> Dict[str, float]:
         if s_v is not None and ta_v not in (None, 0):
             out["Asset Turnover"] = s_v / ta_v
 
+    # metric-registry.yaml declares these 5 as "fetchable" via
+    # parse_top_ratios() -- read straight off screener's #top-ratios panel,
+    # already present in the same HTML fetch. Only scalar values are taken;
+    # "High / Low" (a tuple) is deliberately never read here.
+    for label in ("Stock P/E", "ROCE", "ROE", "Market Cap", "Book Value"):
+        value = st.top_ratios.get(label)
+        if isinstance(value, float):
+            out[label] = value
+
     return out

@@ -159,3 +159,53 @@ def test_fetch_screener_statements_populates_top_ratios():
     assert st.top_ratios["Stock P/E"] == 15.0
     assert st.top_ratios["Market Cap"] == 802492.0
     assert st.top_ratios["Book Value"] == 296.0
+
+
+def test_derive_registry_metrics_reads_top_ratios_scalars():
+    from soic_senses.screener_client import ScreenerStatements, derive_registry_metrics
+
+    st = ScreenerStatements(
+        profit_loss={}, balance_sheet={}, cash_flow={}, ratios={}, quarters={}, growth={},
+        top_ratios={
+            "Stock P/E": 15.0, "ROCE": 63.0, "ROE": 51.8,
+            "Market Cap": 802492.0, "Book Value": 296.0,
+            "High / Low": (3350.0, 1976.0),  # tuple shape -- must be skipped
+        },
+    )
+    m = derive_registry_metrics(st)
+
+    assert m["Stock P/E"] == 15.0
+    assert m["ROCE"] == 63.0
+    assert m["ROE"] == 51.8
+    assert m["Market Cap"] == 802492.0
+    assert m["Book Value"] == 296.0
+    assert "High / Low" not in m
+
+
+def test_derive_registry_metrics_top_ratios_absent_is_still_empty():
+    """Backward compat: the pre-existing 'omits what it cannot derive'
+    contract must hold even though ScreenerStatements now carries a 7th
+    field."""
+    from soic_senses.screener_client import ScreenerStatements, derive_registry_metrics
+
+    empty = ScreenerStatements(
+        profit_loss={}, balance_sheet={}, cash_flow={}, ratios={}, quarters={}, growth={}
+    )
+    assert derive_registry_metrics(empty) == {}
+
+
+def test_fetch_and_derive_end_to_end_top_ratios():
+    from soic_senses.screener_client import derive_registry_metrics, fetch_screener_statements
+
+    with patch(
+        "soic_senses.screener_client.requests.get",
+        return_value=Mock(status_code=200, text=_html()),
+    ):
+        st = fetch_screener_statements("TCS")
+    m = derive_registry_metrics(st)
+
+    assert m["ROCE"] == 63.0
+    assert m["ROE"] == 51.8
+    assert m["Stock P/E"] == 15.0
+    assert m["Market Cap"] == 802492.0
+    assert m["Book Value"] == 296.0
