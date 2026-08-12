@@ -1,9 +1,29 @@
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+
+from soic_senses.screener_client import ScreenerStatements
 
 FRAMEWORKS_FIXTURE = Path(__file__).parent / "fixtures" / "frameworks_sample.md"
 SECTOR_REGISTRY_FIXTURE = Path(__file__).parent / "fixtures" / "sector_notebooks_sample.yaml"
+SCREENER_TCS_FIXTURE = Path(__file__).parent / "fixtures" / "screener_tcs.html"
+
+
+def _fake_statements(top_ratios=None):
+    """A ScreenerStatements with every statement-table section empty, so
+    derive_registry_metrics() contributes nothing and live_ratios is driven
+    purely by top_ratios -- keeps these build_briefing tests focused on the
+    single-fetch wiring, not statement-derivation (already covered in
+    test_soic_senses_screener_statements.py)."""
+    return ScreenerStatements(
+        profit_loss={},
+        balance_sheet={},
+        cash_flow={},
+        ratios={},
+        quarters={},
+        growth={},
+        top_ratios=dict(top_ratios) if top_ratios else {},
+    )
 
 # A technicals fetch that contributes nothing to live_ratios (every field
 # None) -- used by tests that only care about screener behavior, so the
@@ -28,8 +48,10 @@ def test_build_briefing_includes_live_ratios_when_fetch_succeeds():
     from soic_senses.decision_engine import build_briefing
 
     fake_ratios = {"Stock P/E": 15.0, "ROCE": 63.0}
+    frozen_fake_ratios = dict(fake_ratios)  # to prove the source dict survives untouched
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value=fake_ratios
+        "soic_senses.decision_engine.fetch_screener_statements",
+        return_value=_fake_statements(fake_ratios),
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(
             symbol="TCS",
@@ -38,7 +60,12 @@ def test_build_briefing_includes_live_ratios_when_fetch_succeeds():
         )
 
     assert briefing.symbol == "TCS"
-    assert briefing.live_ratios == fake_ratios
+    assert briefing.live_ratios == frozen_fake_ratios
+    # build_briefing must not mutate the dict the fetch handed it -- a
+    # defensive-copy regression would still pass the equality check above
+    # since it would be comparing the object against itself.
+    assert briefing.live_ratios is not fake_ratios
+    assert fake_ratios == frozen_fake_ratios
     assert briefing.data_error is None
 
 
@@ -46,7 +73,7 @@ def test_build_briefing_selects_matching_frameworks():
     from soic_senses.decision_engine import build_briefing
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value={}
+        "soic_senses.decision_engine.fetch_screener_statements", return_value=_fake_statements()
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(
             symbol="TCS",
@@ -62,7 +89,7 @@ def test_build_briefing_records_data_error_instead_of_crashing_when_fetch_fails(
     from soic_senses.screener_client import CompanyNotFoundError
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios",
+        "soic_senses.decision_engine.fetch_screener_statements",
         side_effect=CompanyNotFoundError("no page for XYZ"),
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(symbol="XYZ", keywords=["DCF"], frameworks_path=FRAMEWORKS_FIXTURE)
@@ -81,7 +108,7 @@ def test_briefing_to_markdown_never_hides_a_data_fetch_failure():
     from soic_senses.screener_client import IncompleteRatiosError
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios",
+        "soic_senses.decision_engine.fetch_screener_statements",
         side_effect=IncompleteRatiosError("blank ratios"),
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(symbol="VENUSPIPES", keywords=["BHEL"], frameworks_path=FRAMEWORKS_FIXTURE)
@@ -95,7 +122,7 @@ def test_build_briefing_without_sector_registry_path_has_no_sectors():
     from soic_senses.decision_engine import build_briefing
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value={}
+        "soic_senses.decision_engine.fetch_screener_statements", return_value=_fake_statements()
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(symbol="TCS", keywords=["DCF"], frameworks_path=FRAMEWORKS_FIXTURE)
 
@@ -106,7 +133,7 @@ def test_build_briefing_matches_sectors_when_registry_path_given():
     from soic_senses.decision_engine import build_briefing
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value={}
+        "soic_senses.decision_engine.fetch_screener_statements", return_value=_fake_statements()
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(
             symbol="NAVINFLUOR",
@@ -122,7 +149,7 @@ def test_build_briefing_sector_matching_does_not_disturb_framework_matching():
     from soic_senses.decision_engine import build_briefing
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value={}
+        "soic_senses.decision_engine.fetch_screener_statements", return_value=_fake_statements()
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(
             symbol="TCS",
@@ -139,7 +166,7 @@ def test_briefing_to_markdown_includes_sector_context_section():
     from soic_senses.decision_engine import build_briefing
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value={}
+        "soic_senses.decision_engine.fetch_screener_statements", return_value=_fake_statements()
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         briefing = build_briefing(
             symbol="NAVINFLUOR",
@@ -160,7 +187,7 @@ def test_adding_a_second_unrelated_sector_does_not_crowd_out_the_first():
     from soic_senses.decision_engine import build_briefing
 
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value={}
+        "soic_senses.decision_engine.fetch_screener_statements", return_value=_fake_statements()
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
         real_estate_briefing = build_briefing(
             symbol="DLF",
@@ -300,7 +327,8 @@ def test_build_briefing_merges_tradingview_technicals_into_live_ratios_under_uni
         close=1320.0,
     )
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value=fake_ratios
+        "soic_senses.decision_engine.fetch_screener_statements",
+        return_value=_fake_statements(fake_ratios),
     ), patch(
         "soic_senses.decision_engine.fetch_technicals", return_value=fake_snapshot
     ) as mock_fetch_technicals:
@@ -324,7 +352,8 @@ def test_build_briefing_records_technicals_error_without_losing_screener_data():
 
     fake_ratios = {"Stock P/E": 15.0}
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios", return_value=fake_ratios
+        "soic_senses.decision_engine.fetch_screener_statements",
+        return_value=_fake_statements(fake_ratios),
     ), patch(
         "soic_senses.decision_engine.fetch_technicals",
         side_effect=TechnicalsUnavailableError("no analysis for XYZ"),
@@ -355,7 +384,7 @@ def test_build_briefing_records_screener_error_without_losing_technicals_data():
         close=None,
     )
     with patch(
-        "soic_senses.decision_engine.fetch_screener_ratios",
+        "soic_senses.decision_engine.fetch_screener_statements",
         side_effect=CompanyNotFoundError("no page for XYZ"),
     ), patch("soic_senses.decision_engine.fetch_technicals", return_value=fake_snapshot):
         briefing = build_briefing(symbol="XYZ", keywords=["DCF"], frameworks_path=FRAMEWORKS_FIXTURE)
@@ -441,3 +470,25 @@ def test_timing_class_can_cap_a_verdict_but_never_adds_buy_weight():
     # ... but valuation and quality still do.
     assert _CLASS_WEIGHTS["valuation"] > 0
     assert _CLASS_WEIGHTS["quality"] > 0
+
+
+def test_briefing_to_markdown_still_lists_headline_figures_after_single_fetch_change():
+    """Risk flag from triage: build_briefing's live_ratios is now seeded from
+    st.top_ratios (single fetch_screener_statements call) instead of a
+    separate fetch_screener_ratios call. Confirm that swap didn't silently
+    drop screener's headline figures from the rendered markdown -- exercised
+    against the real TCS fixture through the full parse/derive pipeline
+    (only the underlying HTTP GET is mocked, so this stays offline)."""
+    from soic_senses.decision_engine import build_briefing
+
+    html = SCREENER_TCS_FIXTURE.read_text(encoding="utf-8")
+    with patch(
+        "soic_senses.screener_client.requests.get",
+        return_value=Mock(status_code=200, text=html),
+    ), patch("soic_senses.decision_engine.fetch_technicals", return_value=_EMPTY_SNAPSHOT):
+        briefing = build_briefing(symbol="TCS", keywords=["DCF"], frameworks_path=FRAMEWORKS_FIXTURE)
+
+    assert briefing.data_error is None
+    md = briefing.to_markdown()
+    for label in ("Market Cap", "Stock P/E", "ROCE", "ROE", "Book Value"):
+        assert f"**{label}:**" in md, f"{label} missing from rendered briefing markdown"

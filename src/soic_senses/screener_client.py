@@ -43,7 +43,10 @@ def _to_float(text: str) -> Union[float, None]:
     cleaned = text.replace(",", "").strip()
     if not cleaned:
         return None
-    return float(cleaned)
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
 
 
 def parse_top_ratios(html: str) -> Dict[str, RatioValue]:

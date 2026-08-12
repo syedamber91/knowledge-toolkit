@@ -24,11 +24,7 @@ from soic_senses.decision_rules import (
     load_metric_registry,
 )
 from soic_senses.framework_router import Framework, load_frameworks, match_frameworks
-from soic_senses.screener_client import (
-    derive_registry_metrics,
-    fetch_screener_ratios,
-    fetch_screener_statements,
-)
+from soic_senses.screener_client import derive_registry_metrics, fetch_screener_statements
 from soic_senses.sector_router import Sector, load_sectors, match_sectors
 from soic_senses.tradingview_client import fetch_technicals
 
@@ -125,23 +121,23 @@ def build_briefing(
     errors: List[str] = []
 
     try:
-        briefing.live_ratios = fetch_screener_ratios(symbol)
+        st = fetch_screener_statements(symbol)
     except Exception as exc:  # noqa: BLE001 - deliberately broad: record, never crash the briefing
         errors.append(str(exc))
-
-    try:
-        statements = derive_registry_metrics(fetch_screener_statements(symbol))
-    except Exception as exc:  # noqa: BLE001 - independent of the other two sources
-        errors.append(str(exc))
     else:
-        if briefing.live_ratios is None:
-            briefing.live_ratios = dict(statements)
-        else:
-            # Statement rows never overwrite a top-ratios value: where both
-            # publish the same fact, the top-ratios grid is screener's own
-            # headline figure and stays authoritative.
-            for label, value in statements.items():
-                briefing.live_ratios.setdefault(label, value)
+        # A single GET now supplies both the top-ratios grid (Current Price,
+        # Dividend Yield, High/Low, Face Value, ... -- everything
+        # fetch_screener_ratios used to fetch with its OWN separate GET) and
+        # the statement-table metrics. Copy defensively: st.top_ratios is a
+        # dict this module doesn't own, and the setdefault below must not
+        # mutate the caller's/mock's object in place.
+        live_ratios = dict(st.top_ratios)
+        # Statement rows never overwrite a top-ratios value: where both
+        # publish the same fact, the top-ratios grid is screener's own
+        # headline figure and stays authoritative.
+        for label, value in derive_registry_metrics(st).items():
+            live_ratios.setdefault(label, value)
+        briefing.live_ratios = live_ratios
 
     try:
         snapshot = fetch_technicals(symbol)
