@@ -256,3 +256,74 @@ def test_fetch_screener_statements_degrades_to_empty_top_ratios_on_blank_panel()
         st = fetch_screener_statements("TCS")
 
     assert st.top_ratios == {}
+
+
+_MIXED_NA_TOP_RATIOS_HTML = """
+<html><body>
+<ul id="top-ratios">
+  <li class="flex flex-space-between" data-source="default">
+    <span class="name">Market Cap</span>
+    <span class="nowrap value">
+      Rs.
+      <span class="number">N/A</span>
+      Cr.
+    </span>
+  </li>
+  <li class="flex flex-space-between" data-source="default">
+    <span class="name">Stock P/E</span>
+    <span class="nowrap value">
+      <span class="number">15.00</span>
+    </span>
+  </li>
+</ul>
+</body></html>
+"""
+
+
+def test_parse_top_ratios_skips_a_non_numeric_span_without_raising():
+    """A single garbage value (e.g. 'N/A', '--') in one span must not take
+    down the whole panel -- the sibling statement-table parser (_to_number)
+    already tolerates this via a caught ValueError; _to_float needs the same
+    treatment so one bad span doesn't cost the 8 good statement metrics that
+    parsed fine in the same fetch."""
+    from soic_senses.screener_client import parse_top_ratios
+
+    ratios = parse_top_ratios(_MIXED_NA_TOP_RATIOS_HTML)
+
+    assert ratios == {"Stock P/E": 15.0}
+    assert "Market Cap" not in ratios
+
+
+_ALL_GARBAGE_TOP_RATIOS_HTML = """
+<html><body>
+<ul id="top-ratios">
+  <li class="flex flex-space-between" data-source="default">
+    <span class="name">Market Cap</span>
+    <span class="nowrap value">
+      Rs.
+      <span class="number">N/A</span>
+      Cr.
+    </span>
+  </li>
+  <li class="flex flex-space-between" data-source="default">
+    <span class="name">Stock P/E</span>
+    <span class="nowrap value">
+      <span class="number">--</span>
+    </span>
+  </li>
+</ul>
+</body></html>
+"""
+
+
+def test_parse_top_ratios_still_raises_when_every_span_is_non_numeric_garbage():
+    """The degrade contract must stay intact: _to_float returning None for
+    unparseable text (instead of raising) must NOT quietly satisfy the
+    IncompleteRatiosError check -- parse_top_ratios already filters None out
+    of `numbers`, so an all-garbage panel (parsed_count == 0) still trips it,
+    exactly like an all-blank panel does."""
+    from soic_senses.screener_client import IncompleteRatiosError, parse_top_ratios
+    import pytest
+
+    with pytest.raises(IncompleteRatiosError):
+        parse_top_ratios(_ALL_GARBAGE_TOP_RATIOS_HTML)
