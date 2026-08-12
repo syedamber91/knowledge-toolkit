@@ -100,7 +100,10 @@ def test_derive_registry_metrics_maps_growth_windows_to_registry_labels():
 
 def test_derive_registry_metrics_omits_what_it_cannot_derive():
     """No fabrication: a metric whose source rows are missing must be absent
-    from the dict entirely, so evaluate() abstains rather than scoring a zero."""
+    from the dict entirely, so evaluate() abstains rather than scoring a zero.
+    Backward compat: this contract must keep holding even though
+    ScreenerStatements grew a 7th field (top_ratios) after it was written --
+    the fixture below omits it entirely and still must derive nothing."""
     from soic_senses.screener_client import ScreenerStatements, derive_registry_metrics
 
     empty = ScreenerStatements(
@@ -181,16 +184,23 @@ def test_derive_registry_metrics_reads_top_ratios_scalars():
     assert "Market Cap" not in m
 
 
-def test_derive_registry_metrics_top_ratios_absent_is_still_empty():
-    """Backward compat: the pre-existing 'omits what it cannot derive'
-    contract must hold even though ScreenerStatements now carries a 7th
-    field."""
+def test_derive_registry_metrics_skips_bool_but_keeps_plain_int():
+    """The guard is isinstance(value, (int, float)) and not isinstance(value,
+    bool) -- since bool is a subclass of int in Python, dropping the second
+    clause would silently let True/False through as 1.0/0.0. Pin both halves:
+    a bool value must be skipped entirely, and a plain int must still be
+    coerced to float."""
     from soic_senses.screener_client import ScreenerStatements, derive_registry_metrics
 
-    empty = ScreenerStatements(
-        profit_loss={}, balance_sheet={}, cash_flow={}, ratios={}, quarters={}, growth={}
+    st = ScreenerStatements(
+        profit_loss={}, balance_sheet={}, cash_flow={}, ratios={}, quarters={}, growth={},
+        top_ratios={"ROCE": True, "ROE": 51},
     )
-    assert derive_registry_metrics(empty) == {}
+    m = derive_registry_metrics(st)
+
+    assert "ROCE" not in m
+    assert m["ROE"] == 51.0
+    assert isinstance(m["ROE"], float)
 
 
 def test_fetch_and_derive_end_to_end_top_ratios():
@@ -244,9 +254,14 @@ def test_parse_top_ratios_raises_on_blank_panel():
 
 
 def test_fetch_screener_statements_degrades_to_empty_top_ratios_on_blank_panel():
-    """A blank #top-ratios panel must not destroy the other 8 statement-table
-    metrics that parsed fine -- fetch_screener_statements should degrade to
-    top_ratios={} instead of letting IncompleteRatiosError propagate."""
+    """A blank #top-ratios panel must not raise out of fetch_screener_statements
+    -- it should degrade to top_ratios={} instead of letting
+    IncompleteRatiosError propagate. This fixture has no statement-table
+    sections, so it does NOT exercise the "8 other metrics survive" claim
+    (that would need a fixture with both a blank top-ratios panel AND
+    populated statement tables); what it does prove is that the
+    IncompleteRatiosError -> top_ratios={} degrade itself works, i.e. the
+    mutation of letting the exception propagate is killed."""
     from soic_senses.screener_client import fetch_screener_statements
 
     with patch(
