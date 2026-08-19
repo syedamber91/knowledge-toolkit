@@ -31,6 +31,71 @@ its community labels. To refresh properly, run `/graphify .` (re-extracts code
 **and** docs, re-clusters, re-labels). Keep it current — it is the first thing
 every session reads.
 
+## Skill precedence — ponytail is the primary general prior
+
+Two third-party skills are vendored here and installed **globally** (see
+`scripts/install-global-skills.sh`), so they apply in every project, not just
+this one. `ponytail` is **primary**: it outranks `karpathy-guidelines` as the
+default prior on any coding task, and runs at intensity **`full`** (the ladder
+enforced: YAGNI → stdlib → native → one line → minimum). It is always active
+once loaded — it does not need re-invoking per response.
+
+**The ladder, highest authority first:**
+
+1. **This repo's non-negotiable invariants** (the do-not-cut list below) — these
+   win against everything, always.
+2. **Repo-specific skills** — `test-driven-development`,
+   `verification-before-completion`, `writing-plans`, `systematic-debugging`.
+   They encode hard-won local convention; they beat both general priors.
+3. **`ponytail` (`full`)** — the primary general prior. Beats
+   `karpathy-guidelines` wherever the two disagree, which is mostly about
+   degree: both push simplicity, ponytail pushes harder and shorter.
+4. **`karpathy-guidelines`** — the secondary general prior. Still governs what
+   ponytail is silent on: surfacing assumptions, not silently choosing between
+   interpretations, defining a verifiable success criterion.
+
+**Do-not-cut list — ponytail may never delete, simplify away, or argue out of
+existence:**
+
+- The **index + log + cross-links** requirement in every vault builder, and the
+  4-test shape (backfill wording, append-on-growth, skip-on-no-change,
+  removed-item wording) that goes with it. `ponytail-audit` *will* flag
+  `_log_ingest`'s replication across four builders as duplication. It is
+  deliberate. Leave it.
+- The **persona-wiki gates** and their thresholds — G2 cited-quote verification
+  at **≥80%**, the pilot-first discipline, the independent second-model review.
+  "Swap the brain, keep the judge" is the invariant.
+- **Provenance and citation discipline** — never fabricate a quote, a
+  transcript, or a timestamp; never loosen a citation format to make a gate
+  pass. The fabricated `"cash cow"` quote in the framework-evolution history is
+  the standing example of why.
+- **Capture guardrails** — no DRM circumvention, no stored passwords, personal
+  use only, nothing captured is ever committed.
+- **Resumable + polite crawling** — the seen-URL tracking, the incremental
+  per-item catalog save, the 1.5–3.5s (3–6s for Instagram) sleep. These read as
+  removable ceremony and are not.
+- **Pydantic models** in each package's `models.py` — not loose dicts, even when
+  a dict is three lines shorter.
+- The **pinned graphify graph** and its curated semantic layer.
+
+Everything else in this repo is fair game for `/ponytail-review` and
+`/ponytail-audit`.
+
+**`last30days` is Claude Code only.** It ships ~92 Python modules that call out
+to ~30 third-party hosts and read your Chrome/Safari cookie store to
+authenticate as you, so it cannot run in claude.ai chat — that sandbox has
+neither your API keys nor your browser session. It is explicit-invocation only
+(`/last30days <topic>`); nothing in it runs on a hook. It also needs a
+**Python 3.12+** binary on PATH — two of its modules use PEP 701 f-string syntax
+that is a `SyntaxError` on 3.11, while this repo's own floor stays at 3.9. The
+skill resolves its own interpreter, so leave both alone.
+
+**Chat vs Claude Code.** `scripts/install-global-skills.sh` covers Claude Code
+globally (skills + the ponytail session hooks). claude.ai chat has no shell
+install path, so `scripts/build-chat-skill-bundle.sh` produces upload-ready zips
+of the six ponytail skills for **Settings → Capabilities → Skills → Upload
+skill** — a one-time manual step.
+
 ## Overview
 
 `knowledge-toolkit` is a **personal knowledge-capture toolkit**. It logs into
@@ -593,6 +658,22 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
+- `ponytail` + `ponytail-review` / `-audit` / `-debt` / `-gain` / `-help` — the
+  **primary general prior** (see "Skill precedence" above): lazy-senior-dev mode
+  at intensity `full`, plus an over-engineering review (`/ponytail-review`, on a
+  diff), a repo-wide bloat audit (`/ponytail-audit`), and a ledger of deliberate
+  `ponytail:` shortcut comments (`/ponytail-debt`). **Vendored** from
+  `DietrichGebert/ponytail` @ `2ed6c52`, MIT — pinned in-repo rather than
+  marketplace-installed so the text can't change under us; see the provenance
+  block at the top of each `SKILL.md`. Session hooks live at
+  `.claude/hooks/ponytail/` and are wired globally by
+  `scripts/install-global-skills.sh`. **Read the do-not-cut list before acting
+  on any `ponytail-audit` finding in this repo.**
+- `last30days` (`/last30days <topic>`) — researches what people actually said
+  about a topic in the last 30 days across Reddit, X, YouTube, Hacker News,
+  Polymarket, GitHub and the web. **Vendored** from `mvanhorn/last30days-skill`
+  @ `9243a32`, MIT, minus its 14M of unreferenced demo assets. Claude Code only
+  (needs your API keys and browser cookies); reaches the network on every run.
 - `karpathy-guidelines` (`/karpathy-guidelines`) — behavioural guardrails against
   the common LLM coding failure modes: think-before-coding (surface assumptions,
   don't silently pick between interpretations), simplicity-first (no speculative
@@ -602,10 +683,13 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   `multica-ai/andrej-karpathy-skills` @ `2c60614`, MIT — pinned in-repo rather
   than plugin-installed so the text can't change under us; see the provenance
   block at the top of its `SKILL.md`. Consult it when writing/reviewing/
-  refactoring; it is a *general prior* that yields to the repo-specific skills
-  below (`test-driven-development`, `verification-before-completion`,
+  refactoring; it is the *secondary* general prior — it yields to `ponytail`
+  (the primary one) on questions of how simple to go, and to the repo-specific
+  skills below (`test-driven-development`, `verification-before-completion`,
   `writing-plans`, `systematic-debugging`) wherever they overlap or conflict.
-  `EXAMPLES.md` alongside it has before/after cases.
+  It still governs what ponytail is silent on: surfacing assumptions, not
+  silently picking between interpretations, defining a verifiable success
+  criterion. `EXAMPLES.md` alongside it has before/after cases.
 - `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture`,
   `instagram-capture` — source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.
