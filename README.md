@@ -148,6 +148,22 @@ system-design / AI terms (`src/media_toolkit/topics.py`). Personal use only;
 only text the platforms expose is stored — no audio/video is downloaded. The
 capture cache lives in `data/media.json` (gitignored).
 
+## Udemy toolkit
+
+A fourth source: capture lecture **transcripts** (text only, never video) from
+Udemy courses you've purchased, into a standalone Obsidian vault. Login is
+interactive (a real browser window, your own credentials); only the resulting
+session is saved, to `.auth/udemy_state.json`.
+
+```bash
+# Udemy (one course at a time; transcripts only, never video)
+udemy-toolkit login && udemy-toolkit crawl "<course-url>" --limit 5 && udemy-toolkit build-vault
+```
+
+The vault defaults to `UDEMY_VAULT_DIR` (a standalone iCloud "Udemy Vault",
+separate from every other vault above). No video/audio is ever downloaded or
+decrypted, and no password is ever read or stored by this tool.
+
 ## Where extracted knowledge is stored
 
 ```
