@@ -51,14 +51,18 @@ class PlaywrightFetcher:
     def course_meta(self, course_url: str) -> Dict[str, Any]:
         slug = course_slug(course_url)
         found = self._json(
-            f"/api-2.0/courses/?search={slug}&fields[course]=id,title,visible_instructors"
+            f"/api-2.0/courses/?search={slug}&fields[course]=id,title,url,visible_instructors"
         )
         results = found.get("results") or []
-        match = next((r for r in results if r.get("url", "").strip("/").endswith(slug)), None)
-        if match is None and results:
-            match = results[0]
-        if match is None:
+        if not results:
             raise RuntimeError(f"Could not resolve course from URL: {course_url}")
+        match = next((r for r in results if r.get("url", "").strip("/").endswith(slug)), None)
+        if match is None:
+            titles = ", ".join(repr(r.get("title", "")) for r in results)
+            raise RuntimeError(
+                f"Could not find a search result matching course slug {slug!r} "
+                f"(requested via {course_url!r}). Refusing to guess -- found: {titles}."
+            )
         course_id = str(match["id"])
         instructors = match.get("visible_instructors") or []
         curriculum = self._json(

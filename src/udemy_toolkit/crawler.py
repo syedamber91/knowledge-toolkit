@@ -39,12 +39,20 @@ def crawl_course(
     catalog_path: Path = CATALOG_PATH,
     limit: Optional[int] = None,
     sleep: Callable[[float], None] = time.sleep,
+    on_resolved: Optional[Callable[[str], None]] = None,
 ) -> CrawlSummary:
-    """Capture transcripts for one course, resuming from any previous run."""
+    """Capture transcripts for one course, resuming from any previous run.
+
+    ``on_resolved``, if given, is called with the resolved course title as
+    soon as ``course_meta`` returns -- before any lecture is crawled -- so a
+    caller can show the human what is about to be captured.
+    """
     catalog = UdemyCatalog.load(catalog_path)
     known = catalog.known_ids()
 
     meta = fetcher.course_meta(course_url)
+    if on_resolved is not None:
+        on_resolved(meta["title"])
     parsed = parse_curriculum(
         meta["curriculum"],
         course_id=meta["id"],

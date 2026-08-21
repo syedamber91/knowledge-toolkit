@@ -56,10 +56,16 @@ def crawl(
     """Capture lecture transcripts for one course."""
     from .fetcher import PlaywrightFetcher
 
+    def _announce(title: str) -> None:
+        console.print(f"Resolved course: [bold]{title}[/bold]")
+
     try:
         with auth_mod.authenticated_context(headed=settings.crawl_headed) as context:
             summary = crawler_mod.crawl_course(
-                course_url, PlaywrightFetcher(context), limit=limit
+                course_url,
+                PlaywrightFetcher(context),
+                limit=limit,
+                on_resolved=_announce,
             )
     except crawler_mod.SessionExpired as exc:
         console.print(f"[red]{exc}[/red]")

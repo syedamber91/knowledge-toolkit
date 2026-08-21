@@ -150,7 +150,7 @@ capture cache lives in `data/media.json` (gitignored).
 
 ## Udemy toolkit
 
-A fourth source: capture lecture **transcripts** (text only, never video) from
+Capture lecture **transcripts** (text only, never video) from
 Udemy courses you've purchased, into a standalone Obsidian vault. Login is
 interactive (a real browser window, your own credentials); only the resulting
 session is saved, to `.auth/udemy_state.json`.
