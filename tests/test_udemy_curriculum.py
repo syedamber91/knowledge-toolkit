@@ -51,6 +51,49 @@ def test_lecture_fields_are_populated():
     assert lecture.transcript == ""
 
 
+def test_non_numeric_duration_yields_none_and_parsing_continues():
+    course = parse_curriculum(
+        {
+            "results": [
+                {"_class": "chapter", "id": 900, "title": "Ch", "object_index": 1},
+                {
+                    "_class": "lecture",
+                    "id": 20,
+                    "title": "Bad Duration",
+                    "asset": {"time_estimation": "TBD"},
+                },
+                {
+                    "_class": "lecture",
+                    "id": 21,
+                    "title": "Good Duration",
+                    "asset": {"time_estimation": "125"},
+                },
+            ]
+        },
+        course_id="123",
+        course_title="T",
+        course_url="https://www.udemy.com/course/test/",
+    )
+    lectures = course.sections[0].lectures
+    assert lectures[0].duration_seconds is None
+    assert lectures[1].duration_seconds == 125
+
+
+def test_duplicate_object_index_gets_sequential_order():
+    course = parse_curriculum(
+        {
+            "results": [
+                {"_class": "chapter", "id": 900, "title": "First", "object_index": 5},
+                {"_class": "chapter", "id": 901, "title": "Second", "object_index": 5},
+            ]
+        },
+        course_id="123",
+        course_title="T",
+        course_url="https://www.udemy.com/course/test/",
+    )
+    assert [s.order for s in course.sections] == [1, 2]
+
+
 def test_lecture_before_any_chapter_lands_in_introduction():
     course = parse_curriculum(
         {"results": [{"_class": "lecture", "id": 5, "title": "Orphan", "asset": {}}]},

@@ -46,7 +46,7 @@ def parse_curriculum(
         if kind == "chapter":
             current = UdemySection(
                 title=item.get("title") or "Untitled section",
-                order=int(item.get("object_index") or len(sections) + 1),
+                order=len(sections) + 1,
             )
             sections.append(current)
             continue
@@ -58,13 +58,21 @@ def parse_curriculum(
             sections.append(current)
         asset = item.get("asset") or {}
         duration = asset.get("time_estimation")
+        duration_seconds: Optional[int]
+        if duration is None:
+            duration_seconds = None
+        else:
+            try:
+                duration_seconds = int(duration)
+            except (TypeError, ValueError):
+                duration_seconds = None
         lecture_id = str(item.get("id"))
         current.lectures.append(
             UdemyLecture(
                 id=lecture_id,
                 title=item.get("title") or f"Lecture {lecture_id}",
                 url=_lecture_url(course_url, lecture_id),
-                duration_seconds=int(duration) if duration is not None else None,
+                duration_seconds=duration_seconds,
                 section_title=current.title,
             )
         )
