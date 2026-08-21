@@ -112,3 +112,25 @@ Fixtures live in `tests/fixtures/udemy/`.
 - Capturing every enrolled course in one command.
 - Quizzes, coding exercises, attached resources, Q&A.
 - Any media download.
+
+## Addendum (2026-08-22) — machine-routable vault layer
+
+Added at the user's request after the design was approved: the vault must be
+readable by an agent that will generate a wiki and learning materials from it,
+not only by a human in Obsidian. Beyond the index + log + cross-links contract
+above, `build_vault` also emits:
+
+- **`index.yaml`** — a cheap routing manifest read *before* any grep: every
+  lecture's note path, URL, section, tags, topics, `has_transcript`, and word
+  count, plus vault-level counts and the tag vocabulary.
+- **`tags/<tag>.md`** — notes over a **closed** 12-tag vocabulary
+  (`classify_tags` may never return a tag outside it), giving a second routing
+  axis alongside `topics/`.
+- **`verify_vault()`** — one pass over the entire built vault reporting dangling
+  wikilinks, orphan notes, untagged lectures, and out-of-vocabulary tags.
+  `build-vault` exits non-zero when it finds any. Per the lesson recorded in
+  CLAUDE.md's cross-linking pass, verification is a single whole-set read, never
+  a trust of per-file self-reports.
+
+This is additive: no existing field is rewritten, matching the "add a new field
+for a new capability" rule.

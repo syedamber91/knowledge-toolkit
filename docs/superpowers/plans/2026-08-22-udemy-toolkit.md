@@ -1784,9 +1784,302 @@ The post-commit hook will have flagged `graphify-out/.needs_update`. Run `/graph
 
 ---
 
+### Task 8: Machine-routable layer (so an agent can learn from the vault)
+
+**Files:**
+- Modify: `src/udemy_toolkit/vault.py`
+- Modify: `tests/test_udemy_vault.py`
+- Modify: `src/udemy_toolkit/cli.py` (`build-vault` prints the manifest path)
+
+**Why this task exists:** Tasks 1-7 produce a vault that is *linked* (wikilinks, MOCs, topic notes). This task makes it *routable* — an agent can find the right notes cheaply without reading the whole vault, which is the precondition for generating a wiki or learning materials from it. It follows the pattern the repo already proved in the vault cross-linking pass (see CLAUDE.md, "Vault cross-linking pass (2026-07-28)"): a fixed tag vocabulary, a parallel `topic_links:` field, and one verification script that reads the whole set rather than trusting per-file self-reports.
+
+**Interfaces:**
+- Consumes: everything in `vault.py` from Task 6.
+- Produces:
+  - `TAG_VOCABULARY: tuple[str, ...]` — the fixed, closed tag list.
+  - `classify_tags(text: str) -> List[str]` — 1-3 tags from that vocabulary only, keyword-matched, deterministic; falls back to `["uncategorized"]` when nothing matches.
+  - `write_manifest(target: Path, catalog: UdemyCatalog) -> Path` — writes `index.yaml`.
+  - `verify_vault(target: Path) -> dict` — reads the whole built vault and returns `{"notes": int, "dangling_links": [str], "orphan_notes": [str], "untagged": [str], "unknown_tags": [str]}`.
+  - `build_vault(...)` additionally writes `index.yaml` and a `tags/<tag>.md` note per used tag.
+
+- [ ] **Step 1: Write the failing tests**
+
+Append to `tests/test_udemy_vault.py`:
+
+```python
+from udemy_toolkit.vault import TAG_VOCABULARY, classify_tags, verify_vault
+
+
+def test_classify_tags_only_returns_vocabulary_members():
+    tags = classify_tags("This lecture covers testing, debugging and deployment pipelines.")
+    assert tags
+    assert all(t in TAG_VOCABULARY for t in tags)
+    assert len(tags) <= 3
+
+
+def test_classify_tags_falls_back_rather_than_inventing():
+    assert classify_tags("") == ["uncategorized"]
+
+
+def test_manifest_lists_every_note_with_routing_metadata(tmp_path):
+    import yaml
+
+    build_vault(_catalog(("Welcome", "Setup")), vault_dir=tmp_path)
+    manifest = yaml.safe_load((tmp_path / "index.yaml").read_text(encoding="utf-8"))
+    assert manifest["vault"] == "Udemy Vault"
+    assert manifest["counts"]["lectures"] == 2
+    entry = manifest["courses"][0]["sections"][0]["lectures"][0]
+    for key in ("title", "note", "url", "tags", "topics", "has_transcript", "words"):
+        assert key in entry
+
+
+def test_every_lecture_note_has_tags_frontmatter(tmp_path):
+    build_vault(_catalog(), vault_dir=tmp_path)
+    body = (tmp_path / "lectures" / "test-course" / "1-welcome.md").read_text(encoding="utf-8")
+    assert "\ntags: [" in body
+
+
+def test_verify_vault_reports_a_clean_build(tmp_path):
+    build_vault(_catalog(("Welcome", "Setup")), vault_dir=tmp_path)
+    report = verify_vault(tmp_path)
+    assert report["dangling_links"] == []
+    assert report["orphan_notes"] == []
+    assert report["untagged"] == []
+    assert report["unknown_tags"] == []
+    assert report["notes"] > 0
+
+
+def test_verify_vault_catches_a_dangling_link(tmp_path):
+    build_vault(_catalog(), vault_dir=tmp_path)
+    home = tmp_path / "Home.md"
+    home.write_text(home.read_text(encoding="utf-8") + "\n- [[courses/does-not-exist|Ghost]]\n", encoding="utf-8")
+    assert "courses/does-not-exist" in verify_vault(tmp_path)["dangling_links"]
+```
+
+- [ ] **Step 2: Run tests to verify they fail**
+
+Run: `pytest tests/test_udemy_vault.py -v`
+Expected: FAIL — `ImportError: cannot import name 'TAG_VOCABULARY'`
+
+- [ ] **Step 3: Add the tag vocabulary and classifier to `vault.py`**
+
+Insert after `note_filename`:
+
+```python
+# A CLOSED vocabulary. Never invent a tag outside this tuple — a fixed list is
+# what makes tags a reliable routing index rather than free-text noise.
+TAG_VOCABULARY = (
+    "fundamentals",
+    "setup-install",
+    "hands-on-demo",
+    "architecture",
+    "data",
+    "testing",
+    "debugging",
+    "deployment-ops",
+    "security",
+    "performance",
+    "tooling",
+    "career-meta",
+)
+
+_TAG_CUES = {
+    "fundamentals": ("introduction", "overview", "basics", "what is", "fundamental", "concept"),
+    "setup-install": ("install", "setup", "set up", "environment", "prerequisite", "configure"),
+    "hands-on-demo": ("demo", "walkthrough", "let's build", "hands on", "hands-on", "exercise", "project"),
+    "architecture": ("architecture", "design pattern", "system design", "component", "structure"),
+    "data": ("database", "sql", "schema", "dataset", "query", "storage", "pipeline"),
+    "testing": ("test", "unit test", "assertion", "coverage", "pytest", "mock"),
+    "debugging": ("debug", "error", "exception", "troubleshoot", "stack trace", "bug"),
+    "deployment-ops": ("deploy", "docker", "ci/cd", "pipeline", "production", "kubernetes", "monitor"),
+    "security": ("security", "auth", "token", "encryption", "vulnerab", "permission"),
+    "performance": ("performance", "optimiz", "latency", "throughput", "cache", "benchmark"),
+    "tooling": ("ide", "cli", "editor", "extension", "plugin", "git", "terminal"),
+    "career-meta": ("career", "interview", "resume", "course wrap", "next steps", "congratulations"),
+}
+
+
+def classify_tags(text: str) -> List[str]:
+    """1-3 tags drawn ONLY from ``TAG_VOCABULARY``, scored by cue frequency."""
+    lowered = (text or "").lower()
+    scored = []
+    for tag in TAG_VOCABULARY:
+        score = sum(lowered.count(cue) for cue in _TAG_CUES[tag])
+        if score:
+            scored.append((score, tag))
+    if not scored:
+        return ["uncategorized"]
+    scored.sort(key=lambda pair: (-pair[0], pair[1]))
+    return [tag for _score, tag in scored[:3]]
+```
+
+Add `List` to the `typing` import at the top of the file.
+
+- [ ] **Step 4: Emit tags, tag notes, and the manifest**
+
+In `_lecture_note`, change the signature to `_lecture_note(course, section, lecture, topics, tags)` and add one frontmatter line immediately after the `topic_links:` line:
+
+```python
+        f"tags: [{', '.join(tags)}]",
+```
+
+In `build_vault`, inside the lecture loop, immediately after `topics = match_topics(...)`:
+
+```python
+                tags = classify_tags(f"{lecture.title}\n{lecture.transcript}")
+```
+
+pass `tags` into `_lecture_note(...)`, and after the `for topic in topics:` block add:
+
+```python
+                for tag in tags:
+                    tag_index[tag].append((note_link, lecture.title))
+                manifest_lectures.append(
+                    {
+                        "title": lecture.title,
+                        "note": note_link,
+                        "url": lecture.url,
+                        "section": section.title,
+                        "tags": tags,
+                        "topics": topics,
+                        "has_transcript": lecture.has_transcript,
+                        "words": len(lecture.transcript.split()),
+                    }
+                )
+```
+
+Declare `tag_index = defaultdict(list)` next to `topic_index`, and build `manifest_lectures` per section so it nests under its section entry.
+
+After the topic-note loop, write one note per used tag with the same shape as a topic note, into `target / "tags" / f"{tag}.md"`.
+
+Add a `## Tags` section to `Home.md` listing `- [[tags/<tag>|<tag>]] — N lecture(s)`, and one line under `## Meta`: `- [[index.yaml|Machine-readable index]]`.
+
+- [ ] **Step 5: Write the manifest and the verifier**
+
+Add to `vault.py`:
+
+```python
+def write_manifest(target: Path, manifest: dict) -> Path:
+    """Write index.yaml — the cheap routing layer an agent reads first."""
+    import yaml
+
+    path = target / "index.yaml"
+    path.write_text(
+        "# Machine-readable index of this vault. Read this BEFORE grepping notes:\n"
+        "# it maps every lecture to its note path, tags, and topics.\n"
+        + yaml.safe_dump(manifest, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    return path
+
+
+_WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)")
+
+
+def verify_vault(target: Path) -> dict:
+    """Read the WHOLE built vault and report link/tag defects.
+
+    Deliberately a single pass over every file — never trust per-note
+    self-reports that each piece was written correctly.
+    """
+    target = Path(target)
+    notes = sorted(p for p in target.rglob("*.md"))
+    stems = {str(p.relative_to(target)).removesuffix(".md") for p in notes}
+
+    dangling, linked_to, untagged, unknown_tags = [], set(), [], []
+    for note in notes:
+        text = note.read_text(encoding="utf-8")
+        for raw in _WIKILINK_RE.findall(text):
+            link = raw.strip()
+            linked_to.add(link)
+            if link not in stems and not link.endswith(".yaml"):
+                dangling.append(link)
+        if note.parent.name and note.parent.parent.name == "lectures":
+            match = re.search(r"^tags: \[(.*)\]$", text, re.MULTILINE)
+            found = [t.strip() for t in match.group(1).split(",") if t.strip()] if match else []
+            if not found:
+                untagged.append(str(note.relative_to(target)))
+            unknown_tags.extend(
+                t for t in found if t not in TAG_VOCABULARY and t != "uncategorized"
+            )
+
+    orphans = [
+        str(p.relative_to(target))
+        for p in notes
+        if str(p.relative_to(target)).removesuffix(".md") not in linked_to
+        and p.name not in {"Home.md", "Log.md"}
+    ]
+    return {
+        "notes": len(notes),
+        "dangling_links": sorted(set(dangling)),
+        "orphan_notes": sorted(orphans),
+        "untagged": sorted(untagged),
+        "unknown_tags": sorted(set(unknown_tags)),
+    }
+```
+
+Call `write_manifest(target, manifest)` at the end of `build_vault`, where `manifest` is:
+
+```python
+    manifest = {
+        "vault": "Udemy Vault",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "description": (
+            "Lecture transcripts captured from purchased Udemy courses. "
+            "Transcript text only — no video or audio. Route via tags/ and topics/, "
+            "then read the named lecture notes."
+        ),
+        "tag_vocabulary": list(TAG_VOCABULARY),
+        "counts": {
+            "courses": len(catalog.courses),
+            "lectures": total,
+            "topics": len(topic_index),
+            "tags": len(tag_index),
+        },
+        "courses": manifest_courses,
+    }
+```
+
+`removesuffix` is Python 3.9+; if the repo's floor is lower, use `p[:-3]` slicing instead.
+
+- [ ] **Step 6: Run the tests**
+
+Run: `pytest tests/test_udemy_vault.py -v`
+Expected: 15 passed
+
+If `import yaml` fails, `pyyaml` is already a transitive dependency of this repo — confirm with `python -c "import yaml"` before adding anything to `pyproject.toml`.
+
+- [ ] **Step 7: Surface the verifier from the CLI**
+
+In `cli.py`'s `build_vault`, after the existing success line:
+
+```python
+    report = vault_mod.verify_vault(target)
+    problems = {k: v for k, v in report.items() if k != "notes" and v}
+    if problems:
+        console.print(f"[yellow]Vault verification found issues:[/yellow] {problems}")
+        raise typer.Exit(code=1)
+    console.print(f"[green]Verified:[/green] {report['notes']} note(s), no dangling links, all tagged.")
+    console.print(f"Routing index: {target / 'index.yaml'}")
+```
+
+- [ ] **Step 8: Run the full suite and commit**
+
+Run: `pytest -q -k udemy`
+Expected: all udemy tests pass.
+
+```bash
+git add src/udemy_toolkit/vault.py src/udemy_toolkit/cli.py tests/test_udemy_vault.py
+git commit -m "feat(udemy): routable vault layer - index.yaml manifest, fixed tag vocabulary, whole-vault verifier"
+```
+
+---
+
 ## Self-Review
 
-**Spec coverage:** guardrails → Global Constraints + Task 5/7; scope decisions → Tasks 4-6; package layout → all tasks (with `curriculum.py`/`fetcher.py` split documented in File Structure); note shape → Task 6; error handling table → Tasks 5 and 7; testing section → the test file in every task.
+**Spec coverage:** Task 8 was added after the spec, at the user's request, to make the vault machine-routable (index.yaml + closed tag vocabulary + whole-vault verifier); the spec's "Note shape" section is extended by it, not contradicted.
+
+**Original spec coverage:** guardrails → Global Constraints + Task 5/7; scope decisions → Tasks 4-6; package layout → all tasks (with `curriculum.py`/`fetcher.py` split documented in File Structure); note shape → Task 6; error handling table → Tasks 5 and 7; testing section → the test file in every task.
 
 **Placeholders:** none — every code step carries complete code, every run step an exact command and expected output.
 
