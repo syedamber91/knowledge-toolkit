@@ -90,3 +90,11 @@ def build_vault() -> None:
         raise typer.Exit(code=1)
     target = vault_mod.build_vault(catalog, vault_dir=resolve_vault_dir())
     console.print(f"[green]Vault built:[/green] {target} ({catalog.total_lectures()} lecture note(s))")
+
+    report = vault_mod.verify_vault(target)
+    problems = {k: v for k, v in report.items() if k != "notes" and v}
+    if problems:
+        console.print(f"[yellow]Vault verification found issues:[/yellow] {problems}")
+        raise typer.Exit(code=1)
+    console.print(f"[green]Verified:[/green] {report['notes']} note(s), no dangling links, all tagged.")
+    console.print(f"Routing index: {target / 'index.yaml'}")

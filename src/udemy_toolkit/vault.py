@@ -13,7 +13,7 @@ import shutil
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 
 from media_core.topics import match_topics
 
@@ -38,6 +38,53 @@ def _yaml_quote(value: str) -> str:
 
 def note_filename(section_order: int, lecture_title: str) -> str:
     return f"{section_order}-{slugify(lecture_title)}.md"
+
+
+# A CLOSED vocabulary. Never invent a tag outside this tuple — a fixed list is
+# what makes tags a reliable routing index rather than free-text noise.
+TAG_VOCABULARY = (
+    "fundamentals",
+    "setup-install",
+    "hands-on-demo",
+    "architecture",
+    "data",
+    "testing",
+    "debugging",
+    "deployment-ops",
+    "security",
+    "performance",
+    "tooling",
+    "career-meta",
+)
+
+_TAG_CUES = {
+    "fundamentals": ("introduction", "overview", "basics", "what is", "fundamental", "concept"),
+    "setup-install": ("install", "setup", "set up", "environment", "prerequisite", "configure"),
+    "hands-on-demo": ("demo", "walkthrough", "let's build", "hands on", "hands-on", "exercise", "project"),
+    "architecture": ("architecture", "design pattern", "system design", "component", "structure"),
+    "data": ("database", "sql", "schema", "dataset", "query", "storage", "pipeline"),
+    "testing": ("test", "unit test", "assertion", "coverage", "pytest", "mock"),
+    "debugging": ("debug", "error", "exception", "troubleshoot", "stack trace", "bug"),
+    "deployment-ops": ("deploy", "docker", "ci/cd", "pipeline", "production", "kubernetes", "monitor"),
+    "security": ("security", "auth", "token", "encryption", "vulnerab", "permission"),
+    "performance": ("performance", "optimiz", "latency", "throughput", "cache", "benchmark"),
+    "tooling": ("ide", "cli", "editor", "extension", "plugin", "git", "terminal"),
+    "career-meta": ("career", "interview", "resume", "course wrap", "next steps", "congratulations"),
+}
+
+
+def classify_tags(text: str) -> List[str]:
+    """1-3 tags drawn ONLY from ``TAG_VOCABULARY``, scored by cue frequency."""
+    lowered = (text or "").lower()
+    scored = []
+    for tag in TAG_VOCABULARY:
+        score = sum(lowered.count(cue) for cue in _TAG_CUES[tag])
+        if score:
+            scored.append((score, tag))
+    if not scored:
+        return ["uncategorized"]
+    scored.sort(key=lambda pair: (-pair[0], pair[1]))
+    return [tag for _score, tag in scored[:3]]
 
 
 def _write(path: Path, text: str) -> None:
@@ -80,7 +127,7 @@ def _log_ingest(target: Path, total: int, breakdown: str) -> None:
         f.write(f"- **{stamp}** — {action} ({total} total: {breakdown})\n")
 
 
-def _lecture_note(course, section, lecture, topics) -> str:
+def _lecture_note(course, section, lecture, topics, tags) -> str:
     duration = format_seconds(lecture.duration_seconds) if lecture.duration_seconds else ""
     topic_links = ", ".join(f'"[[topics/{t}|{t}]]"' for t in topics)
     frontmatter = [
@@ -93,6 +140,7 @@ def _lecture_note(course, section, lecture, topics) -> str:
         f"captured_at: {lecture.captured_at.isoformat() if lecture.captured_at else ''}",
         f"topics: [{', '.join(topics)}]",
         f"topic_links: [{topic_links}]",
+        f"tags: [{', '.join(tags)}]",
         "---",
         "",
     ]
@@ -112,6 +160,65 @@ def _lecture_note(course, section, lecture, topics) -> str:
     return "\n".join(frontmatter + body)
 
 
+def write_manifest(target: Path, manifest: dict) -> Path:
+    """Write index.yaml — the cheap routing layer an agent reads first."""
+    import yaml
+
+    path = target / "index.yaml"
+    path.write_text(
+        "# Machine-readable index of this vault. Read this BEFORE grepping notes:\n"
+        "# it maps every lecture to its note path, tags, and topics.\n"
+        + yaml.safe_dump(manifest, sort_keys=False, allow_unicode=True),
+        encoding="utf-8",
+    )
+    return path
+
+
+_WIKILINK_RE = re.compile(r"\[\[([^\]|#]+)")
+
+
+def verify_vault(target: Path) -> dict:
+    """Read the WHOLE built vault and report link/tag defects.
+
+    Deliberately a single pass over every file — never trust per-note
+    self-reports that each piece was written correctly.
+    """
+    target = Path(target)
+    notes = sorted(p for p in target.rglob("*.md"))
+    stems = {str(p.relative_to(target)).removesuffix(".md") for p in notes}
+
+    dangling, linked_to, untagged, unknown_tags = [], set(), [], []
+    for note in notes:
+        text = note.read_text(encoding="utf-8")
+        for raw in _WIKILINK_RE.findall(text):
+            link = raw.strip()
+            linked_to.add(link)
+            if link not in stems and not link.endswith(".yaml"):
+                dangling.append(link)
+        if note.parent.name and note.parent.parent.name == "lectures":
+            match = re.search(r"^tags: \[(.*)\]$", text, re.MULTILINE)
+            found = [t.strip() for t in match.group(1).split(",") if t.strip()] if match else []
+            if not found:
+                untagged.append(str(note.relative_to(target)))
+            unknown_tags.extend(
+                t for t in found if t not in TAG_VOCABULARY and t != "uncategorized"
+            )
+
+    orphans = [
+        str(p.relative_to(target))
+        for p in notes
+        if str(p.relative_to(target)).removesuffix(".md") not in linked_to
+        and p.name not in {"Home.md", "Log.md"}
+    ]
+    return {
+        "notes": len(notes),
+        "dangling_links": sorted(set(dangling)),
+        "orphan_notes": sorted(orphans),
+        "untagged": sorted(untagged),
+        "unknown_tags": sorted(set(unknown_tags)),
+    }
+
+
 def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path:
     """Write the whole Udemy Vault; returns the target directory."""
     target = Path(vault_dir).expanduser() if vault_dir else resolve_vault_dir()
@@ -124,28 +231,52 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
     shutil.rmtree(target / "lectures", ignore_errors=True)
     shutil.rmtree(target / "courses", ignore_errors=True)
     shutil.rmtree(target / "topics", ignore_errors=True)
+    shutil.rmtree(target / "tags", ignore_errors=True)
 
     topic_index = defaultdict(list)  # topic -> [(note_link, title)]
+    tag_index = defaultdict(list)  # tag -> [(note_link, title)]
+    manifest_courses = []
     total = 0
 
     for course in catalog.courses:
         course_slug = slugify(course.title)
         section_links = []
+        manifest_sections = []
 
         for section in course.sections:
             lecture_links = []
+            manifest_lectures = []
             for lecture in section.lectures:
                 topics = match_topics(f"{lecture.title}\n{lecture.transcript}")
+                tags = classify_tags(f"{lecture.title}\n{lecture.transcript}")
                 filename = note_filename(section.order, lecture.title)
                 note_link = f"lectures/{course_slug}/{filename[:-3]}"
                 _write(
                     target / "lectures" / course_slug / filename,
-                    _lecture_note(course, section, lecture, topics),
+                    _lecture_note(course, section, lecture, topics, tags),
                 )
                 lecture_links.append(f"- [[{note_link}|{lecture.title}]]")
                 for topic in topics:
                     topic_index[topic].append((note_link, lecture.title))
+                for tag in tags:
+                    tag_index[tag].append((note_link, lecture.title))
+                manifest_lectures.append(
+                    {
+                        "title": lecture.title,
+                        "note": note_link,
+                        "url": lecture.url,
+                        "section": section.title,
+                        "tags": tags,
+                        "topics": topics,
+                        "has_transcript": lecture.has_transcript,
+                        "words": len(lecture.transcript.split()),
+                    }
+                )
                 total += 1
+
+            manifest_sections.append(
+                {"title": section.title, "order": section.order, "lectures": manifest_lectures}
+            )
 
             section_file = f"{section.order}-{slugify(section.title)}.md"
             _write(
@@ -191,6 +322,16 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
             ),
         )
 
+        manifest_courses.append(
+            {
+                "title": course.title,
+                "note": f"courses/{course_slug}",
+                "url": course.url,
+                "instructor": course.instructor,
+                "sections": manifest_sections,
+            }
+        )
+
     for topic, entries in topic_index.items():
         lines = sorted({f"- [[{link}|{title}]]" for link, title in entries})
         _write(
@@ -200,10 +341,24 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
             ),
         )
 
+    for tag, entries in tag_index.items():
+        lines = sorted({f"- [[{link}|{title}]]" for link, title in entries})
+        _write(
+            target / "tags" / f"{tag}.md",
+            "\n".join(
+                ["---", f'title: "{tag}"', "tags: [tag]", "---", "", f"# {tag}", "", *lines, ""]
+            ),
+        )
+
     course_lines = [
         f"- [[courses/{slugify(c.title)}|{c.title}]] — {len(c.lectures())} lecture(s)"
         for c in catalog.courses
     ]
+    tag_lines = [
+        f"- [[tags/{tag}|{tag}]] — {len({link for link, _ in entries})} lecture(s)"
+        for tag, entries in sorted(tag_index.items())
+    ]
+
     _write(
         target / "Home.md",
         "\n".join(
@@ -221,9 +376,14 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
                 "",
                 *course_lines,
                 "",
+                "## Tags",
+                "",
+                *tag_lines,
+                "",
                 "## Meta",
                 "",
                 "- [[Log|Ingestion Log]]",
+                "- [[index.yaml|Machine-readable index]]",
                 "",
             ]
         ),
@@ -234,4 +394,24 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
         total,
         f"{len(catalog.courses)} course(s), {len(topic_index)} topic(s)",
     )
+
+    manifest = {
+        "vault": "Udemy Vault",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "description": (
+            "Lecture transcripts captured from purchased Udemy courses. "
+            "Transcript text only — no video or audio. Route via tags/ and topics/, "
+            "then read the named lecture notes."
+        ),
+        "tag_vocabulary": list(TAG_VOCABULARY),
+        "counts": {
+            "courses": len(catalog.courses),
+            "lectures": total,
+            "topics": len(topic_index),
+            "tags": len(tag_index),
+        },
+        "courses": manifest_courses,
+    }
+    write_manifest(target, manifest)
+
     return target

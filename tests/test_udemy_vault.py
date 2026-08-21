@@ -137,3 +137,52 @@ def test_rebuild_prunes_stale_notes_but_never_touches_log(tmp_path):
     lines = [l for l in log_after.splitlines() if l.startswith("- **")]
     assert len(lines) == 2
     assert "1 item(s) removed" in lines[1]
+
+
+from udemy_toolkit.vault import TAG_VOCABULARY, classify_tags, verify_vault
+
+
+def test_classify_tags_only_returns_vocabulary_members():
+    tags = classify_tags("This lecture covers testing, debugging and deployment pipelines.")
+    assert tags
+    assert all(t in TAG_VOCABULARY for t in tags)
+    assert len(tags) <= 3
+
+
+def test_classify_tags_falls_back_rather_than_inventing():
+    assert classify_tags("") == ["uncategorized"]
+
+
+def test_manifest_lists_every_note_with_routing_metadata(tmp_path):
+    import yaml
+
+    build_vault(_catalog(("Welcome", "Setup")), vault_dir=tmp_path)
+    manifest = yaml.safe_load((tmp_path / "index.yaml").read_text(encoding="utf-8"))
+    assert manifest["vault"] == "Udemy Vault"
+    assert manifest["counts"]["lectures"] == 2
+    entry = manifest["courses"][0]["sections"][0]["lectures"][0]
+    for key in ("title", "note", "url", "tags", "topics", "has_transcript", "words"):
+        assert key in entry
+
+
+def test_every_lecture_note_has_tags_frontmatter(tmp_path):
+    build_vault(_catalog(), vault_dir=tmp_path)
+    body = (tmp_path / "lectures" / "test-course" / "1-welcome.md").read_text(encoding="utf-8")
+    assert "\ntags: [" in body
+
+
+def test_verify_vault_reports_a_clean_build(tmp_path):
+    build_vault(_catalog(("Welcome", "Setup")), vault_dir=tmp_path)
+    report = verify_vault(tmp_path)
+    assert report["dangling_links"] == []
+    assert report["orphan_notes"] == []
+    assert report["untagged"] == []
+    assert report["unknown_tags"] == []
+    assert report["notes"] > 0
+
+
+def test_verify_vault_catches_a_dangling_link(tmp_path):
+    build_vault(_catalog(), vault_dir=tmp_path)
+    home = tmp_path / "Home.md"
+    home.write_text(home.read_text(encoding="utf-8") + "\n- [[courses/does-not-exist|Ghost]]\n", encoding="utf-8")
+    assert "courses/does-not-exist" in verify_vault(tmp_path)["dangling_links"]
