@@ -56,7 +56,10 @@ class PlaywrightFetcher:
         results = found.get("results") or []
         if not results:
             raise RuntimeError(f"Could not resolve course from URL: {course_url}")
-        match = next((r for r in results if r.get("url", "").strip("/").endswith(slug)), None)
+        match = next(
+            (r for r in results if r.get("url", "").strip("/").rsplit("/", 1)[-1] == slug),
+            None,
+        )
         if match is None:
             titles = ", ".join(repr(r.get("title", "")) for r in results)
             raise RuntimeError(

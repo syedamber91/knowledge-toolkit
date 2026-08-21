@@ -36,9 +36,6 @@ def resolve_vault_dir() -> Path:
     return Path(raw).expanduser() if raw else DEFAULT_VAULT_DIR
 
 
-VAULT_DIR = resolve_vault_dir()
-
-
 def _get_float(name: str, default: float) -> float:
     try:
         return float(os.environ.get(name, default))

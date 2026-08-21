@@ -94,6 +94,66 @@ def test_course_meta_matches_on_url_slug():
     assert meta["instructor"] == "Jane Doe"
 
 
+def test_course_meta_rejects_suffix_match_on_a_different_course():
+    """Finding 3 regression: a slug like 'python-bootcamp' must not match a
+    result whose full path merely ENDS with that slug, e.g.
+    '/course/complete-python-bootcamp/'. Only the exact final path segment
+    counts as a match.
+    """
+    slug = "python-bootcamp"
+    course_url = f"https://www.udemy.com/course/{slug}/"
+    decoy_results = FakeResponse(
+        json_data={
+            "results": [
+                {
+                    "id": 999,
+                    "title": "The Complete Python Bootcamp",
+                    "url": "/course/complete-python-bootcamp/",
+                    "visible_instructors": [],
+                },
+            ]
+        }
+    )
+    fetcher = _make_fetcher(
+        {
+            f"/api-2.0/courses/?search={slug}&fields[course]=id,title,url,visible_instructors": decoy_results,
+        }
+    )
+
+    with pytest.raises(RuntimeError) as excinfo:
+        fetcher.course_meta(course_url)
+
+    assert slug in str(excinfo.value)
+
+
+def test_course_meta_matches_exact_slug_path():
+    slug = "python-bootcamp"
+    course_url = f"https://www.udemy.com/course/{slug}/"
+    exact_results = FakeResponse(
+        json_data={
+            "results": [
+                {
+                    "id": 222,
+                    "title": "Python Bootcamp",
+                    "url": f"/course/{slug}/",
+                    "visible_instructors": [{"title": "Jane Doe"}],
+                },
+            ]
+        }
+    )
+    curriculum = FakeResponse(json_data={"results": []})
+    fetcher = _make_fetcher(
+        {
+            f"/api-2.0/courses/?search={slug}&fields[course]=id,title,url,visible_instructors": exact_results,
+            "/subscriber-curriculum-items/?page_size=1000&fields[lecture]=id,title,object_index,asset&fields[chapter]=id,title,object_index&fields[asset]=time_estimation,asset_type": curriculum,
+        }
+    )
+
+    meta = fetcher.course_meta(course_url)
+
+    assert meta["id"] == "222"
+
+
 def test_course_meta_raises_instead_of_guessing_when_no_slug_matches():
     no_match_results = FakeResponse(
         json_data={
@@ -115,6 +175,72 @@ def test_course_meta_raises_instead_of_guessing_when_no_slug_matches():
     # actually returned.
     assert "Unrelated Course A" in message
     assert "Unrelated Course B" in message
+
+
+def test_course_meta_raises_on_slug_suffix_collision_instead_of_wrong_match():
+    """Finding 3 regression: a suffix match like 'python-bootcamp' must not
+    wrongly match '/course/complete-python-bootcamp/' -- only the exact final
+    URL segment counts as a match.
+    """
+    suffix_collision_results = FakeResponse(
+        json_data={
+            "results": [
+                {
+                    "id": 999,
+                    "title": "Complete Python Bootcamp",
+                    "url": "/course/complete-python-bootcamp/",
+                    "visible_instructors": [],
+                },
+            ]
+        }
+    )
+    fetcher = _make_fetcher(
+        {
+            "/api-2.0/courses/?search=python-bootcamp&fields[course]=id,title,url,visible_instructors": (
+                suffix_collision_results
+            ),
+        }
+    )
+
+    with pytest.raises(RuntimeError):
+        fetcher.course_meta("https://www.udemy.com/course/python-bootcamp/")
+
+
+def test_course_meta_matches_exact_slug_segment():
+    exact_results = FakeResponse(
+        json_data={
+            "results": [
+                {
+                    "id": 999,
+                    "title": "Complete Python Bootcamp",
+                    "url": "/course/complete-python-bootcamp/",
+                    "visible_instructors": [],
+                },
+                {
+                    "id": 111,
+                    "title": "Python Bootcamp",
+                    "url": "/course/python-bootcamp/",
+                    "visible_instructors": [],
+                },
+            ]
+        }
+    )
+    curriculum = FakeResponse(json_data={"results": []})
+    fetcher = _make_fetcher(
+        {
+            "/api-2.0/courses/?search=python-bootcamp&fields[course]=id,title,url,visible_instructors": (
+                exact_results
+            ),
+            "/subscriber-curriculum-items/?page_size=1000&fields[lecture]=id,title,object_index,asset&fields[chapter]=id,title,object_index&fields[asset]=time_estimation,asset_type": (
+                curriculum
+            ),
+        }
+    )
+
+    meta = fetcher.course_meta("https://www.udemy.com/course/python-bootcamp/")
+
+    assert meta["id"] == "111"
+    assert meta["title"] == "Python Bootcamp"
 
 
 def test_course_meta_raises_clear_error_on_empty_results():

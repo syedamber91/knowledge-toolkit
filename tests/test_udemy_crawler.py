@@ -182,6 +182,31 @@ def test_empty_extracted_transcript_counts_as_no_captions(tmp_path):
     assert "10" in catalog.seen_lecture_ids
 
 
+def test_limit_on_recrawl_does_not_drop_previously_captured_lectures(tmp_path):
+    """Finding 1 regression: --limit on a re-crawl must not delete lectures
+    already captured in a prior run just because they sit past the cutoff.
+    """
+    path = tmp_path / "udemy.json"
+    # First run: full crawl of a 2-lecture course, both captured.
+    first = FakeFetcher({"10": VTT, "11": VTT})
+    crawl_course(COURSE_URL, first, catalog_path=path, sleep=_noop_sleep)
+
+    # Curriculum grows; re-crawl with limit=1. The limit should bound how
+    # many NEW lectures get fetched (only lecture 12 is new here), not cause
+    # the already-captured ones (10, 11) to be dropped from the catalog.
+    second = FakeFetcher({"10": VTT, "11": VTT, "12": VTT}, curriculum=GROWN_CURRICULUM)
+    summary = crawl_course(COURSE_URL, second, catalog_path=path, limit=1, sleep=_noop_sleep)
+
+    # 10 and 11 are already known -> no refetch; exactly one new fetch (12).
+    assert second.caption_calls == ["12"]
+    catalog = UdemyCatalog.load(path)
+    lectures = {lec.id: lec for lec in catalog.courses[0].lectures()}
+    assert lectures["10"].has_transcript is True
+    assert "hello there" in lectures["10"].transcript
+    assert lectures["11"].id == "11"
+    assert summary.already_seen == 2
+
+
 def test_new_lecture_added_since_first_run_is_fetched_without_disturbing_prior(tmp_path):
     path = tmp_path / "udemy.json"
     first = FakeFetcher({"10": VTT}, curriculum=CURRICULUM)

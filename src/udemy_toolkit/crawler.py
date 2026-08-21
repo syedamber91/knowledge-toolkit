@@ -80,15 +80,27 @@ def crawl_course(
     summary = CrawlSummary(course_title=course.title)
     processed = 0
 
+    limit_reached = False
+
     for section, target_section in zip(parsed.sections, course.sections):
         for lecture in section.lectures:
             if lecture.id in known:
                 summary.already_seen += 1
                 target_section.lectures.append(previous.get(lecture.id, lecture))
                 continue
+            if limit_reached:
+                # `limit` only bounds how many lectures get FETCHED. A
+                # lecture we already know about (previously captured, just
+                # not reached again yet) must still land back in the shell
+                # so a re-crawl under a small --limit never drops it.
+                if lecture.id in previous:
+                    target_section.lectures.append(previous[lecture.id])
+                continue
             if limit is not None and processed >= limit:
-                catalog.save(catalog_path)
-                return summary
+                limit_reached = True
+                if lecture.id in previous:
+                    target_section.lectures.append(previous[lecture.id])
+                continue
 
             raw = fetcher.captions(course.id, lecture.id)
             processed += 1
