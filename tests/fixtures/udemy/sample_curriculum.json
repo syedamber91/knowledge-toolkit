@@ -1,0 +1,10 @@
+{
+  "results": [
+    {"_class": "chapter", "id": 900, "title": "Getting Started", "object_index": 1},
+    {"_class": "lecture", "id": 10, "title": "Welcome", "asset": {"asset_type": "Video", "time_estimation": 125}},
+    {"_class": "quiz", "id": 77, "title": "Quiz 1"},
+    {"_class": "lecture", "id": 11, "title": "Setup", "asset": {"asset_type": "Video", "time_estimation": 300}},
+    {"_class": "chapter", "id": 901, "title": "Going Deeper", "object_index": 2},
+    {"_class": "lecture", "id": 12, "title": "Internals", "asset": {"asset_type": "Video", "time_estimation": 640}}
+  ]
+}
