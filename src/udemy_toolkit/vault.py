@@ -36,8 +36,11 @@ def _yaml_quote(value: str) -> str:
     return f'"{escaped}"'
 
 
-def note_filename(section_order: int, lecture_title: str) -> str:
-    return f"{section_order}-{slugify(lecture_title)}.md"
+def note_filename(section_order: int, lecture_id: str, lecture_title: str) -> str:
+    # The lecture id is appended (not just the title slug) so two lectures
+    # with identical titles in the same section never collide and silently
+    # overwrite each other's notes.
+    return f"{section_order}-{slugify(lecture_title)}-{lecture_id}.md"
 
 
 # A CLOSED vocabulary. Never invent a tag outside this tuple — a fixed list is
@@ -55,6 +58,12 @@ TAG_VOCABULARY = (
     "performance",
     "tooling",
     "career-meta",
+    # Not a real content category -- the fallback classify_tags() returns
+    # when no cue matches. Included here (rather than special-cased in
+    # verify_vault) so it's part of the one closed vocabulary that both the
+    # classifier and the verifier -- and the manifest's declared
+    # tag_vocabulary -- agree on.
+    "uncategorized",
 )
 
 _TAG_CUES = {
@@ -78,6 +87,8 @@ def classify_tags(text: str) -> List[str]:
     lowered = (text or "").lower()
     scored = []
     for tag in TAG_VOCABULARY:
+        if tag not in _TAG_CUES:
+            continue  # "uncategorized" -- the no-cue-matched fallback, not a cue itself
         score = sum(lowered.count(cue) for cue in _TAG_CUES[tag])
         if score:
             scored.append((score, tag))
@@ -101,6 +112,27 @@ def _last_logged_total(log_path: Path) -> int:
         if m:
             return int(m.group(1))
     return 0
+
+
+def _ensure_log_exists(target: Path) -> None:
+    """Guarantee Log.md exists, header-only if nothing has been logged yet.
+
+    Home.md unconditionally links [[Log|Ingestion Log]]. ``_log_ingest``
+    intentionally writes nothing when the delta is zero (e.g. total==0 on a
+    brand-new, lecture-less vault) -- that no-zero-delta-entry rule is a
+    pinned contract and is NOT touched here. This just backstops the file's
+    existence so a zero-lecture build never leaves that link dangling.
+    """
+    log_path = target / "Log.md"
+    if log_path.exists():
+        return
+    header = (
+        "---\ntitle: \"Ingestion Log\"\ntags: [log]\n---\n\n"
+        "# Ingestion Log\n\n"
+        "A running history of what was added to (or removed from) this "
+        "vault and when — append-only, never rewritten.\n\n"
+    )
+    _write(log_path, header)
 
 
 def _log_ingest(target: Path, total: int, breakdown: str) -> None:
@@ -200,9 +232,7 @@ def verify_vault(target: Path) -> dict:
             found = [t.strip() for t in match.group(1).split(",") if t.strip()] if match else []
             if not found:
                 untagged.append(str(note.relative_to(target)))
-            unknown_tags.extend(
-                t for t in found if t not in TAG_VOCABULARY and t != "uncategorized"
-            )
+            unknown_tags.extend(t for t in found if t not in TAG_VOCABULARY)
 
     orphans = [
         str(p.relative_to(target))
@@ -210,19 +240,77 @@ def verify_vault(target: Path) -> dict:
         if str(p.relative_to(target)).removesuffix(".md") not in linked_to
         and p.name not in {"Home.md", "Log.md"}
     ]
+
+    # Cross-check the notes actually on disk against what the manifest
+    # claims was written -- verify_vault only ever inspected files that
+    # exist, so a silent filename collision (two notes overwriting one
+    # another) previously went unreported even though the manifest still
+    # listed both lectures.
+    lecture_note_count = sum(
+        1 for p in notes if p.parent.name and p.parent.parent.name == "lectures"
+    )
+    manifest_mismatch: List[str] = []
+    manifest_path = target / "index.yaml"
+    if manifest_path.exists():
+        import yaml
+
+        manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
+        manifest_lecture_count = (manifest.get("counts") or {}).get("lectures")
+        if manifest_lecture_count is not None and manifest_lecture_count != lecture_note_count:
+            manifest_mismatch.append(
+                f"manifest reports {manifest_lecture_count} lecture(s) but "
+                f"{lecture_note_count} lecture note file(s) exist on disk"
+            )
+
     return {
         "notes": len(notes),
         "dangling_links": sorted(set(dangling)),
         "orphan_notes": sorted(orphans),
         "untagged": sorted(untagged),
         "unknown_tags": sorted(set(unknown_tags)),
+        "manifest_mismatch": manifest_mismatch,
     }
+
+
+_VAULT_MARKER = ".udemy-vault"
+
+
+def _looks_like_our_own_vault(target: Path) -> bool:
+    """True if ``target`` is empty, unmistakably ours, or safe to treat as ours."""
+    if not target.exists():
+        return True
+    if not any(target.iterdir()):
+        return True
+    if (target / _VAULT_MARKER).exists():
+        return True
+    # A prior (marker-less) Udemy build still leaves its own courses/ or
+    # lectures/ directory behind -- treat that as proof of prior ownership
+    # too, so rebuilding an already-built vault keeps working.
+    return (target / "courses").is_dir() or (target / "lectures").is_dir()
 
 
 def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path:
     """Write the whole Udemy Vault; returns the target directory."""
     target = Path(vault_dir).expanduser() if vault_dir else resolve_vault_dir()
+
+    # Guard against pruning someone else's directory. build_vault deletes
+    # topics/courses/lectures/tags below on every run -- if UDEMY_VAULT_DIR
+    # is misconfigured to point at, say, the SHARED cross-source Obsidian
+    # vault, that rmtree would destroy content other toolkits own. Refuse
+    # unless the target is empty/new, already marked as ours, or already
+    # has our own prior build structure.
+    if not _looks_like_our_own_vault(target):
+        raise RuntimeError(
+            f"Refusing to build into {target} -- it already contains content "
+            "(no .udemy-vault marker and no prior courses/lectures directory "
+            "from a previous Udemy build), so it looks like someone else's "
+            "vault. If this directory really is meant for the Udemy Vault, "
+            "delete it (or create an empty .udemy-vault marker file in it) "
+            "and re-run."
+        )
+
     target.mkdir(parents=True, exist_ok=True)
+    (target / _VAULT_MARKER).touch(exist_ok=True)
 
     # Prune generated content directories so a rebuild reflects exactly the
     # current catalog (stale/renamed/removed notes don't linger). Log.md is
@@ -249,7 +337,7 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
             for lecture in section.lectures:
                 topics = match_topics(f"{lecture.title}\n{lecture.transcript}")
                 tags = classify_tags(f"{lecture.title}\n{lecture.transcript}")
-                filename = note_filename(section.order, lecture.title)
+                filename = note_filename(section.order, lecture.id, lecture.title)
                 note_link = f"lectures/{course_slug}/{filename[:-3]}"
                 _write(
                     target / "lectures" / course_slug / filename,
@@ -394,6 +482,7 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
         total,
         f"{len(catalog.courses)} course(s), {len(topic_index)} topic(s)",
     )
+    _ensure_log_exists(target)
 
     manifest = {
         "vault": "Udemy Vault",
