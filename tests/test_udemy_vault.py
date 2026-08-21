@@ -1,5 +1,7 @@
 from pathlib import Path
 
+import yaml
+
 from udemy_toolkit.models import UdemyCatalog, UdemyCourse, UdemyLecture, UdemySection
 from udemy_toolkit.vault import build_vault, note_filename, slugify
 
@@ -91,4 +93,47 @@ def test_log_records_removals(tmp_path):
     build_vault(_catalog(("A", "B")), vault_dir=tmp_path)
     build_vault(_catalog(("A",)), vault_dir=tmp_path)
     lines = [l for l in (tmp_path / "Log.md").read_text(encoding="utf-8").splitlines() if l.startswith("- **")]
+    assert "1 item(s) removed" in lines[1]
+
+
+def test_frontmatter_survives_quotes_and_colons_in_titles(tmp_path):
+    tricky_title = 'Setup: "the basics"'
+    catalog = _catalog(("Welcome",))
+    catalog.courses[0].title = 'Test Course: "Advanced" Edition'
+    catalog.courses[0].sections[0].title = 'Getting Started: "Prep"'
+    catalog.courses[0].sections[0].lectures[0].title = tricky_title
+
+    build_vault(catalog, vault_dir=tmp_path)
+
+    course_slug = slugify(catalog.courses[0].title)
+    filename = note_filename(1, tricky_title)
+    note_path = tmp_path / "lectures" / course_slug / filename
+    body = note_path.read_text(encoding="utf-8")
+
+    assert body.startswith("---\n")
+    end = body.index("\n---\n", 4)
+    frontmatter_block = body[4:end]
+    parsed = yaml.safe_load(frontmatter_block)
+
+    assert parsed["title"] == tricky_title
+    assert parsed["course"] == catalog.courses[0].title
+    assert parsed["section"] == catalog.courses[0].sections[0].title
+
+
+def test_rebuild_prunes_stale_notes_but_never_touches_log(tmp_path):
+    build_vault(_catalog(("A", "B")), vault_dir=tmp_path)
+    log_before = (tmp_path / "Log.md").read_text(encoding="utf-8")
+
+    stale_note = tmp_path / "lectures" / "test-course" / note_filename(1, "B")
+    assert stale_note.exists()
+
+    build_vault(_catalog(("A",)), vault_dir=tmp_path)
+
+    assert not stale_note.exists()
+
+    log_after = (tmp_path / "Log.md").read_text(encoding="utf-8")
+    assert "2 item(s) already in vault (log started here)" in log_after
+    assert log_after.startswith(log_before)
+    lines = [l for l in log_after.splitlines() if l.startswith("- **")]
+    assert len(lines) == 2
     assert "1 item(s) removed" in lines[1]

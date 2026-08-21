@@ -9,6 +9,7 @@ Implements the repo's standing three-part routing pattern:
 from __future__ import annotations
 
 import re
+import shutil
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
@@ -26,6 +27,13 @@ _LOG_TOTAL_RE = re.compile(r"\((\d+) total")
 def slugify(text: str) -> str:
     slug = re.sub(r"[^a-z0-9]+", "-", (text or "").lower()).strip("-")
     return slug or "untitled"
+
+
+def _yaml_quote(value: str) -> str:
+    """Render a string as a safely quoted YAML double-quoted scalar."""
+    text = (value or "").replace("\r\n", " ").replace("\n", " ").replace("\r", " ")
+    escaped = text.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def note_filename(section_order: int, lecture_title: str) -> str:
@@ -77,11 +85,11 @@ def _lecture_note(course, section, lecture, topics) -> str:
     topic_links = ", ".join(f'"[[topics/{t}|{t}]]"' for t in topics)
     frontmatter = [
         "---",
-        f'title: "{lecture.title}"',
-        f'course: "{course.title}"',
-        f'section: "{section.title}"',
-        f'url: "{lecture.url}"',
-        f'duration: "{duration}"',
+        f"title: {_yaml_quote(lecture.title)}",
+        f"course: {_yaml_quote(course.title)}",
+        f"section: {_yaml_quote(section.title)}",
+        f"url: {_yaml_quote(lecture.url)}",
+        f"duration: {_yaml_quote(duration)}",
         f"captured_at: {lecture.captured_at.isoformat() if lecture.captured_at else ''}",
         f"topics: [{', '.join(topics)}]",
         f"topic_links: [{topic_links}]",
@@ -108,6 +116,14 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
     """Write the whole Udemy Vault; returns the target directory."""
     target = Path(vault_dir).expanduser() if vault_dir else resolve_vault_dir()
     target.mkdir(parents=True, exist_ok=True)
+
+    # Prune generated content directories so a rebuild reflects exactly the
+    # current catalog (stale/renamed/removed notes don't linger). Log.md is
+    # append-only and lives directly under `target`, never inside these
+    # subdirectories, so it is untouched.
+    shutil.rmtree(target / "lectures", ignore_errors=True)
+    shutil.rmtree(target / "courses", ignore_errors=True)
+    shutil.rmtree(target / "topics", ignore_errors=True)
 
     topic_index = defaultdict(list)  # topic -> [(note_link, title)]
     total = 0
@@ -137,7 +153,7 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
                 "\n".join(
                     [
                         "---",
-                        f'title: "{section.title}"',
+                        f"title: {_yaml_quote(section.title)}",
                         "---",
                         "",
                         f"# {section.title}",
@@ -158,9 +174,9 @@ def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path
             "\n".join(
                 [
                     "---",
-                    f'title: "{course.title}"',
-                    f'instructor: "{course.instructor}"',
-                    f'url: "{course.url}"',
+                    f"title: {_yaml_quote(course.title)}",
+                    f"instructor: {_yaml_quote(course.instructor)}",
+                    f"url: {_yaml_quote(course.url)}",
                     "---",
                     "",
                     f"# {course.title}",
