@@ -179,6 +179,7 @@ def test_verify_vault_reports_a_clean_build(tmp_path):
     assert report["orphan_notes"] == []
     assert report["untagged"] == []
     assert report["unknown_tags"] == []
+    assert report["manifest_mismatch"] == []
     assert report["notes"] > 0
 
 
@@ -279,3 +280,76 @@ def test_rebuild_works_via_marker_even_if_courses_dir_absent(tmp_path):
     # Marker present -> treated as ours, no RuntimeError.
     build_vault(_catalog(), vault_dir=tmp_path)
     assert (tmp_path / "Home.md").exists()
+
+
+# --- Finding 1: dot-only directories (e.g. Obsidian's own ".obsidian/") must
+# not look "occupied" and trigger the destructive-rebuild refusal ---
+
+
+def test_build_into_directory_containing_only_dotfiles_works(tmp_path):
+    target = tmp_path / "obsidian-created"
+    target.mkdir()
+    (target / ".obsidian").mkdir()
+    (target / ".obsidian" / "workspace.json").write_text("{}", encoding="utf-8")
+    (target / ".DS_Store").write_text("", encoding="utf-8")
+
+    # Must not raise -- this is the documented happy path: create the vault
+    # in Obsidian first, then point the toolkit at it.
+    build_vault(_catalog(), vault_dir=target)
+
+    assert (target / "Home.md").exists()
+    assert (target / ".udemy-vault").exists()
+    # The pre-existing dotfiles are untouched by the build.
+    assert (target / ".obsidian" / "workspace.json").exists()
+
+
+def test_build_refuses_directory_with_real_content_and_no_marker(tmp_path):
+    target = tmp_path / "someone-elses-vault"
+    target.mkdir()
+    (target / "notes").mkdir()
+    keeper = target / "notes" / "personal.md"
+    keeper.write_text("my own notes", encoding="utf-8")
+
+    with pytest.raises(RuntimeError):
+        build_vault(_catalog(), vault_dir=target)
+
+    # Refused build must leave the pre-existing content on disk.
+    assert keeper.exists()
+    assert keeper.read_text(encoding="utf-8") == "my own notes"
+
+
+# --- Finding 2: the courses/lectures fallback is removed -- only the
+# .udemy-vault marker (or an effectively-empty directory) authorizes pruning ---
+
+
+def test_build_refuses_directory_with_courses_folder_but_no_marker(tmp_path):
+    target = tmp_path / "personal-study-vault"
+    target.mkdir()
+    (target / "courses").mkdir()
+    keeper = target / "courses" / "my-own-course-notes.md"
+    keeper.write_text("not from this toolkit", encoding="utf-8")
+    (target / "topics").mkdir()
+    shared_topic = target / "topics" / "shared-topic.md"
+    shared_topic.write_text("owned by another toolkit", encoding="utf-8")
+
+    with pytest.raises(RuntimeError):
+        build_vault(_catalog(), vault_dir=target)
+
+    assert keeper.exists()
+    assert shared_topic.exists()
+
+
+# --- Finding 5: verify_vault's manifest cross-check is set-based, so a
+# missing note and a stray note don't cancel each other out under a pure
+# count comparison ---
+
+
+def test_verify_vault_reports_mismatch_when_a_lecture_note_is_deleted(tmp_path):
+    build_vault(_catalog(("Welcome", "Setup")), vault_dir=tmp_path)
+    notes = sorted((tmp_path / "lectures" / "test-course").glob("*.md"))
+    deleted = notes[0]
+    deleted.unlink()
+
+    report = verify_vault(tmp_path)
+    assert report["manifest_mismatch"]
+    assert any(str(deleted.relative_to(tmp_path)).removesuffix(".md") in entry for entry in report["manifest_mismatch"])

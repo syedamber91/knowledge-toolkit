@@ -245,21 +245,37 @@ def verify_vault(target: Path) -> dict:
     # claims was written -- verify_vault only ever inspected files that
     # exist, so a silent filename collision (two notes overwriting one
     # another) previously went unreported even though the manifest still
-    # listed both lectures.
-    lecture_note_count = sum(
-        1 for p in notes if p.parent.name and p.parent.parent.name == "lectures"
-    )
+    # listed both lectures. Compare the SET of note paths, not just counts:
+    # a simultaneous missing note and stray extra note cancel out under a
+    # pure count comparison but are caught by the symmetric difference.
+    lecture_note_paths = {
+        str(p.relative_to(target)).removesuffix(".md")
+        for p in notes
+        if p.parent.name and p.parent.parent.name == "lectures"
+    }
     manifest_mismatch: List[str] = []
     manifest_path = target / "index.yaml"
     if manifest_path.exists():
         import yaml
 
         manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8")) or {}
-        manifest_lecture_count = (manifest.get("counts") or {}).get("lectures")
-        if manifest_lecture_count is not None and manifest_lecture_count != lecture_note_count:
+        manifest_note_paths = {
+            lecture["note"]
+            for course in manifest.get("courses") or []
+            for section in course.get("sections") or []
+            for lecture in section.get("lectures") or []
+        }
+        missing_on_disk = sorted(manifest_note_paths - lecture_note_paths)
+        stray_on_disk = sorted(lecture_note_paths - manifest_note_paths)
+        if missing_on_disk:
             manifest_mismatch.append(
-                f"manifest reports {manifest_lecture_count} lecture(s) but "
-                f"{lecture_note_count} lecture note file(s) exist on disk"
+                f"manifest lists {len(missing_on_disk)} note(s) missing on disk: "
+                f"{', '.join(missing_on_disk)}"
+            )
+        if stray_on_disk:
+            manifest_mismatch.append(
+                f"{len(stray_on_disk)} lecture note file(s) on disk are not in the "
+                f"manifest: {', '.join(stray_on_disk)}"
             )
 
     return {
@@ -276,17 +292,25 @@ _VAULT_MARKER = ".udemy-vault"
 
 
 def _looks_like_our_own_vault(target: Path) -> bool:
-    """True if ``target`` is empty, unmistakably ours, or safe to treat as ours."""
+    """True if ``target`` is effectively empty or unmistakably ours.
+
+    "Effectively empty" ignores dotfiles/dot-directories (e.g. ``.obsidian/``,
+    ``.DS_Store``) so the documented happy path -- create a fresh vault in
+    Obsidian first, then point the toolkit at it -- doesn't get refused just
+    because Obsidian's own config directory makes the folder non-empty.
+
+    The ``.udemy-vault`` marker is the ONLY signal that authorizes pruning an
+    already-populated directory. There is deliberately no "has a courses/ or
+    lectures/ directory" fallback: this toolkit is new and unreleased, so no
+    pre-marker Udemy vault exists to support, and that fallback was a weak
+    enough signal that a personal study vault with its own courses/ folder
+    could trigger it and lose its topics/ tree.
+    """
     if not target.exists():
         return True
-    if not any(target.iterdir()):
+    if all(entry.name.startswith(".") for entry in target.iterdir()):
         return True
-    if (target / _VAULT_MARKER).exists():
-        return True
-    # A prior (marker-less) Udemy build still leaves its own courses/ or
-    # lectures/ directory behind -- treat that as proof of prior ownership
-    # too, so rebuilding an already-built vault keeps working.
-    return (target / "courses").is_dir() or (target / "lectures").is_dir()
+    return (target / _VAULT_MARKER).exists()
 
 
 def build_vault(catalog: UdemyCatalog, vault_dir: Optional[Path] = None) -> Path:

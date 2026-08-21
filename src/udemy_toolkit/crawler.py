@@ -84,22 +84,22 @@ def crawl_course(
 
     for section, target_section in zip(parsed.sections, course.sections):
         for lecture in section.lectures:
+            # `known` is the union of every previously-seen lecture id
+            # (captured or recorded as captionless) across this catalog, so
+            # any lecture that was already handled in a prior run is caught
+            # here -- this is what preserves previously captured lectures
+            # under a small --limit on a re-crawl: they're re-appended via
+            # `previous.get(...)` before `limit` is ever consulted below,
+            # since only genuinely NEW lectures reach the limit check.
             if lecture.id in known:
                 summary.already_seen += 1
                 target_section.lectures.append(previous.get(lecture.id, lecture))
                 continue
             if limit_reached:
-                # `limit` only bounds how many lectures get FETCHED. A
-                # lecture we already know about (previously captured, just
-                # not reached again yet) must still land back in the shell
-                # so a re-crawl under a small --limit never drops it.
-                if lecture.id in previous:
-                    target_section.lectures.append(previous[lecture.id])
+                # `limit` only bounds how many NEW lectures get FETCHED.
                 continue
             if limit is not None and processed >= limit:
                 limit_reached = True
-                if lecture.id in previous:
-                    target_section.lectures.append(previous[lecture.id])
                 continue
 
             raw = fetcher.captions(course.id, lecture.id)

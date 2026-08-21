@@ -182,28 +182,58 @@ def test_empty_extracted_transcript_counts_as_no_captions(tmp_path):
     assert "10" in catalog.seen_lecture_ids
 
 
+# A curriculum with TWO lectures added since the first run, so a re-crawl
+# with limit=1 must fetch only one of them while still not dropping any
+# already-captured lecture.
+TWO_NEW_CURRICULUM = {
+    "results": [
+        {"_class": "chapter", "id": 900, "title": "S1", "object_index": 1},
+        {"_class": "lecture", "id": 10, "title": "Welcome", "asset": {"time_estimation": 60}},
+        {"_class": "lecture", "id": 11, "title": "No captions here", "asset": {}},
+        {"_class": "lecture", "id": 12, "title": "New lecture A", "asset": {"time_estimation": 60}},
+        {"_class": "lecture", "id": 13, "title": "New lecture B", "asset": {"time_estimation": 60}},
+    ]
+}
+
+
 def test_limit_on_recrawl_does_not_drop_previously_captured_lectures(tmp_path):
-    """Finding 1 regression: --limit on a re-crawl must not delete lectures
-    already captured in a prior run just because they sit past the cutoff.
+    """--limit on a re-crawl must not delete lectures already captured in a
+    prior run just because they sit past the cutoff, and must still bound
+    how many NEW lectures get fetched even when more than one new lecture
+    exists.
+
+    NOTE on testability (finding 4): the two now-removed `if lecture.id in
+    previous: ...` blocks were provably unreachable dead code -- `previous`
+    is built only from lectures already in the catalog, and any such lecture
+    id is always caught earlier by `if lecture.id in known`, since `known`
+    is a superset of `previous.keys()`. That holds regardless of how many
+    new lectures are added or where `limit` cuts off, including this
+    two-new-lecture scenario. So this rewritten test -- like the original --
+    passes identically against the pre-fix and post-fix code; it exists as a
+    stronger regression test of the ACTUAL preservation mechanism (the
+    `known` branch), not as a test that would have failed before the fix.
     """
     path = tmp_path / "udemy.json"
     # First run: full crawl of a 2-lecture course, both captured.
     first = FakeFetcher({"10": VTT, "11": VTT})
     crawl_course(COURSE_URL, first, catalog_path=path, sleep=_noop_sleep)
 
-    # Curriculum grows; re-crawl with limit=1. The limit should bound how
-    # many NEW lectures get fetched (only lecture 12 is new here), not cause
-    # the already-captured ones (10, 11) to be dropped from the catalog.
-    second = FakeFetcher({"10": VTT, "11": VTT, "12": VTT}, curriculum=GROWN_CURRICULUM)
+    # Curriculum grows by two lectures; re-crawl with limit=1. The limit
+    # should bound how many NEW lectures get fetched (only lecture 12, the
+    # first new one encountered), not cause the already-captured ones
+    # (10, 11) to be dropped from the catalog.
+    second = FakeFetcher({"10": VTT, "11": VTT, "12": VTT, "13": VTT}, curriculum=TWO_NEW_CURRICULUM)
     summary = crawl_course(COURSE_URL, second, catalog_path=path, limit=1, sleep=_noop_sleep)
 
-    # 10 and 11 are already known -> no refetch; exactly one new fetch (12).
+    # Exactly one caption fetch occurred in the second run.
     assert second.caption_calls == ["12"]
     catalog = UdemyCatalog.load(path)
     lectures = {lec.id: lec for lec in catalog.courses[0].lectures()}
+    # Previously captured lectures are all still present with transcripts intact.
     assert lectures["10"].has_transcript is True
     assert "hello there" in lectures["10"].transcript
     assert lectures["11"].id == "11"
+    assert lectures["11"].has_transcript is True
     assert summary.already_seen == 2
 
 
