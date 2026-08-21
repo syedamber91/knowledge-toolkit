@@ -29,8 +29,21 @@ console = Console()
 
 
 @app.command()
-def login() -> None:
-    """Open a browser, log in manually, and save the session."""
+def login(
+    from_chrome: bool = typer.Option(
+        False, "--from-chrome",
+        help="Reuse your existing Google Chrome session instead of opening a "
+             "browser. Requires being logged into Udemy in Chrome.",
+    ),
+) -> None:
+    """Save a Udemy session — via browser login or by importing Chrome's."""
+    if from_chrome:
+        try:
+            auth_mod.import_from_chrome()
+        except RuntimeError as exc:
+            console.print(f"[yellow]{exc}[/yellow]")
+            raise typer.Exit(code=1)
+        return
     auth_mod.login()
 
 

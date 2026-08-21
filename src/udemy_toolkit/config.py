@@ -55,7 +55,9 @@ class Settings:
     base_url: str = os.environ.get("UDEMY_BASE_URL", "https://www.udemy.com")
     crawl_min_delay: float = _get_float("UDEMY_CRAWL_MIN_DELAY", 1.5)
     crawl_max_delay: float = _get_float("UDEMY_CRAWL_MAX_DELAY", 3.5)
-    crawl_headed: bool = _get_bool("UDEMY_CRAWL_HEADED", False)
+    # Udemy's Cloudflare protection 403s headless Chrome even with a valid
+    # session cookie, so headed is the only mode that actually works here.
+    crawl_headed: bool = _get_bool("UDEMY_CRAWL_HEADED", True)
 
 
 settings = Settings()

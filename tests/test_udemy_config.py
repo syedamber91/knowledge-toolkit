@@ -25,4 +25,4 @@ def test_settings_defaults():
     assert config.settings.base_url == "https://www.udemy.com"
     assert config.settings.crawl_min_delay == 1.5
     assert config.settings.crawl_max_delay == 3.5
-    assert config.settings.crawl_headed is False
+    assert config.settings.crawl_headed is True
