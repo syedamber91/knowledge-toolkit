@@ -1,0 +1,52 @@
+{
+  "VINTRO": {
+    "slug": "what-you-will-learn-in-this-course-intro",
+    "lesson_id": "2172995",
+    "title": "What you will Learn in this Course? Intro"
+  },
+  "ODDM": {
+    "slug": "why-valuation-matters-odd-meter",
+    "lesson_id": "2110384",
+    "title": "Why Valuation Matters + Odd Meter!"
+  },
+  "ARTBV": {
+    "slug": "art-of-business-valuation-different-methods",
+    "lesson_id": "2111873",
+    "title": "Art of Business Valuation-Different Methods"
+  },
+  "BUFF": {
+    "slug": "how-buffett-actually-invests-valuation-methods",
+    "lesson_id": "2101461",
+    "title": "How Buffett Actually Invests? Valuation Methods"
+  },
+  "PALLOC": {
+    "slug": "portfolio-allocation-approach",
+    "lesson_id": "4207666",
+    "title": "Portfolio Allocation Approach"
+  },
+  "VACRA": {
+    "slug": "part-1-valuation-across-industries",
+    "lesson_id": "3633621",
+    "title": "Part 1 Valuation Across Industries"
+  },
+  "VACRB": {
+    "slug": "part-2-finding-intrinsic-value-across-sectors",
+    "lesson_id": "3649709",
+    "title": "Part 2 Finding Intrinsic Value Across Sectors"
+  },
+  "FMODA": {
+    "slug": "part-1-financial-modelling",
+    "lesson_id": "3843911",
+    "title": "Part 1 Financial Modelling"
+  },
+  "FMODB": {
+    "slug": "part-2-financial-modelling",
+    "lesson_id": "3868816",
+    "title": "Part 2 Financial Modelling"
+  },
+  "VCONC": {
+    "slug": "what-you-will-learn-in-this-course-conclusion",
+    "lesson_id": "2173004",
+    "title": "What you will Learn in this Course? Conclusion"
+  }
+}

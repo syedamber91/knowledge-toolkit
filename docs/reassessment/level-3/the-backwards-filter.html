@@ -1,0 +1,396 @@
+<title>The Backwards Filter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;600&family=Source+Sans+3:wght@400;600;700&display=swap">
+
+<style>
+:root{
+  --ground:#F2F4F1; --surface:#FFFFFF; --sunk:#E8ECE7;
+  --ink:#1C2620; --ink-soft:#46534C; --muted:#6B7A72; --rule:#D5DCD6;
+  --grow:#2E7D5B; --grow-wash:#E2F0E9;
+  --problem:#B4472E; --problem-wash:#F7E6E1;
+  --flag:#8A6A1F; --flag-wash:#F5EEDC;
+  --display:"Fraunces",Georgia,serif;
+  --body:"Source Sans 3",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#121714; --surface:#1A211D; --sunk:#232B26;
+    --ink:#E4EAE5; --ink-soft:#B3C0B8; --muted:#8FA096; --rule:#2E3832;
+    --grow:#5FBE94; --grow-wash:#1B3229;
+    --problem:#E08161; --problem-wash:#37211B;
+    --flag:#D2AE5E; --flag-wash:#302818;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121714; --surface:#1A211D; --sunk:#232B26;
+  --ink:#E4EAE5; --ink-soft:#B3C0B8; --muted:#8FA096; --rule:#2E3832;
+  --grow:#5FBE94; --grow-wash:#1B3229;
+  --problem:#E08161; --problem-wash:#37211B;
+  --flag:#D2AE5E; --flag-wash:#302818;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--body); font-size:17px; line-height:1.65;
+  margin:0; padding:0;
+}
+.wrap{max-width:44rem;margin:0 auto;padding:3rem 1.25rem 5rem;display:flex;flex-direction:column;gap:2.5rem}
+h1,h2,h3{text-wrap:balance;margin:0;font-family:var(--display)}
+p{margin:0}
+a{color:var(--grow)}
+:focus-visible{outline:2px solid var(--grow);outline-offset:3px;border-radius:3px}
+
+/* ---- masthead ---- */
+.mast{display:flex;flex-direction:column;gap:1rem}
+.eyebrow{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted)
+}
+h1{font-size:clamp(2.4rem,7vw,3.6rem);font-weight:600;line-height:1.02;letter-spacing:-.02em}
+.standfirst{font-size:1.2rem;color:var(--ink-soft);max-width:34rem}
+.provenance{
+  display:flex;flex-wrap:wrap;gap:.4rem 1.4rem;padding-top:1rem;
+  border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:.74rem;color:var(--muted)
+}
+.provenance b{color:var(--grow);font-weight:600}
+
+/* ---- findings ---- */
+.findings{display:flex;flex-direction:column;gap:1rem}
+.finding{
+  background:var(--surface);border:1px solid var(--rule);
+  border-left:3px solid var(--problem);
+  padding:1.25rem 1.4rem;display:flex;flex-direction:column;gap:.5rem
+}
+.finding h3{font-size:1.25rem;font-weight:600}
+.finding p{color:var(--ink-soft)}
+.finding .why{
+  font-family:var(--mono);font-size:.76rem;color:var(--muted);
+  padding-top:.5rem;border-top:1px dashed var(--rule)
+}
+
+/* ---- legend ---- */
+.legend{
+  display:flex;flex-wrap:wrap;gap:.5rem .9rem;align-items:center;
+  background:var(--sunk);padding:.85rem 1.1rem;
+  font-size:.82rem;color:var(--muted)
+}
+
+/* ---- lessons ---- */
+.lessons{display:flex;flex-direction:column;gap:1.1rem}
+.lesson{
+  background:var(--surface);border:1px solid var(--rule);
+  padding:1.5rem 1.5rem 1.35rem;display:flex;flex-direction:column;gap:.9rem
+}
+.lesson.starred{border-color:var(--grow);box-shadow:0 0 0 1px var(--grow)}
+.head{display:flex;gap:.9rem;align-items:baseline}
+.num{
+  font-family:var(--mono);font-size:.8rem;font-weight:600;
+  color:var(--muted);flex:none;padding-top:.2rem
+}
+.titles{display:flex;flex-direction:column;gap:.15rem}
+.lesson h2{font-size:1.4rem;font-weight:600;line-height:1.15}
+.ref{font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:var(--muted)}
+.about{
+  font-size:1.02rem;color:var(--ink);font-weight:600;
+  padding-left:.85rem;border-left:2px solid var(--grow)
+}
+.plain{color:var(--ink-soft)}
+.plain em{color:var(--ink);font-style:normal;font-weight:600}
+blockquote{
+  margin:0;padding:.15rem 0 .15rem 1rem;border-left:2px solid var(--rule);
+  font-family:var(--display);font-size:1.05rem;color:var(--ink)
+}
+.missed{background:var(--sunk);padding:.9rem 1.1rem;display:flex;flex-direction:column;gap:.45rem}
+.missed .lbl{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.13em;
+  text-transform:uppercase;color:var(--problem);font-weight:600
+}
+.missed ul{margin:0;padding-left:1.05rem;display:flex;flex-direction:column;gap:.3rem}
+.missed li{color:var(--ink-soft);font-size:.94rem}
+.none{color:var(--muted);font-size:.94rem;font-style:italic}
+
+/* ---- company chips ---- */
+.chips{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center}
+.chip{
+  font-family:var(--mono);font-size:.72rem;font-weight:600;
+  padding:.2rem .5rem;border:1px solid transparent;white-space:nowrap
+}
+.chip.doubt{background:var(--problem-wash);color:var(--problem);border-color:var(--problem)}
+.chip.support{background:var(--grow-wash);color:var(--grow);border-color:var(--grow)}
+.chip.watch{background:var(--flag-wash);color:var(--flag);border-color:var(--flag)}
+.chip.neutral{background:var(--sunk);color:var(--muted);border-color:var(--rule)}
+
+.warn{
+  background:var(--flag-wash);border-left:3px solid var(--flag);
+  padding:.75rem 1rem;font-size:.9rem;color:var(--ink-soft)
+}
+
+/* ---- table ---- */
+.tablewrap{overflow-x:auto;border:1px solid var(--rule);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.88rem}
+th,td{padding:.55rem .8rem;text-align:left;border-bottom:1px solid var(--rule)}
+th{
+  font-family:var(--mono);font-size:.68rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);font-weight:600
+}
+td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+tr:last-child td{border-bottom:none}
+
+/* ---- closing ---- */
+.closing{
+  background:var(--surface);border:1px solid var(--rule);
+  border-top:3px solid var(--grow);padding:1.5rem;
+  display:flex;flex-direction:column;gap:.75rem
+}
+.closing h2{font-size:1.35rem;font-weight:600}
+.closing ul{margin:0;padding-left:1.1rem;display:flex;flex-direction:column;gap:.35rem;color:var(--ink-soft)}
+footer{
+  font-family:var(--mono);font-size:.72rem;color:var(--muted);
+  border-top:1px solid var(--rule);padding-top:1rem;line-height:1.7
+}
+@media (prefers-reduced-motion:no-preference){
+  .lesson{transition:border-color .18s ease}
+}
+</style>
+
+<div class="wrap">
+
+  <header class="mast">
+    <div class="eyebrow">SOIC Level 3 · re-read lecture by lecture</div>
+    <h1>The Backwards Filter</h1>
+    <p class="standfirst">Ten lessons on how to value a company — and the three places our stock screener does the opposite of what they teach.</p>
+    <div class="provenance">
+      <span><b>10 / 10</b> lectures read whole</span>
+      <span><b>100%</b> of quotes checked against the recording</span>
+      <span><b>0</b> invented claims</span>
+      <span>38 companies under test</span>
+    </div>
+  </header>
+
+  <section class="findings">
+    <div class="finding">
+      <h3>1. The robot picks backwards</h3>
+      <p>You told it: <em>pick plants that are big and healthy today.</em> The teacher said: <em>pick the ones about to get healthy — that's when they're still cheap.</em></p>
+      <p>So it keeps choosing plants already fully grown, and throws away the ones just starting to bloom.</p>
+      <p class="why">Cause: the source says "ROC/ROE above 15% <b>or trending toward it</b>". Only the first half became code. Those four words are the whole bug.</p>
+    </div>
+    <div class="finding">
+      <h3>2. Price can never say no</h3>
+      <p>There is no rule anywhere that rejects a company for being expensive. Not one. So a wonderful business at a silly price sails straight through.</p>
+      <p class="why">G6, the valuation gate, is empty. Four of these ten lectures are about nothing else.</p>
+    </div>
+    <div class="finding">
+      <h3>3. One company says it earns money that never arrives</h3>
+      <p><span class="chip doubt">CPPLUS</span> reports profits. The cash goes <em>out</em>, not in. The robot already measured this — it just isn't allowed to reject anyone, so it said yes.</p>
+      <p class="why">Cash-from-operations is −1.33% of EBITDA and −48% of profit. Verify against source before acting — numbers this strange are sometimes a data fault.</p>
+    </div>
+  </section>
+
+  <div class="legend">
+    <span>How a company is marked:</span>
+    <span class="chip doubt">doubt raised</span>
+    <span class="chip support">supported</span>
+    <span class="chip watch">worth a look</span>
+    <span class="chip neutral">named only</span>
+  </div>
+
+  <section class="lessons">
+
+    <article class="lesson">
+      <div class="head"><div class="num">01</div><div class="titles">
+        <h2>What You Will Learn</h2><div class="ref">VINTRO · 2 min</div></div></div>
+      <p class="about">It's the menu, read out before the meal.</p>
+      <p class="plain">No teaching in it. But the menu itself is telling: it promises <em>the danger zone versus the safe zone</em>, <em>which ruler to use on which plant</em>, and <em>how to know when to leave</em>.</p>
+      <div class="missed"><div class="lbl">What we missed</div>
+        <ul><li>All three promised topics land in gates we left empty. The course announces up front that it is about the part we never built.</li></ul></div>
+      <p class="none">No companies named.</p>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">02</div><div class="titles">
+        <h2>Why Valuation Matters</h2><div class="ref">ODDM · 2h 03m</div></div></div>
+      <p class="about">A price tag is a mood, not a fact.</p>
+      <p class="plain">Someone bought Infosys at 206 times earnings. The company then did everything right — profit grew 20–25% a year, for nine years. The stock paid <em>nothing</em>. The plant grew; the mood shrank. They cancelled out.</p>
+      <blockquote>"It's not a bad business, but it was a bad stock."</blockquote>
+      <p class="plain">It works the other way too. Green Panel's profit <em>rose</em> while its price tag was crushed from 34× to 13× — because rivals were building new factories. The earnings looked fine right up until the mood broke.</p>
+      <p class="plain">He also warns the headline number lies: strip out side-income like deposit interest to get the <em>real</em> price on the actual business.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>No rule rejects anything for being expensive — and this lecture is literally titled <em>why valuation matters</em>.</li>
+        <li>No exit rule at all. We check when to get in, never when to get out. He says fundamentals <em>cannot</em> tell you when to sell — that's why the tool exists.</li>
+        <li>Our price rules trust reported profit as-is. He shows that's wrong by 20–50% when side-income is large.</li>
+      </ul></div>
+      <div class="chips"><span class="chip doubt">ASIANPAINT</span>
+        <span>— over 10 years the share rose 19.7%/yr but earnings only 12.3%/yr. Most of the gain was mood, not profit.</span></div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">03</div><div class="titles">
+        <h2>The Art of Business Valuation</h2><div class="ref">ARTBV · 2h 17m</div></div></div>
+      <p class="about">Different plants need different rulers — and decide when to leave <em>before</em> you're frightened.</p>
+      <p class="plain">You don't judge a fish by how well it climbs a tree. He says flatly that the price-to-earnings ruler <em>does not work</em> on banks, insurers or property companies. Cyclical businesses need a different one again.</p>
+      <p class="plain">The best time to buy is when a company is earning <em>below</em> its own normal margin and the story is still intact. The most dangerous time is peak margins <em>and</em> peak price together — which is exactly what our robot hunts for.</p>
+      <p class="plain">And don't catch a falling knife: wait for the price to go flat and boring before adding.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>Sector-appropriate rulers — the spine of the whole lecture — exist nowhere in our rules.</li>
+        <li>No sense of where a company sits <em>in its own</em> margin history. We read a level, never a position in a band.</li>
+        <li>No check for one-off income puffing up profit.</li>
+        <li>No check for a tiny free float — he says obscene prices are usually float cornering, and it's a standard, fetchable figure.</li>
+      </ul></div>
+      <div class="chips">
+        <span class="chip doubt">DIVISLAB</span><span class="chip doubt">MARICO</span><span class="chip doubt">SAREGAMA</span>
+        <span class="chip support">JUBLINGREA</span><span class="chip watch">FLUOROCHEM</span></div>
+      <div class="warn">His exit setting (2×/2.5×) is tuned to <em>his own</em> 2–4 year holding period. Never hard-code it as one number.</div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">04</div><div class="titles">
+        <h2>How Buffett Actually Invests</h2><div class="ref">BUFF · 2h 31m</div></div></div>
+      <p class="about">Decide how you'll leave before you walk in.</p>
+      <p class="plain">The complete loop: build a rough model, price it with the right ruler, then use chart tools so the leaving decision is already made — not invented in a panic.</p>
+      <p class="plain">He shows the tool working on his own trades: rode one 8× and left at the top; left another at 232 before it fell to 80.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>Everything in the valuation gate: the model, the margin of safety, the reverse check that asks <em>what growth does today's price already assume?</em></li>
+        <li>The exit system — two separate chart tools, both taught in detail, neither implemented.</li>
+        <li>Odd one out: our results table has an <em>ExitTriggers</em> column that no rule in the rulebook defines. Either something undocumented exists, or that column is orphaned.</li>
+      </ul></div>
+      <div class="chips">
+        <span class="chip doubt">ASIANPAINT</span><span class="chip doubt">PIDILITIND</span>
+        <span class="chip doubt">LAURUSLABS</span><span class="chip support">FLUOROCHEM</span></div>
+      <div class="warn">His 10% discount rate and 4% long-run growth are tied to the interest rates of the day. Hard-coding them would break his own central point.</div>
+    </article>
+
+    <article class="lesson starred">
+      <div class="head"><div class="num">05</div><div class="titles">
+        <h2>Portfolio Allocation Approach</h2><div class="ref">PALLOC · 2h 09m · never seen before</div></div></div>
+      <p class="about">It isn't whether you were right. It's how much you had on when you were right.</p>
+      <p class="plain">This lecture was wrongly tagged as an empty file and <em>never reached any earlier pass</em>. Two hours on position sizing that your frameworks have never contained.</p>
+      <p class="plain">It doesn't tell you which plant. It tells you how big a pot. Tiers of 2 / 4 / 6 / 8%. Twenty to thirty plants at most. No more than 15–20% in any one kind. If a holding stops you sleeping, trim it.</p>
+      <blockquote>"it is not about being right — it is about how much money you make when you are right"</blockquote>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>The entire sizing layer. The robot stops at yes/no and never says <em>how much</em>.</li>
+        <li>No cap on how many names, and no sector limit — <b>10 of your 38 are pharma, about 26%</b>, already past his 15–20% ceiling.</li>
+        <li>No time stop: nothing notices a holding that has gone nowhere for two years while the market rose.</li>
+        <li>Our profit-growth gate has no exception for a company mid-expansion, where profit is <em>meant</em> to look poor. He says hold or add. We say fail.</li>
+        <li>Our entry signals are applied the same way in a rising market and a choppy one. He says in a sideways market they mostly produce false alarms.</li>
+      </ul></div>
+      <div class="chips"><span class="chip doubt">DIVISLAB</span>
+        <span>— fell 1140 → 543 in six months on a regulatory ban, despite being a quality business. His point is about <em>size</em>, not quality.</span></div>
+      <div class="chips"><span class="chip doubt">ASIANPAINT</span><span>— named as a loved blue-chip that went nowhere for four years.</span></div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">06</div><div class="titles">
+        <h2>Valuation Across Industries</h2><div class="ref">VACRA · 2h 30m · part 1</div></div></div>
+      <p class="about">Pick the ruler the plant's shape demands.</p>
+      <p class="plain">Heavy-machinery businesses hide their earnings under depreciation, so you measure them before that charge. Turnaround stories get measured on sales, because profit hasn't arrived yet. Builders get measured on their order book.</p>
+      <p class="plain">And never read a ruler without reading the thing that actually moves it — the commodity price, the margin trend, the order quality.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>We never compute the depreciation-adjusted ruler at all, so every heavy-asset name in the 38 is judged with the wrong tool.</li>
+        <li>No commodity price tracking — which is the dominant driver for <span class="chip neutral">HINDCOPPER</span> (copper) and <span class="chip neutral">NATIONALUM</span> (aluminium).</li>
+        <li>No order-book quality, duration or decay anywhere.</li>
+        <li>Our growth numbers blend price rises and real volume. He wants them separated.</li>
+      </ul></div>
+      <div class="chips">
+        <span class="chip support">NEULANDLAB</span><span class="chip support">CARTRADE</span>
+        <span class="chip support">LAURUSLABS</span><span class="chip doubt">NESTLEIND</span></div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">07</div><div class="titles">
+        <h2>Finding Intrinsic Value Across Sectors</h2><div class="ref">VACRB · 2h 09m · part 2</div></div></div>
+      <p class="about">Work out what the market is actually paying for. <em>Then</em> pick the ruler.</p>
+      <p class="plain">Fourteen sectors, taught as pairs: <em>which of these two gets the higher price, and why?</em> Never a formula.</p>
+      <p class="plain">Property is the sharpest case. While a building is going up, the accounts show the costs but not the sales — so the profit line is meaningless by design. Any ruler built on profit is reading a number that isn't real yet.</p>
+      <p class="plain">And in stock-exchange-type businesses, a price tag near 30–32× is his <em>buy</em> signal — right where our band calls things expensive.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>Nothing replaces the profit line for property developers.</li>
+        <li>No count of drug pipeline depth — the main value driver for five of your pharma names.</li>
+        <li>No view of a supplier's <em>customers'</em> health.</li>
+        <li>The whole idea that the right ruler changes by sector has no representation at all.</li>
+      </ul></div>
+      <div class="chips"><span class="chip doubt">LODHA</span>
+        <span>— its passing scores are read through the profit lens this lecture says is invalid mid-construction, and its high price is partly float scarcity.</span></div>
+      <div class="chips"><span class="chip support">DIVISLAB</span><span class="chip support">NEULANDLAB</span>
+        <span class="chip neutral">GLENMARK</span><span class="chip neutral">AJANTPHARM</span></div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">08</div><div class="titles">
+        <h2>Financial Modelling</h2><div class="ref">FMODA · 1h 22m · part 1</div></div></div>
+      <p class="about">Stop reading today's price tag. Work out next year's profit first.</p>
+      <p class="plain">Take what management promised, build a rough one-to-three year forecast, then test it three ways — good, normal, bad. The real question isn't "is it cheap?" It's <em>does even the bad case still pay me?</em></p>
+      <p class="plain">He also checks whether management actually delivered what it promised <em>last</em> time before trusting anything it says now.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>Every rule we have looks backwards. Nothing looks forward off stated guidance.</li>
+        <li>No check on whether growth came from one big one-off order or from repeat demand.</li>
+        <li>No track record of promises kept.</li>
+        <li>A genuine candidate for the empty veto gate: an <em>unforecastable business</em> flag — when cheap imports flood a market, he says plainly you can no longer model the company at all.</li>
+      </ul></div>
+      <div class="chips"><span class="chip support">POLYCAB</span><span>— mild, as the scaled peer others are measured against.</span></div>
+      <div class="warn"><b>False lead, caught and kept:</b> the lecture's negative example "Chemplus" is <em>not</em> your <span class="chip neutral">CPPLUS</span>. Similar letters, different company — one makes PVC, the other makes security cameras. Recorded here so it can't come back as evidence later.</div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">09</div><div class="titles">
+        <h2>Modelling, Continued</h2><div class="ref">FMODB · 2h 04m · part 2</div></div></div>
+      <p class="about">How to price a company you already like — and why he refuses the textbook method.</p>
+      <p class="plain">Pick the sector's ruler, build a five-line forward forecast, then sanity-check against peers. He rejects the classic discounted-cash-flow approach outright, saying it hands you a false sense of superiority.</p>
+      <p class="plain">He also warns about mixed businesses: blend a 40%-margin arm with a single-digit-margin arm and you get one number that describes neither.</p>
+      <div class="missed"><div class="lbl">What we missed</div><ul>
+        <li>The valuation gate again — this is the lecture that would fill it.</li>
+        <li>No handling of multi-arm companies. We compute one blended figure per company and can't even flag when that's misleading.</li>
+        <li><b>Lenders walk straight through.</b> We correctly skip debt and returns tests for banks — then put <em>nothing</em> in their place. A bank reaches the shortlist on growth and chart signals alone.</li>
+      </ul></div>
+      <div class="chips"><span class="chip doubt">ASIANPAINT</span>
+        <span>— a rival is switching on 60–65% of Asian Paints' own capacity in one go, during seven flat quarters.</span></div>
+      <div class="chips"><span class="chip support">POLYCAB</span><span class="chip watch">NAVINFLUOR</span></div>
+    </article>
+
+    <article class="lesson">
+      <div class="head"><div class="num">10</div><div class="titles">
+        <h2>What You Learned</h2><div class="ref">VCONC · 5 min</div></div></div>
+      <p class="about">A bad pick should barely dent you. A great pick should actually move you.</p>
+      <p class="plain">Two sizing recipes — 2-6-8 and 3-6-9 — split across a steady <em>core</em> and a riskier <em>satellite</em>. Satellite stays under 10–20% of everything. Core carries the rest.</p>
+      <div class="missed"><div class="lbl">What we missed</div>
+        <ul><li>All of it. The robot hands back a list and stops. It never says which names are steady enough to be core, and which should stay small.</li></ul></div>
+      <p class="none">No companies named.</p>
+    </article>
+
+  </section>
+
+  <section>
+    <h2 style="font-size:1.5rem;font-weight:600;margin-bottom:.9rem">The one rule five lectures disagree with</h2>
+    <p style="color:var(--ink-soft);margin-bottom:1rem">We apply a single 15–35 price band to every company. Nobody defends it. The direction of the answer flips by sector:</p>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Kind of business</th><th>What he says</th></tr></thead>
+      <tbody>
+        <tr><td>Property developers</td><td>Don't use this ruler at all</td></tr>
+        <tr><td>Cement</td><td>"never ever look at price to earnings"</td></tr>
+        <tr><td>Quality household brands</td><td>Normally trade far above 35 — and that's fine</td></tr>
+        <tr><td>Stock-exchange businesses</td><td>30–32 is the <b>buy</b> signal</td></tr>
+        <tr><td>Banks and insurers</td><td>Wrong tool entirely</td></tr>
+      </tbody>
+    </table></div>
+    <p style="color:var(--muted);font-size:.88rem;margin-top:.7rem">Our own results already agree it's broken: <b>27 of the 38</b> fail this band — including names two lectures call normally priced.</p>
+  </section>
+
+  <div class="closing">
+    <h2>What happens next</h2>
+    <ul>
+      <li><b>Nothing has changed.</b> No rule was edited. No company was added or dropped.</li>
+      <li>Two numbers need checking against source before we trust them: CPPLUS's cash flow, and whether Asian Paints' growth figure and the "seven flat quarters" describe the same moment.</li>
+      <li>Only <b>one</b> thing here is clean enough to become a real rule — the exit signal, taught the same way in three separate lectures, using price data we already download.</li>
+      <li>Levels 4 and 5 are still unread: 18 lectures and 4 lectures.</li>
+    </ul>
+  </div>
+
+  <footer>
+    Sources: 10 lecture transcripts, Stock Market Vault · every quoted phrase machine-checked as present in the lecture it cites · four briefs were sent back for quoting errors and corrected before use.<br>
+    This page describes what a course teaches and where our own screening code departs from it. It is not investment advice.
+  </footer>
+
+</div>
