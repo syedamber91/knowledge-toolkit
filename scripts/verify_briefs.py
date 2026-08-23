@@ -21,6 +21,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -28,6 +29,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 from soic_method.corpus import load_corpus          # noqa: E402
 from soic_wiki.gates import verify_cited_quotes      # noqa: E402
+
+# The write rules mandate annotating garbled ASR as:
+#     "one-mebriages" [likely "Varun Beverages"]
+# gates._QUOTED then extracts the ANNOTATION's own quoted text as a second,
+# separate claim and presence-checks it -- so "Varun Beverages" is reported
+# unverified even though the reader never claimed the transcript says it. The
+# checker penalises compliance with its own convention. Strip bracketed spans
+# before extraction so only the real quote is tested. gates.py itself is left
+# untouched: its output is pinned byte-for-byte against committed sector data.
+_BRACKETED = re.compile(r"\[[^\]]*\]")
+
+
+def strip_annotations(text: str) -> str:
+    return re.sub(r"[ \t]{2,}", " ", _BRACKETED.sub("", text))
 
 CONTENT_JSON = Path.home() / (
     "Documents/workspace/Claude_Code/SOIC_Scraper/data/content.json"
@@ -57,7 +72,9 @@ def main(run_dir: str) -> int:
 
     rows, failures = [], []
     for brief in sorted((run / "briefs").glob("*.md")):
-        checks = verify_cited_quotes(brief.read_text(), ref_to_lesson)
+        checks = verify_cited_quotes(
+            strip_annotations(brief.read_text()), ref_to_lesson
+        )
         total = len(checks)
         ok = sum(1 for c in checks if c.verified)
         pct = (ok / total) if total else 1.0
