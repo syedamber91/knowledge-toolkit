@@ -1,0 +1,154 @@
+{
+  "FSSDF": {
+    "slug": "find-strong-stocks-with-relative-strength",
+    "lesson_id": "3058586",
+    "title": "Find Strong Stocks with Relative Strength",
+    "module": "additional-classes",
+    "chars": 47077,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/additional-classes/find-strong-stocks-with-relative-strength-transcript.md"
+  },
+  "SBFTS": {
+    "slug": "how-to-spot-a-base-formation",
+    "lesson_id": "3058584",
+    "title": "How to spot a Base Formation?",
+    "module": "additional-classes",
+    "chars": 25193,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/additional-classes/how-to-spot-a-base-formation-transcript.md"
+  },
+  "DSEFD": {
+    "slug": "different-strategies-to-enter-businesses",
+    "lesson_id": "4207843",
+    "title": "Different Strategies to Enter Businesses",
+    "module": "framework-for-buying-selling-a-stock",
+    "chars": 146142,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/framework-for-buying-selling-a-stock/different-strategies-to-enter-businesses-transcript.md"
+  },
+  "FSSMF": {
+    "slug": "framework-on-how-to-sell-stocks",
+    "lesson_id": "4251575",
+    "title": "Framework on How to Sell Stocks",
+    "module": "framework-for-buying-selling-a-stock",
+    "chars": 169779,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/framework-for-buying-selling-a-stock/framework-on-how-to-sell-stocks-transcript.md"
+  },
+  "WBSNW": {
+    "slug": "when-to-buy-a-stock",
+    "lesson_id": "4177453",
+    "title": "When to Buy a Stock",
+    "module": "framework-for-buying-selling-a-stock",
+    "chars": 130478,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/framework-for-buying-selling-a-stock/when-to-buy-a-stock-transcript.md"
+  },
+  "CWLCC": {
+    "slug": "conclusion-what-you-learnt-2",
+    "lesson_id": "2166325",
+    "title": "Conclusion & What you learnt!",
+    "module": "technical-analysis-masterclass",
+    "chars": 5073,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/conclusion-what-you-learnt-2-transcript.md"
+  },
+  "ESRLE": {
+    "slug": "exclusive-soic-ranking-sheet-long-term-indicator",
+    "lesson_id": "2235402",
+    "title": "Exclusive SOIC Ranking Sheet + Long Term Indicator",
+    "module": "technical-analysis-masterclass",
+    "chars": 123948,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/exclusive-soic-ranking-sheet-long-term-indicator-transcript.md"
+  },
+  "HGBYH": {
+    "slug": "holy-grail-of-buying-selling-soic-way",
+    "lesson_id": "2085766",
+    "title": "Holy Grail of Buying & Selling- SOIC Way",
+    "module": "technical-analysis-masterclass",
+    "chars": 120488,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/holy-grail-of-buying-selling-soic-way-transcript.md"
+  },
+  "RSCAR": {
+    "slug": "how-relative-strength-combined-with-vstop-used-to-buy-stock",
+    "lesson_id": "2142262",
+    "title": "How Relative Strength combined with VStop used to buy stock!",
+    "module": "technical-analysis-masterclass",
+    "chars": 20283,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/how-relative-strength-combined-with-vstop-used-to-buy-stock-transcript.md"
+  },
+  "CSLRC": {
+    "slug": "how-to-correctly-use-soic-lti-tool-stage-analysis-tool",
+    "lesson_id": "2336866",
+    "title": "How to correctly use SOIC LTI Tool & Stage Analysis Tool",
+    "module": "technical-analysis-masterclass",
+    "chars": 20255,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/how-to-correctly-use-soic-lti-tool-stage-analysis-tool-transcript.md"
+  },
+  "TVPDT": {
+    "slug": "how-to-use-trading-view-part1",
+    "lesson_id": "2142263",
+    "title": "How to use Trading View! (Part1)",
+    "module": "technical-analysis-masterclass",
+    "chars": 126498,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/how-to-use-trading-view-part1-transcript.md"
+  },
+  "TVPD2": {
+    "slug": "how-to-use-trading-view-part2",
+    "lesson_id": "2166324",
+    "title": "How to use Trading View (Part2)",
+    "module": "technical-analysis-masterclass",
+    "chars": 76116,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/how-to-use-trading-view-part2-transcript.md"
+  },
+  "MSRTM": {
+    "slug": "master-sectoral-rotation",
+    "lesson_id": "3144600",
+    "title": "Master Sectoral Rotation",
+    "module": "technical-analysis-masterclass",
+    "chars": 138035,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/master-sectoral-rotation-transcript.md"
+  },
+  "MAEIM": {
+    "slug": "moving-ave-entry-exit-for-satellite-pf",
+    "lesson_id": "2166322",
+    "title": "Moving Ave - Entry Exit for Satellite PF",
+    "module": "technical-analysis-masterclass",
+    "chars": 38897,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/moving-ave-entry-exit-for-satellite-pf-transcript.md"
+  },
+  "MAAIM": {
+    "slug": "moving-averages-adx-rsi-comparative-strength",
+    "lesson_id": "2142261",
+    "title": "Moving Averages, ADX, RSI, Comparative Strength",
+    "module": "technical-analysis-masterclass",
+    "chars": 33543,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/moving-averages-adx-rsi-comparative-strength-transcript.md"
+  },
+  "VPVUV": {
+    "slug": "volumes-power-of-volumes-study",
+    "lesson_id": "2166323",
+    "title": "Volumes - Power of Volumes Study",
+    "module": "technical-analysis-masterclass",
+    "chars": 19959,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/volumes-power-of-volumes-study-transcript.md"
+  },
+  "WWLTW": {
+    "slug": "what-you-will-learn-in-this-course-intro-4",
+    "lesson_id": "2163923",
+    "title": "What you will Learn in this Course? Intro",
+    "module": "technical-analysis-masterclass",
+    "chars": 2370,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/what-you-will-learn-in-this-course-intro-4-transcript.md"
+  },
+  "WESNW": {
+    "slug": "when-how-to-enter-a-stock",
+    "lesson_id": "3316028",
+    "title": "When & How to Enter a Stock",
+    "module": "technical-analysis-masterclass",
+    "chars": 178256,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/when-how-to-enter-a-stock-transcript.md"
+  },
+  "WBPNW": {
+    "slug": "when-to-buy-pyramid-sell",
+    "lesson_id": "2166321",
+    "title": "When to Buy, Pyramid & Sell",
+    "module": "technical-analysis-masterclass",
+    "chars": 26344,
+    "path": "/Users/syedamberiqbal/Library/Mobile Documents/iCloud~md~obsidian/Documents/Stock Market Vault/l4-when-to-hold-buy-sell-using-technicals-for-long-term/technical-analysis-masterclass/when-to-buy-pyramid-sell-transcript.md"
+  }
+}

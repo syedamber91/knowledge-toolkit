@@ -22,9 +22,11 @@ presence** before it is allowed into a synthesis.
 | Course | Lectures | Briefs | Gate | Synthesis |
 |---|---|---|---|---|
 | Level 3 — How to Value a Company | 10 | ✅ | **10/10 pass** | ✅ |
-| L4 — When to Hold, Buy & Sell | 19 | — | — | — |
-| Level 5 — How to Screen & Filter | 4 | — | — | — |
-| Crash Course (4 modules) | 25 | — | — | — |
+| L4 — When to Hold, Buy & Sell | 19 | in flight | — | — |
+| Level 5 — How to Screen & Filter | 4 | in flight | — | — |
+| Crash Course (4 modules) | 25 | in flight | — | — |
+
+58 lectures, ~4.3M chars of transcript in total.
 
 ## What the gate caught (keep this; it is the reason the gate exists)
 
@@ -65,6 +67,16 @@ independently and defended by none; 27 of the 38 names fail it.
 0-char placeholder in `configs/course_eligibility.yaml` on 2026-07-27 and had
 **never entered any prior synthesis pass**. The entire position-sizing layer
 was missing from the frameworks.
+
+## REF codes must begin with a letter
+
+`gates._CITATION_NEAR` is `\(([A-Z][A-Z0-9]*)\s+\d{2}:\d{2}:\d{2}...\)`, so a
+REF starting with a digit matches nothing and every quote in that brief scores
+as uncited. The first generated batch produced 27 such codes, because many
+lesson slugs begin with a date (`10.05.26 ...`, `1.12.24 ...`). `refs.json` is
+now generated with leading numeric tokens stripped. Verify with
+`re.fullmatch(r"[A-Z][A-Z0-9]*", code)` before dispatching readers, and verify
+every `lesson_id` resolves against `data/content.json` in the same pass.
 
 ## Files
 
