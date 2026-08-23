@@ -7,13 +7,20 @@ judge: a brief is prose written by a subagent, and the only thing standing
 between a plausible-sounding invented SOIC rule and the rulebook is whether
 its quoted text is actually present in the transcript it cites.
 
+refs.json maps REF -> {"slug", "lesson_id", "title"}. Resolution is by
+``lesson_id``, NOT by title: four separate courses (L1/L2/L3/L4) each contain a
+lesson titled "What you will Learn in this Course? Intro", so a title- or
+slug-keyed lookup silently resolves to whichever one happens to land last in the
+dict. That bug made a correct VINTRO brief score 0/11 -- it was being checked
+against the Technical Analysis course's intro. The lesson_id comes from the
+vault note's own ``source_url`` and is unique per lesson.
+
 Usage:
     python3 scripts/verify_briefs.py out/reassess_l3
 """
 from __future__ import annotations
 
 import json
-import re
 import sys
 from pathlib import Path
 
@@ -28,30 +35,24 @@ CONTENT_JSON = Path.home() / (
 PASS_BAR = 0.80
 
 
-def slugify(title: str) -> str:
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", title.lower())).strip("-")
-
-
 def main(run_dir: str) -> int:
     run = Path(run_dir)
     refs = json.loads((run / "refs.json").read_text())
 
-    lessons = load_corpus(CONTENT_JSON)
-    by_slug = {slugify(le.title): le for le in lessons}
+    by_id = {le.lesson_id: le for le in load_corpus(CONTENT_JSON)}
 
-    ref_to_lesson = {}
-    missing = []
-    for ref, slug in refs.items():
-        le = by_slug.get(slug)
+    ref_to_lesson, missing = {}, []
+    for ref, meta in refs.items():
+        le = by_id.get(meta["lesson_id"])
         if le is None:
-            missing.append((ref, slug))
+            missing.append((ref, meta))
         else:
             ref_to_lesson[ref] = le
 
     if missing:
         print("!! could not resolve these refs to a corpus lesson:")
-        for ref, slug in missing:
-            print(f"   {ref:8s} {slug}")
+        for ref, meta in missing:
+            print(f"   {ref:8s} lesson_id={meta['lesson_id']} {meta['slug']}")
         print()
 
     rows, failures = [], []
