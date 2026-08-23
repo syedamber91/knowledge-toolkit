@@ -40,6 +40,7 @@ export HUB="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/learning
 export UDEMY="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/Udemy Vault/lectures/system-design-lld-hld-from-basics-to-advanced"
 export VENV="$HOME/.venvs/learning-vault"
 export PY="$VENV/bin/python"
+export PW="$VENV/bin/persona-wiki"   # cli.py has no __main__ block; `python -m persona_wiki.cli` silently no-ops
 ```
 
 > **zsh trap:** `"$LV[dev]"` is array-subscript syntax in zsh and silently produces an
@@ -1296,7 +1297,7 @@ git commit -m "feat(cli): add crosslink command"
 - [ ] **Step 1: Run the feeder against the real course**
 
 ```bash
-cd "$LV" && "$PY" -m persona_wiki.cli ingest-udemy \
+cd "$LV" && "$PW" ingest-udemy \
   --persona sj \
   --course-dir "$UDEMY" \
   --group-map data/sj_lecture_groups.yaml \
@@ -1321,7 +1322,7 @@ line, Task 1/3 regressed — stop and fix.
 - [ ] **Step 3: Prove idempotency on real data**
 
 ```bash
-cd "$LV" && "$PY" -m persona_wiki.cli ingest-udemy \
+cd "$LV" && "$PW" ingest-udemy \
   --persona sj --course-dir "$UDEMY" \
   --group-map data/sj_lecture_groups.yaml --vault-dir "$HUB"
 ```
@@ -1637,7 +1638,7 @@ normalizer is over-matching — stop and fix Task 5 rather than accepting the li
 - [ ] **Step 2: Apply the backlinks**
 
 ```bash
-cd "$LV" && "$PY" -m persona_wiki.cli crosslink \
+cd "$LV" && "$PW" crosslink \
   --persona sj --against lucsystemdesign --against sdcourse --vault-dir "$HUB"
 ```
 
@@ -1646,7 +1647,7 @@ Expected: `8 topic(s) gained backlinks`.
 - [ ] **Step 3: Verify idempotency and spot-check a note**
 
 ```bash
-cd "$LV" && "$PY" -m persona_wiki.cli crosslink \
+cd "$LV" && "$PW" crosslink \
   --persona sj --against lucsystemdesign --against sdcourse --vault-dir "$HUB"
 tail -3 "$HUB/wiki/personas/sj/topics/databases.md"
 tail -3 "$HUB/wiki/personas/sj/topics/structural-patterns.md"
