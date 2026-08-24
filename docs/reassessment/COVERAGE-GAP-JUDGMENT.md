@@ -27,6 +27,20 @@ the ratio; portfolio-construction concerns (position sizing, holdings
 count) are treated as a different kind of rule from a company screen. Those
 same precedents apply directly to several of the 20 metrics below.
 
+**Updated 2026-08-25** after a mechanical-grep gathering follow-up
+([`COVERAGE-GAP-GATHERING.md`](COVERAGE-GAP-GATHERING.md)) re-scanned the raw
+transcripts for the 8 metrics judged PROMOTE CAUTIOUSLY below on thin or
+conflicting evidence. Three verdicts changed: `dividend_yield_pct` (a second
+citation surfaced and conflicts, not corroborates), `price_to_book`
+(strengthened — 2 independent citations now agree on both the threshold and
+its sector-routing scope), `relative_strength_vs_index` (a third, distinct
+operationalization surfaced, fragmenting rather than resolving the original
+two-way conflict). The other 5 (`base_range_pct`, `cwip_to_fixed_assets_pct`,
+`operating_margin_pct`, `pct_above_200ema`, `volume_vs_avg_multiple`) found no
+new evidence and are unchanged. `ev_to_ebitda` and `price_to_cash_flow` were
+judged already well-evidenced originally and were out of scope for the
+gathering pass.
+
 ---
 
 ## base_range_pct
@@ -60,13 +74,19 @@ rule, someone needs to determine whether these are two different screens
 
 ## dividend_yield_pct
 
-**Verdict: PROMOTE CAUTIOUSLY**
+**Verdict: PROMOTE CAUTIOUSLY — conflicting bounds** *(updated by the
+gathering follow-up, [`COVERAGE-GAP-GATHERING.md`](COVERAGE-GAP-GATHERING.md))*
 
-Single citation (WBSNW), `> 6%`, explicitly framed as a value-approach
-screen, not a universal bar. No corroboration, no scope beyond "value
-approach." Too thin on its own to set a durable threshold; a real rule
-would also need `requires_attribute` scoping to a value/deep-value style
-context so it doesn't silently apply to growth-style screening.
+Not thin any more — a second independent citation exists, and it
+disagrees. WBSNW states `> 6%`; FMFDF independently states a dividend-type
+screen at `> 3%` (FMFDF 02:44:14), materially looser, with its own
+caveat that the instructor doesn't personally favor dividend-yielding
+names for growth reasons. Two real, general bars, not two readings of one
+number. A rule here needs either a defensible reason to prefer one bound
+over the other or an explicit range, not a single hardcoded floor; a real
+rule would also still need `requires_attribute` scoping to a
+value/deep-value style context so it doesn't silently apply to
+growth-style screening.
 
 ## eps_growth_yoy_pct
 
@@ -209,17 +229,25 @@ from a "beginner 2-6-8 framework") rather than a stock-screening bar.
 
 ## price_to_book
 
-**Verdict: PROMOTE CAUTIOUSLY**
+**Verdict: PROMOTE CAUTIOUSLY — strengthened, close to RULE-WORTHY**
+*(updated by the gathering follow-up,
+[`COVERAGE-GAP-GATHERING.md`](COVERAGE-GAP-GATHERING.md))*
 
-Single threshold citation (WBSNW, `< 1`), explicitly framed as a
-value-approach signal the same way `dividend_yield_pct` is — thin on its
-own. The scope citation is stronger and consistent with an existing
-rulebook pattern: BVB states P/E doesn't apply to NBFCs (use P/B instead)
-or life insurers (use embedded value instead), which is the same kind of
-sector-routing logic the rulebook already encodes for lenders in
-`leverage-001` and `capital_efficiency_gate-001` (`requires_attribute:
-{is_lender: "false"}`). That routing logic is solid; the actual `< 1`
-threshold behind it is not yet corroborated enough to set a number.
+No longer single-cited on either half. The `< 1` threshold (WBSNW) is now
+independently corroborated by FMNAF, stated generally ("deep value
+investors... will do" this, Tata Steel as the worked illustration, FMNAF
+00:50:00 / 00:51:29) — two agreeing sources, not two readings of one. The
+sector-routing scope (BVB: P/E doesn't apply to NBFCs or life insurers) is
+independently corroborated by ARTBV's own explicit table (P/E "will not
+work in life insurance companies, will not work in banks, will not work
+in real estate companies"; P/B is the tool for banks and cyclicals, ARTBV
+00:40:20–00:42:34) — again the same kind of `is_lender`-shaped
+sector-routing the rulebook already encodes in `leverage-001` and
+`capital_efficiency_gate-001`. Two independent agreeing sources on both
+the number and the scope is the same evidentiary bar `market_cap` and
+`roe` were promoted to RULE-WORTHY on above — recorded here rather than
+promoted outright because the gathering pass itself stopped short of that
+call; a human should weigh whether this now clears the bar.
 
 ## price_to_cash_flow
 
@@ -248,7 +276,9 @@ to be one bar anyway — manufacturing `< 3x` vs. SaaS `< 10x`, more than a
 
 ## relative_strength_vs_index
 
-**Verdict: PROMOTE CAUTIOUSLY — corroborated concept, conflicting operationalization**
+**Verdict: PROMOTE CAUTIOUSLY — corroborated concept, now THREE conflicting
+operationalizations, not two** *(updated by the gathering follow-up,
+[`COVERAGE-GAP-GATHERING.md`](COVERAGE-GAP-GATHERING.md))*
 
 Three lectures agree on the underlying idea (RS vs. benchmark, zero-line
 significance) but state it two different ways: FSSDF and SESCS both use a
@@ -256,8 +286,18 @@ simple zero-crossing oscillator (`> 0` = outperforming / `< 0` = exit
 signal), while SDBES cites a specific `> 2%` bar in a different scan. It's
 not clear from the digest whether `> 2%` is the same oscillator read at a
 stricter level or a genuinely different indicator (a percentage spread
-rather than a zero-crossing ratio) sharing the same name. A real rule also
-needs the explicit scope FSSMF states: this technical exit system applies
+rather than a zero-crossing ratio) sharing the same name. The gathering
+pass found a **third, distinct operationalization**: FESTF (RSCAR-adjacent,
+crash course) screens on the RS *line* making a 52-week high — not a
+zero-crossing, not a percentage bar (TFELT is a duplicate recording of the
+same class, not a second source). It also strengthened the zero-crossing
+side: RSCAR independently states the same zero-crossing rule, so that
+variant now has 3 agreeing citations (FSSDF, SESCS, RSCAR) against 1 each
+for the other two. More evidence made the *choice* clearer — zero-crossing
+is the best-corroborated candidate if forced to pick one — without
+resolving the underlying disagreement about what "relative strength vs.
+index" even measures in this corpus. A real rule also needs the explicit
+scope FSSMF states: this technical exit system applies
 only to satellite/momentum positions, explicitly not to core conviction
 holdings — a company-level rule here would need a portfolio-role attribute
 the rulebook doesn't currently resolve (`RESOLVABLE_ATTRIBUTE_KEYS` is
@@ -338,7 +378,7 @@ intended screening signal.
 |---|---|---|
 | `base_range_pct` | PROMOTE CAUTIOUSLY | Clear concept, single citation only |
 | `cwip_to_fixed_assets_pct` | PROMOTE CAUTIOUSLY | Two lectures conflict, 50% vs. 100% |
-| `dividend_yield_pct` | PROMOTE CAUTIOUSLY | Single citation, value-style only |
+| `dividend_yield_pct` | PROMOTE CAUTIOUSLY | Two citations now conflict: 3% vs 6% |
 | `eps_growth_yoy_pct` | NOT RULE-WORTHY | Duplicates `pat_growth_yoy_pct >= 20` already in the rulebook |
 | `ev_to_ebitda` | PROMOTE CAUTIOUSLY | Rich but sector-conflicting; matches the rulebook's own reason G6 ships empty |
 | `fixed_asset_turnover` | NOT RULE-WORTHY | Classification/routing threshold, not a pass/fail gate |
@@ -348,10 +388,10 @@ intended screening signal.
 | `pct_stocks_above_200ema` | NOT RULE-WORTHY | Market-breadth macro signal, not a per-company property |
 | `portfolio_holdings_count` | NOT RULE-WORTHY | Portfolio-construction rule, not a company gate; also style-dependent bands |
 | `position_size_pct` | NOT RULE-WORTHY | Portfolio-construction (sizing) rule, not a company gate |
-| `price_to_book` | PROMOTE CAUTIOUSLY | Single citation for the threshold; sector-routing scope is solid though |
+| `price_to_book` | PROMOTE CAUTIOUSLY | Strengthened to 2+2 independent citations; close to RULE-WORTHY |
 | `price_to_cash_flow` | PROMOTE CAUTIOUSLY | Consistent numbers but same valuation-multiple caution as EV/EBITDA |
 | `price_to_sales` | NOT RULE-WORTHY | Source explicitly disclaims standalone use of this metric |
-| `relative_strength_vs_index` | PROMOTE CAUTIOUSLY | Concept corroborated, but two conflicting operationalizations |
+| `relative_strength_vs_index` | PROMOTE CAUTIOUSLY | Now three conflicting operationalizations; zero-crossing best-corroborated |
 | `roe` | RULE-WORTHY | Fills a real gap: lenders are excluded from the existing ROCE rule |
 | `sector_weight_pct` | NOT RULE-WORTHY | Portfolio-construction (sector allocation), not a company gate |
 | `total_debt_delta_3y` | NOT RULE-WORTHY | Duplicates the existing `debt_to_equity_delta_3y` direction observation |
