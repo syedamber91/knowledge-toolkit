@@ -100,3 +100,31 @@ def test_a_finding_carries_its_citation(tmp_path: Path):
               _scope("s1", ["c1"], "not for lenders", ref="TFELT", ts="00:42:09")]
     f = find_lost_conditions(rb, claims)[0]
     assert f.ref == "TFELT" and f.ts == "00:42:09"
+
+
+def test_bound_matching_is_semantic_not_string(tmp_path: Path):
+    """`> 15` and `>= 15` are the same bar; direction and value still separate bars.
+
+    A real re-extraction lost three rules' findings because extractors read
+    "more than 15%" literally as `> 15` while the rulebook wrote `>= 15`, and
+    binding compared the raw strings.
+    """
+    rb = _rulebook(tmp_path, [("roce_gate-001", "roce", ">= 15")])
+
+    assert bind_rules(rb, [_threshold("c1", "roce", "> 15")]), \
+        "'> 15' must bind to a rule whose band is '>= 15'"
+    assert bind_rules(rb, [_threshold("c1", "roce", ">=15")]), \
+        "whitespace must not matter"
+
+    assert bind_rules(rb, [_threshold("c1", "roce", "< 15")]) == [], \
+        "the opposite direction is a different bar"
+    assert bind_rules(rb, [_threshold("c1", "roce", ">= 20")]) == [], \
+        "a different number is a different bar"
+    assert bind_rules(rb, [_threshold("c1", "stock_pe", "> 15")]) == [], \
+        "a different metric is a different bar"
+
+
+def test_between_bounds_do_not_collapse_into_open_ended_ones(tmp_path: Path):
+    rb = _rulebook(tmp_path, [("pe_band-001", "stock_pe", "between 15 35")])
+    assert bind_rules(rb, [_threshold("c1", "stock_pe", "between 15 35")])
+    assert bind_rules(rb, [_threshold("c1", "stock_pe", ">= 15")]) == []

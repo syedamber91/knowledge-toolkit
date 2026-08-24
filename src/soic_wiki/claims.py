@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from pydantic import BaseModel, model_validator
 
@@ -67,11 +67,26 @@ def save_claims(path: Path, claims: List[Claim]) -> None:
         encoding="utf-8")
 
 
+def split_ts(ts: str) -> Tuple[str, Optional[str]]:
+    """Split a citation timestamp into (start, end).
+
+    This corpus cites either a moment (`00:09:35`) or a span
+    (`00:09:35-00:10:02`); both forms are valid and both appear in the briefs.
+    A span resolves on its start -- the lesson is whichever one contains that
+    moment -- and is checked across the whole span.
+    """
+    parts = (ts or "").split("-")
+    if len(parts) == 2 and parts[0].strip() and parts[1].strip():
+        return parts[0].strip(), parts[1].strip()
+    return (ts or "").strip(), None
+
+
 def verify_claim(claim: Claim, resolver) -> bool:
     """Is this claim's quote actually in the lecture window it cites?"""
-    if resolver.resolve(claim.ref, claim.ts) is None:
+    start, end = split_ts(claim.ts)
+    if resolver.resolve(claim.ref, start) is None:
         return False
-    window = resolver.window(claim.ref, claim.ts)
+    window = resolver.window(claim.ref, start, end)
     return _norm(claim.quote) in _norm(window)
 
 

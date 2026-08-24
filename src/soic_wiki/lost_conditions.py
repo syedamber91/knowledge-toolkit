@@ -21,6 +21,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Dict, List
 
+import re
 import yaml
 from pydantic import BaseModel
 
@@ -44,8 +45,33 @@ class Finding(BaseModel):
     rule_requires_attribute: Dict[str, str] = {}
 
 
+_UP = (">=", "=>", ">")
+_DOWN = ("<=", "=<", "<")
+
+
 def _norm_bound(bound: str) -> str:
-    return "".join((bound or "").split())
+    """Reduce a bound to (direction, values) so equivalent phrasings match.
+
+    A rule and a claim describe the same bar when they point the same way at
+    the same number. Whether the transcript said "more than 15" (`> 15`) or the
+    rulebook wrote `>= 15` is a transcription nuance, not a different rule, so
+    both reduce to ``ge:15``. Direction and value still separate bars: `< 15`
+    never matches `> 15`, and `>= 20` never matches `>= 15`.
+    """
+    raw = "".join((bound or "").split()).lower()
+    if not raw:
+        return ""
+    nums = re.findall(r"-?\d+(?:\.\d+)?", raw)
+    values = ",".join(str(float(n)) for n in nums)
+    if raw.startswith("between") or len(nums) > 1:
+        return "between:" + values
+    for op in _UP:
+        if raw.startswith(op):
+            return "ge:" + values
+    for op in _DOWN:
+        if raw.startswith(op):
+            return "le:" + values
+    return raw
 
 
 def _rule_entries(rulebook_path: Path) -> List[Dict]:

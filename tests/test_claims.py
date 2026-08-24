@@ -122,3 +122,39 @@ def test_verify_claim_against_the_real_resolver():
         quote="the company will triple its revenue every single quarter",
         statement="a fabricated claim never made in this lecture")
     assert verify_claim(invented, resolver) is False
+
+
+def test_split_ts_handles_a_span_and_a_moment():
+    from soic_wiki.claims import split_ts
+    assert split_ts("00:09:35") == ("00:09:35", None)
+    assert split_ts("00:04:59-00:05:22") == ("00:04:59", "00:05:22")
+    assert split_ts("") == ("", None)
+
+
+def test_verify_claim_accepts_a_span_timestamp():
+    """Briefs cite spans as well as moments; a span must resolve on its start.
+
+    Every one of 29 span-cited claims in a real run was dropped because the
+    resolver was handed the whole "start-end" string as if it were a moment.
+    """
+    from soic_wiki.claims import Claim, verify_claim
+
+    class FakeResolver:
+        def __init__(self):
+            self.seen = []
+
+        def resolve(self, ref, ts):
+            self.seen.append(("resolve", ref, ts))
+            return object() if ts == "00:04:59" else None
+
+        def window(self, ref, start, end=None):
+            self.seen.append(("window", ref, start, end))
+            return "the instructor said the thing here"
+
+    claim = Claim(claim_id="c1", kind="scope", ref="DSFDO",
+                  ts="00:04:59-00:05:22", quote="said the thing",
+                  statement="s", source_brief="b.md")
+    resolver = FakeResolver()
+    assert verify_claim(claim, resolver) is True
+    assert ("resolve", "DSFDO", "00:04:59") in resolver.seen
+    assert ("window", "DSFDO", "00:04:59", "00:05:22") in resolver.seen
