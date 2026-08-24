@@ -172,3 +172,50 @@ study`) and TVPDT (`how-to-use-trading-view-part1`) both only explain the
 indicator, with no numeric "X times average" bound anywhere in either
 file. The existing conflict (FESTF `> 1.5x` on a 10-day/20-day window vs.
 SDBES `> 1.2x` on a 10-day/50-day window) is unchanged.
+
+---
+
+## Correction (2026-08-25): `relative_strength_vs_index`'s zero-crossing
+## variant is not a real coverage gap
+
+Re-reading FSSDF and SESCS's exact quoted spans (not just the earlier
+paraphrase) before drafting a proposed rulebook entry for the
+zero-crossing operationalization -- the strongest-corroborated of the
+three found -- turned up a defect in the coverage-gap accounting itself,
+not a fix to it.
+
+**SESCS 01:41:47, verbatim:** "some people sell when the relative
+strength goes below zero some people do that on weekly or monthly charts
+so that is one of the exit strategies." That is not describing a new
+signal. It is describing `soic_ladder/judge.py`'s existing
+`exit_rs_nifty-001` -- an Observation, already `>= 0`, already fetchable
+today, keyed on `nifty500_relative_strength` (Mansfield RS vs Nifty500,
+26-week), part of the F23 exit-signal group appended to every judged
+company. **FSSDF 00:09:06** ("when you see zero, it means... below zero
+means Nifty500 is doing better... as soon as it goes above zero") is a
+neutral explanation of the same zero-line semantics, not evidence of a
+distinct entry-side rule either. Only RSCAR's citation ("relative
+strength scans... going above zero... it is for the index it has started
+going above zero," RSCAR 00:11:13) is genuinely ambiguous about
+entry-vs-exit use.
+
+So of the "three conflicting operationalizations" the judgment pass
+counted, one was never a gap: it is `exit_rs_nifty-001` under a different
+name, cited by lectures that describe it as an exit strategy in the
+lecturer's own words. **No new rulebook entry was added for it** --
+duplicating an already-fetchable, already-live observation under a second
+metric key would be the exact "duplicate under a different name" trap
+`eps_growth_yoy_pct` and `total_debt_delta_3y` were already correctly
+excluded for in `COVERAGE-GAP-JUDGMENT.md`.
+
+This does not change the mechanical 33% coverage figure --
+`relative_strength_vs_index` and `nifty500_relative_strength` are
+different metric keys in `claims_v2.json`'s vocabulary, so the automated
+count still marks the former unmodelled. It changes what the number
+*means*: at least one of the 17 remaining "unmodelled" metrics is closer
+to "modelled under a name the extraction vocabulary didn't know to
+match" than to a genuine hole. The `> 2%` (SDBES) and 52-week-RS-line-high
+(FESTF) operationalizations are unaffected by this correction -- neither
+maps to `nifty500_relative_strength`'s definition, and the underlying
+"which one is the real screening rule" question for those two stands as
+recorded above.
