@@ -78,6 +78,18 @@ now generated with leading numeric tokens stripped. Verify with
 `re.fullmatch(r"[A-Z][A-Z0-9]*", code)` before dispatching readers, and verify
 every `lesson_id` resolves against `data/content.json` in the same pass.
 
+## Corrections
+
+**Read [`ERRATA.md`](ERRATA.md) before trusting any claim here about what the
+ladder "is missing".** Three findings were controller analysis errors and are
+corrected there: the rulebook's citations are 15/16 sound (not 13/16), the ladder
+already implements its exit layer in `judge.py` (it simply gates nothing), and
+`ExitTriggers` counts how many of three triggers fire rather than how many exits
+fired. None of it affects the 58 quote-gated lecture briefs.
+
+Citation soundness is no longer a matter of careful reading:
+`scripts/audit_rulebook.py` resolves every rulebook citation mechanically.
+
 ## Files
 
 - `level-3/<REF>.md` — one crux brief per lecture (essence, mechanism, signals

@@ -164,3 +164,32 @@ exclusion.
   snapshot → judge → Shariah → **diff against last run** → ranked new-entrant list
   (cap ~5) each carrying the corpus's `procedure` checklist. Contested-but-deployed
   thresholds stay at current values, flagged, until adjudicated.
+
+---
+
+## Correction (2026-08-24) — D8's diagnosis was right, its conclusion was not
+
+This review named **D8 the most dangerous decision**, on the evidence that the
+rulebook's provenance REF codes and this corpus's 58 brief REF codes have an
+**empty intersection** — therefore phase 1 as scoped "cannot verify a single
+rulebook citation".
+
+**The evidence is correct.** The two code sets genuinely do not overlap.
+
+**The conclusion is now falsified.** A crosswalk already exists —
+`Learning Vault Invest/wiki/personas/soic/refs/*.json`, 221 REF codes mapped to
+lesson ids — which resolves the rulebook's codes to real lessons in
+`data/content.json` without needing the frameworks file at all.
+`scripts/audit_rulebook.py` was built on it and reports **15 of 16 citations
+sound**, with `pe_context-001` (`ref: null`) the only defect.
+
+So D8' (rescope phase 1 to pull in `decision-frameworks-v1.md`) is **no longer
+required for citation auditing**. It may still be worth doing for coverage — the
+frameworks file holds 40 frameworks and 207 citations — but that is a
+scope-and-value decision, not the blocking dependency this review made it.
+
+**What the review could not have known**, and what makes its central worry sound
+even so: two of the three citation defects it inherited from the controller's
+framing were themselves controller errors (`ERRATA.md` E1). The review reasoned
+correctly from a premise that was wrong. That is exactly the failure mode it was
+commissioned to catch, arriving one level up from where it looked.
