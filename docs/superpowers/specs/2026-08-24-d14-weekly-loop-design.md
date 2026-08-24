@@ -1,6 +1,6 @@
 # D14 — The weekly loop
 
-**Date:** 2026-08-24 · **Status:** spec, not built
+**Date:** 2026-08-24 · **Status:** spec, not built · **Corrected 2026-08-24** — see `docs/reassessment/ERRATA.md` E2/E3
 **Decided in:** `brainstorms/2026-08-24-stock-framework-knowledge-graph.md` (D14)
 **Review that produced it:** `docs/reassessment/DECISION-REVIEW.md`
 
@@ -17,8 +17,12 @@ The ladder already runs. `soic_ladder.cli` has two subcommands: `snapshot`
 and `judge` (evaluates **offline** against a stored snapshot, so a re-run is
 reproducible). Verdicts are `CANDIDATE` / `WATCH` / `REJECTED` / `INSUFFICIENT`.
 
-So the engine is not the gap. The gap is that **its output is a wall, not a
-reading list**: the 2026-08-22 run produced 49 CANDIDATEs, 27 after the Shariah
+So the engine is not the gap — and it is less of a gap than an earlier draft of
+this spec claimed. `judge.py` already computes the 30-week EMA break, relative
+strength vs the Nifty 500, the volatility stop, and F23's trigger count, all as
+non-gating observations (ERRATA E2). The gap is that **its output is a wall, not
+a reading list**, and that the exit layer it already computes never changes a
+verdict: the 2026-08-22 run produced 49 CANDIDATEs, 27 after the Shariah
 screen. Nothing diffs one run against the last, nothing ranks, nothing caps, and
 nothing says what to *do* with a name once it appears.
 
@@ -51,17 +55,25 @@ computed against the previous accepted run:
 |---|---|
 | `NEW_CANDIDATE` | absent or WATCH last week, CANDIDATE now |
 | `LOST_CANDIDATE` | CANDIDATE last week, no longer |
-| `EXIT_FIRED` | `ExitTriggers` went from 0 to >0 while still CANDIDATE |
+| `EXIT_FIRED` | `exit_triggers_fired_count` reaches **3** (all of F23's three firing) while still CANDIDATE |
+| `EXIT_ARMING` | the count rises but stays below 3 — informational, ranked below everything else |
 | `GATE_FLIP` | any individual gate changed PASS/FAIL |
 | `UNCHANGED` | suppressed from the brief entirely |
 
 `UNCHANGED` suppression is what turns 27 names into a handful. A company that
 passed last week and passes this week needs no attention.
 
-**`EXIT_FIRED` outranks `NEW_CANDIDATE`.** The current run already contains
-NATIONALUM as a CANDIDATE with 2 exit triggers — a contradiction the table
-surfaces but nobody is told about. A loop that reports new buys before it reports
-fired exits is the wrong way round.
+**`EXIT_FIRED` outranks `NEW_CANDIDATE`** — a loop that reports new buys before
+it reports exits is the wrong way round.
+
+**Correction.** An earlier draft justified this with "NATIONALUM is a CANDIDATE
+carrying 2 fired exit triggers, a contradiction". That was a misreading.
+`ExitTriggers` counts how many of F23's **three** triggers are firing, against a
+band of `< 3`; F23 fires only when all three fire together. NATIONALUM at 2 is
+inside the band. Measured on the 2026-08-22 run: 222 companies at zero, 43 at
+one, 54 at two, 151 at three, 30 unmeasurable — and **zero CANDIDATEs have all
+three firing**. The ladder is internally consistent here, and `EXIT_FIRED` is
+correct on its own merits, not because of a contradiction that does not exist.
 
 ## Step 5 — rank, and the trap in it
 
@@ -76,6 +88,8 @@ into a number:
 
 - corroboration-backed lecture claims for and against the name (from the graph,
   counted by **session** not file — five Crash lectures are two-part recordings)
+- how many of F23's three exit triggers are firing (already computed by
+  `judge.py` as `exit_triggers_fired_count`; the ladder never acts on it)
 - whether the name is `contested` in the vault (both doubt and support)
 - which gates it passes on a thin margin (ASIANPAINT clears the RSI floor by
   0.74 — that is a fact worth showing, not a number to blend)
@@ -122,6 +136,7 @@ one-line "N unchanged, suppressed".
 
 | Failure | Guard |
 |---|---|
+| A sub-threshold trigger count read as a fired exit | Show it as "N of 3" with the threshold named, never as a bare count — the misreading that produced ERRATA E3 |
 | Snapshot silently stale; the "diff" compares a run to itself | Refuse to emit if `as-of` equals the previous run's date; print both dates in the brief header |
 | Shariah step unavailable, loop emits the unscreened list | Hard-fail the step; never fall back to the unfiltered set |
 | Previous run missing, so every name reads as `NEW_CANDIDATE` | Detect an empty baseline and label the brief a **backfill**, never a week's news |
