@@ -660,3 +660,4 @@ paths there are illustrative, not this repo's path.
 - [`docs/PORTAL_NOTES.md`](docs/PORTAL_NOTES.md) — Learnyst portal reconnaissance.
 - [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md) — persona verification loop.
 - [`docs/reassessment/STAGE3-CLAIM-EXTRACTION.md`](docs/reassessment/STAGE3-CLAIM-EXTRACTION.md) — Stage 3 of the SOIC reassessment: the lost-condition detector's task, extraction pipeline, results (58 briefs, 101/96 findings across v1/v2 metric vocabularies), the 43% rulebook-coverage gap it measured, and every bug the run exposed in its own code.
+- [`docs/reassessment/COVERAGE-GAP-JUDGMENT.md`](docs/reassessment/COVERAGE-GAP-JUDGMENT.md) — follow-up to Stage 3: judges each of the 20 metrics that gap left uncovered against the rulebook's own precedents (2 RULE-WORTHY, 10 PROMOTE CAUTIOUSLY, 8 NOT RULE-WORTHY); proposes, does not edit the rulebook.

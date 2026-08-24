@@ -369,14 +369,22 @@ been written to a different directory than the full-corpus run.
 
 ## 10. Open questions for a human
 
-1. **The 43% coverage gap (§6)** is the largest single finding of this
-   stage and is not yet acted on. Deciding which of the 18 unmodelled
-   metrics deserve new rulebook rules is a bigger call than adjudicating
-   the 96 existing findings and has not been made. **Owner's instruction
-   for that follow-up work: Opus orchestrates, Sonnet performs** — same
-   split used throughout Stage 3 (one Sonnet extractor per brief, Opus
-   dispatching and reviewing). Deferred, not started, pending Claude usage
-   budget.
+1. **~~The 43% coverage gap (§6) is the largest single finding of this
+   stage and is not yet acted on.~~ Judged:**
+   [`COVERAGE-GAP-JUDGMENT.md`](COVERAGE-GAP-JUDGMENT.md) reads all 20
+   unmodelled metrics (the 43% figure's own re-derivation found 20, not the
+   18 first estimated here) against the existing rulebook's own precedents
+   and returns 2 RULE-WORTHY (`market_cap`, `roe`), 10 PROMOTE CAUTIOUSLY
+   (thin or conflicting evidence — e.g. `ev_to_ebitda`, `price_to_book`),
+   8 NOT RULE-WORTHY (mostly portfolio-construction metrics that cannot
+   gate a single company, or duplicates of an existing rule under a
+   different name). Still requires a human decision to actually edit
+   `soic-ladder-rules-v1.yaml` — this judgment proposes, same as the
+   detector before it. Run as **Sonnet orchestrates, Sonnet judges**, with
+   the mechanical evidence-gathering step done as a zero-LLM filter over
+   the already-verified `claims_v2.json` rather than dispatching Haiku
+   subagents to re-derive it — the data already existed, so there was
+   nothing to gather.
 2. **96 findings await adjudication.** The detector proposes; it never
    writes to `soic-ladder-rules-v1.yaml`. Each finding needs a human
    decision: does the rule gain the condition, or was the condition
