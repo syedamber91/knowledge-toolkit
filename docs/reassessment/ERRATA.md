@@ -101,7 +101,9 @@ candidates. Both are corrected in that spec.
 
 ## What this does not change
 
-- The 58 lecture briefs and their quote gate: untouched.
+- The 58 lecture briefs' **quoted evidence**: untouched — every quote still
+  verifies against its transcript. (The claim *about the ladder* that 3 briefs
+  and 3 syntheses repeat is corrected in place; see E2 above.)
 - **E4 (still stands):** `pe_context-001` is the only rulebook entry with no
   source, it is contradicted by five lectures, and 27 of the 38 shortlisted names
   fail it.
