@@ -7,6 +7,14 @@ range its source gave it.
 
 This reports; it never edits a rulebook. Every finding carries the citation so
 a human can read the source and decide.
+
+A rule's own `requires_attribute` narrowing is surfaced alongside a finding,
+never used to suppress one -- `requires_attribute` narrows by a resolvable
+attribute (e.g. is_lender), and a scope claim can name a wholly unrelated
+condition (e.g. a turnaround) that the same rule never carries. Deciding
+whether the two overlap would mean fuzzy-matching a free-text statement
+against an attribute key, which this detector deliberately does not attempt.
+Put the two facts side by side; the judgement is the reader's.
 """
 from __future__ import annotations
 
@@ -33,6 +41,7 @@ class Finding(BaseModel):
     scope_statement: str
     ref: str
     ts: str
+    rule_requires_attribute: Dict[str, str] = {}
 
 
 def _norm_bound(bound: str) -> str:
@@ -80,15 +89,16 @@ def find_lost_conditions(rulebook_path: Path,
     findings: List[Finding] = []
     for binding in bind_rules(rulebook_path, claims):
         entry = entries.get(binding.rule_id, {})
-        # requires_attribute is how this rulebook already narrows a rule; a
-        # rule that carries one is treated as having encoded its scope.
-        if entry.get("requires_attribute"):
-            continue
+        # Report every bound threshold that has a governing scope. What the
+        # rule already narrows by (requires_attribute) is surfaced on the
+        # finding, never used to suppress it -- see module docstring.
+        rule_requires_attribute = entry.get("requires_attribute") or {}
         for scope in scopes_for.get(binding.claim_id, []):
             findings.append(Finding(
                 rule_id=binding.rule_id,
                 threshold_claim_id=binding.claim_id,
                 scope_claim_id=scope.claim_id,
                 scope_statement=scope.statement,
-                ref=scope.ref, ts=scope.ts))
+                ref=scope.ref, ts=scope.ts,
+                rule_requires_attribute=rule_requires_attribute))
     return findings

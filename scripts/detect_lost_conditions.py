@@ -35,7 +35,12 @@ def main() -> int:
         print(f"{f.rule_id}")
         print(f"    source attached: {f.scope_statement}")
         print(f"    cited at:        {f.ref} {f.ts}")
-        print(f"    threshold claim: {f.threshold_claim_id}\n")
+        print(f"    threshold claim: {f.threshold_claim_id}")
+        if f.rule_requires_attribute:
+            print(f"    rule already narrows by: {f.rule_requires_attribute}")
+        else:
+            print("    rule carries no narrowing at all")
+        print()
     if not findings:
         print("No rule is applying a number outside its source's stated range.")
     return 1 if findings else 0

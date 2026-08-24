@@ -57,17 +57,33 @@ def test_no_finding_when_the_threshold_has_no_scope(tmp_path: Path):
     assert find_lost_conditions(rb, [_threshold("c1", "roce", ">= 15")]) == []
 
 
-def test_a_rule_that_encodes_its_scope_is_not_reported(tmp_path: Path):
-    """requires_attribute is how this rulebook already scopes a rule."""
-    path = tmp_path / "rules.yaml"
-    path.write_text(
+def test_a_rule_with_requires_attribute_is_still_reported(tmp_path: Path):
+    """requires_attribute narrows by a resolvable attribute (e.g. is_lender);
+    a scope claim can name an unrelated condition (e.g. a turnaround) that
+    the rule never carries. The two are not proof of each other, so the
+    finding still fires -- but it carries the rule's existing narrowing so a
+    human can judge whether it already covers the scope."""
+    rule_path = tmp_path / "rules.yaml"
+    rule_path.write_text(
         "rules:\n"
         "  - id: roce_gate-001\n    metric: roce\n"
         "    check_rule: \">= 15\"\n"
         "    requires_attribute: {is_lender: \"false\"}\n")
     claims = [_threshold("c1", "roce", ">= 15"),
-              _scope("s1", ["c1"], "is_lender must be false")]
-    assert find_lost_conditions(path, claims) == []
+              _scope("s1", ["c1"], "does not apply to a turnaround")]
+    found = find_lost_conditions(rule_path, claims)
+    assert len(found) == 1
+    assert found[0].rule_id == "roce_gate-001"
+    assert found[0].rule_requires_attribute == {"is_lender": "false"}
+
+
+def test_a_rule_with_no_narrowing_reports_an_empty_dict(tmp_path: Path):
+    rb = _rulebook(tmp_path, [("roce_gate-001", "roce", ">= 15")])
+    claims = [_threshold("c1", "roce", ">= 15"),
+              _scope("s1", ["c1"], "does not apply to a turnaround")]
+    found = find_lost_conditions(rb, claims)
+    assert len(found) == 1
+    assert found[0].rule_requires_attribute == {}
 
 
 def test_one_finding_per_rule_scope_pair(tmp_path: Path):
