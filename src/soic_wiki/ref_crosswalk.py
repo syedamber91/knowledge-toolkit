@@ -76,22 +76,8 @@ class Resolver:
     def has_timestamp(self, ref: str, ts: str) -> bool:
         return self.resolve(ref, ts) is not None
 
-    def window(self, ref: str, start: str, end: Optional[str] = None) -> str:
-        """Raw text from `start` to `end` inclusive; "" if unresolvable."""
-        le = self.resolve(ref, start)
-        if le is None:
-            return ""
-        m = re.search(re.escape(f"[{start}]"), le.body_text)
-        if not m:
-            return ""
-        if end:
-            e = re.search(re.escape(f"[{end}]"), le.body_text[m.start():])
-            if e:
-                return le.body_text[m.start(): m.start() + e.end() + 200]
-        return le.body_text[m.start(): m.start() + 800]
-
     def nearby_timestamps(self, ref: str, ts: str) -> List[str]:
-        """Markers sharing the same MM: prefix across ALL candidates — for
+        """Markers sharing the same HH:MM prefix across ALL candidates — for
         reporting a near-miss even when nothing resolves."""
         out: List[str] = []
         seen: Set[str] = set()

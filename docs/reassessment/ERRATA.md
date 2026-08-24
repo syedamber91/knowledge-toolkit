@@ -1,10 +1,19 @@
 # Errata — corrections to this reassessment's own findings
 
 Every item here is a **controller analysis error**, not a defect in the SOIC
-corpus, the lecture briefs, or the `soic-ladder` rulebook. All 58 lecture briefs
-cleared their quote gate and none of their content is affected. What was wrong
-was the layer above them: how the rulebook was read, and how source references
-were resolved.
+corpus, the lecture briefs, or the `soic-ladder` rulebook. All 58 lecture
+briefs cleared their quote gate, and every quote in every brief still
+verifies — that evidence layer is unaffected. But the briefs did not write in
+a vacuum: readers were handed a context pack that itself claimed the ladder
+has no exit layer at all, and **3 of 58 briefs and 3 of the 4 syntheses
+repeat that false framing** in their own "what the ladder misses" prose —
+`docs/reassessment/l4/WBPNW.md`, `docs/reassessment/l4/SBFTS.md`,
+`docs/reassessment/crash/SGBTS.md`, and the `l4/SYNTHESIS.md`,
+`level-3/SYNTHESIS.md`, and `crash/SYNTHESIS.md` roll-ups (`l5/SYNTHESIS.md`
+does not). Each of those six now carries an inline correction at the point of
+the claim. What was wrong was the layer above the quotes: how the rulebook
+was read, how source references were resolved, and the framing handed
+downstream to every reader.
 
 Corrected 2026-08-24, after `scripts/audit_rulebook.py` made the check
 mechanical. Read this before trusting any earlier claim about what the ladder

@@ -55,7 +55,8 @@ computed against the previous accepted run:
 |---|---|
 | `NEW_CANDIDATE` | absent or WATCH last week, CANDIDATE now |
 | `LOST_CANDIDATE` | CANDIDATE last week, no longer |
-| `EXIT_FIRED` | `exit_triggers_fired_count` reaches **3** (all of F23's three firing) while still CANDIDATE |
+| `EXIT_FIRED` | `exit_triggers_fired_count` reaches **3** (all of F23's three firing), verdict is `CANDIDATE` |
+| `EXIT_FIRED_WATCHLIST` | the same signal firing on any verdict other than `CANDIDATE` (in practice, `WATCH`) |
 | `EXIT_ARMING` | the count rises but stays below 3 — informational, ranked below everything else |
 | `GATE_FLIP` | any individual gate changed PASS/FAIL |
 | `UNCHANGED` | suppressed from the brief entirely |
@@ -63,8 +64,17 @@ computed against the previous accepted run:
 `UNCHANGED` suppression is what turns 27 names into a handful. A company that
 passed last week and passes this week needs no attention.
 
-**`EXIT_FIRED` outranks `NEW_CANDIDATE`** — a loop that reports new buys before
-it reports exits is the wrong way round.
+**`EXIT_FIRED` outranks `NEW_CANDIDATE`; `EXIT_FIRED_WATCHLIST` does not.** The
+signal fires unconditionally, on whatever verdict the company currently
+carries — an exit completing on a WATCH company is real news, not noise, so it
+is always reported. But actionability differs: firing on a name you would
+currently buy (`CANDIDATE`) is the most urgent thing in the brief, so
+`EXIT_FIRED` outranks `NEW_CANDIDATE`. Firing on anything else
+(`EXIT_FIRED_WATCHLIST`) is lower-urgency than a brand-new buy candidate, so it
+ranks below `NEW_CANDIDATE` instead. A loop that reports new buys before it
+reports exits on names you hold is the wrong way round — but a loop that
+reports a WATCH-list exit signal above a new buy candidate overstates its
+urgency the same way.
 
 **Correction.** An earlier draft justified this with "NATIONALUM is a CANDIDATE
 carrying 2 fired exit triggers, a contradiction". That was a misreading.

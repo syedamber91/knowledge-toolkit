@@ -89,16 +89,36 @@ def read_briefs():
     return out
 
 
+SHORTLIST_COLUMNS = {
+    # markdown header text -> field name used by every row dict below
+    "Company": "company", "Verdict": "verdict", "P/E": "pe", "PEG": "peg",
+    "ROCE%": "roce", "D/E": "de", "RSI": "rsi", "ADX": "adx",
+    "Growth3y%": "growth3y", "ExitTriggers": "exit_triggers",
+}
+
+
 def shortlist():
     f = LADDER / "runs/out_v4/shariah-compliant-full-2026-08-22.md"
+    lines = f.read_text().splitlines()
+    # Resolve every field by column NAME off the header row, not by a
+    # hardcoded index -- a column inserted anywhere in this table must not
+    # silently shift every field read from it.
+    header = [h.strip() for h in lines[0].split("|")]
+    col = {name: i for i, name in enumerate(header)}
+    missing = [name for name in SHORTLIST_COLUMNS if name not in col]
+    if missing:
+        raise KeyError(
+            f"shortlist(): expected column(s) {missing} not found in "
+            f"{f.name}'s header row: {header}")
     rows = {}
-    for line in f.read_text().splitlines()[2:]:
+    for line in lines[2:]:
         c = [x.strip() for x in line.split("|")]
-        if len(c) < 29 or not c[1]:
+        if len(c) <= max(col.values()) or not c[col["Company"]]:
             continue
-        rows[c[1]] = dict(verdict=c[2], rsi=c[11], adx=c[12], pe=c[13],
-                          growth3y=c[18], peg=c[19], roce=c[9], de=c[7],
-                          exit_triggers=c[28])
+        rows[c[col["Company"]]] = {
+            field: c[col[name]]
+            for name, field in SHORTLIST_COLUMNS.items() if field != "company"
+        }
     return rows
 
 
