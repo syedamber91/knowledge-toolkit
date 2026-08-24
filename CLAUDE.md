@@ -659,3 +659,4 @@ paths there are illustrative, not this repo's path.
 - [`docs/END_TO_END_PLAN.md`](docs/END_TO_END_PLAN.md) — full runbook & data model.
 - [`docs/PORTAL_NOTES.md`](docs/PORTAL_NOTES.md) — Learnyst portal reconnaissance.
 - [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md) — persona verification loop.
+- [`docs/reassessment/STAGE3-CLAIM-EXTRACTION.md`](docs/reassessment/STAGE3-CLAIM-EXTRACTION.md) — Stage 3 of the SOIC reassessment: the lost-condition detector's task, extraction pipeline, results (58 briefs, 101/96 findings across v1/v2 metric vocabularies), the 43% rulebook-coverage gap it measured, and every bug the run exposed in its own code.
