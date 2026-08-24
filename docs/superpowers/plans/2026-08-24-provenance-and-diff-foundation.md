@@ -523,42 +523,106 @@ regressing our own false finding from guessing TVGPF's meaning."
 
 ---
 
-### Task 3: Ladder run diff (D14 step 4)
+### Task 3: Ladder run diff (D14 step 4) — RE-PLANNED
 
-**Files (in the `soic-ladder` repo):**
+> **This task was re-planned on 2026-08-24.** The original version filtered
+> observations by `rule_id` containing `"exit"`. Ladder observations carry **no
+> `rule_id` at all** — they are keyed by `metric` — so that filter always
+> returned 0 and `EXIT_FIRED` was dead code that its own test could not catch.
+> The original also justified `EXIT_FIRED` with "NATIONALUM is a CANDIDATE with
+> 2 fired exit triggers, a contradiction", which was a misreading of the column.
+> See `docs/reassessment/ERRATA.md` E2/E3.
+
+**Files (in the `soic-ladder` repo at `~/Documents/workspace/Claude_Code/soic-ladder`):**
 - Create: `src/soic_ladder/rundiff.py`
 - Test: `tests/test_rundiff.py`
 - Modify: `src/soic_ladder/cli.py` (add a `diff` subparser)
 
-**Interfaces:**
-- Consumes: `ladder-<as-of>.json` — a list of records shaped
-  `{"company": str, "final": str, "gates": [{"gate": str, "verdict": str, ...}], "observations": [...]}`.
-- Produces: `load_run(path) -> Dict[str, RunRow]` where `RunRow` has
-  `final: str` and `gates: Dict[str, str]`; `diff_runs(prev, curr) -> List[Transition]`
-  where `Transition` has `company`, `kind`, `detail`; and
-  `TRANSITION_ORDER: List[str]`.
+**Branch first.** That repo is on `main` with an untracked spec file. Before any
+edit: `git checkout -b feat/run-diff`.
 
-- [ ] **Step 1: Write the failing test**
+**Ground truth, verified in both stored runs** (`runs/out/ladder-2026-08-20.json`
+and `runs/out/ladder-2026-08-22.json`, 500 companies each, same rulebook):
+
+- A record is `{"company", "final", "gates", "observations"}`.
+- `final` is one of `CANDIDATE` / `WATCH` / `REJECTED` / `INSUFFICIENT`.
+- `gates` is a list of `{"gate": "G0"|"G1"|"G3"|"G8", "verdict": "PASS"|"FAIL"|"ABSTAIN", ...}`.
+- `observations` is a list of `{"metric", "value", "reference_band", "within_band", "display_text"}` — **no `rule_id`**. Ten metrics, one entry each per company: `cfo_to_ebitda_pct_3y`, `debt_to_equity_delta_3y`, `ema30_break_pct`, `ema_period_used`, `exit_triggers_fired_count`, `nifty500_relative_strength`, `roce`, `sales_growth_3y_pct`, `stock_pe`, `weekly_volatility_stop`.
+- `exit_triggers_fired_count` carries `reference_band: "< 3"`. **F23 fires only when the value reaches 3.**
+- `within_band` may be `None` (unmeasurable — 30 companies on the 2026-08-22 run). `None` -> a value is data becoming available, **not** a signal change, and must never be reported as a flip.
+
+**Interfaces:**
+- Produces: `load_run(path) -> Dict[str, RunRow]` where `RunRow` has
+  `final: str`, `gates: Dict[str, str]`, `obs: Dict[str, ObsCell]`;
+  `ObsCell` has `value: Optional[float]` and `within_band: Optional[bool]`;
+  `diff_runs(prev, curr) -> List[Transition]` with `Transition(company, kind, detail)`;
+  `TRANSITION_ORDER: List[str]`; `EXIT_METRIC: str`; `EXIT_FIRES_AT: int`.
+
+- [ ] **Step 1: Branch the ladder repo**
+
+```bash
+cd ~/Documents/workspace/Claude_Code/soic-ladder && git checkout -b feat/run-diff
+```
+Expected: `Switched to a new branch 'feat/run-diff'`
+
+- [ ] **Step 2: Write the failing test**
 
 ```python
 # tests/test_rundiff.py
 import json
 from pathlib import Path
-from soic_ladder.rundiff import load_run, diff_runs, TRANSITION_ORDER
+from soic_ladder.rundiff import (
+    load_run, diff_runs, TRANSITION_ORDER, EXIT_METRIC, EXIT_FIRES_AT)
 
 
 def _write(p: Path, rows):
+    """rows: (company, final, {gate: verdict}, {metric: (value, within_band)})"""
     p.write_text(json.dumps([
         {"company": c, "final": f,
          "gates": [{"gate": g, "verdict": v} for g, v in gates.items()],
-         "observations": []}
-        for c, f, gates in rows]))
+         "observations": [{"metric": m, "value": val, "within_band": wb,
+                           "reference_band": "< 3", "display_text": ""}
+                          for m, (val, wb) in obs.items()]}
+        for c, f, gates, obs in rows]))
+
+
+def test_exit_fires_only_at_the_threshold(tmp_path: Path):
+    """2 of 3 is inside the band. Only reaching 3 is an exit."""
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    _write(a, [("AAA", "CANDIDATE", {"G0": "PASS"}, {EXIT_METRIC: (1.0, True)}),
+               ("BBB", "CANDIDATE", {"G0": "PASS"}, {EXIT_METRIC: (2.0, True)})])
+    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"}, {EXIT_METRIC: (2.0, True)}),
+               ("BBB", "CANDIDATE", {"G0": "PASS"}, {EXIT_METRIC: (3.0, False)})])
+    kinds = {t.company: t.kind for t in diff_runs(load_run(a), load_run(b))}
+    assert kinds["AAA"] == "EXIT_ARMING"     # 1 -> 2, still inside the band
+    assert kinds["BBB"] == "EXIT_FIRED"      # 2 -> 3, all three firing
+    assert EXIT_FIRES_AT == 3
+
+
+def test_unmeasurable_becoming_measured_is_not_a_flip(tmp_path: Path):
+    """within_band None -> a value is data arriving, not a signal change."""
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    _write(a, [("AAA", "WATCH", {"G0": "PASS"}, {"roce": (None, None)})])
+    _write(b, [("AAA", "WATCH", {"G0": "PASS"}, {"roce": (18.0, False)})])
+    kinds = [t.kind for t in diff_runs(load_run(a), load_run(b))]
+    assert kinds == ["DATA_APPEARED"]
+
+
+def test_observation_flip_is_reported(tmp_path: Path):
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    _write(a, [("AAA", "WATCH", {"G0": "PASS"}, {"stock_pe": (20.0, True)})])
+    _write(b, [("AAA", "WATCH", {"G0": "PASS"}, {"stock_pe": (40.0, False)})])
+    ts = diff_runs(load_run(a), load_run(b))
+    assert [t.kind for t in ts] == ["OBSERVATION_FLIP"]
+    assert "stock_pe" in ts[0].detail
 
 
 def test_new_and_lost_candidates(tmp_path: Path):
     a, b = tmp_path / "a.json", tmp_path / "b.json"
-    _write(a, [("AAA", "WATCH", {"G0": "PASS"}), ("BBB", "CANDIDATE", {"G0": "PASS"})])
-    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"}), ("BBB", "WATCH", {"G0": "FAIL"})])
+    _write(a, [("AAA", "WATCH", {"G0": "PASS"}, {}),
+               ("BBB", "CANDIDATE", {"G0": "PASS"}, {})])
+    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"}, {}),
+               ("BBB", "WATCH", {"G0": "FAIL"}, {})])
     kinds = {t.company: t.kind for t in diff_runs(load_run(a), load_run(b))}
     assert kinds["AAA"] == "NEW_CANDIDATE"
     assert kinds["BBB"] == "LOST_CANDIDATE"
@@ -566,53 +630,65 @@ def test_new_and_lost_candidates(tmp_path: Path):
 
 def test_unchanged_is_not_emitted(tmp_path: Path):
     a, b = tmp_path / "a.json", tmp_path / "b.json"
-    _write(a, [("AAA", "CANDIDATE", {"G0": "PASS"})])
-    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"})])
+    _write(a, [("AAA", "CANDIDATE", {"G0": "PASS"}, {"roce": (30.0, True)})])
+    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"}, {"roce": (30.0, True)})])
     assert diff_runs(load_run(a), load_run(b)) == []
 
 
 def test_gate_flip_reported_when_verdict_unchanged(tmp_path: Path):
     a, b = tmp_path / "a.json", tmp_path / "b.json"
-    _write(a, [("AAA", "WATCH", {"G8": "PASS"})])
-    _write(b, [("AAA", "WATCH", {"G8": "FAIL"})])
+    _write(a, [("AAA", "WATCH", {"G8": "PASS"}, {})])
+    _write(b, [("AAA", "WATCH", {"G8": "FAIL"}, {})])
     ts = diff_runs(load_run(a), load_run(b))
     assert [t.kind for t in ts] == ["GATE_FLIP"]
     assert "G8" in ts[0].detail
 
 
 def test_empty_baseline_is_backfill_not_news(tmp_path: Path):
-    """With no previous run every name looks new. It must be labelled a
-    backfill, never presented as a week's news."""
     b = tmp_path / "b.json"
-    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"})])
-    ts = diff_runs({}, load_run(b))
-    assert [t.kind for t in ts] == ["BACKFILL"]
+    _write(b, [("AAA", "CANDIDATE", {"G0": "PASS"}, {})])
+    assert [t.kind for t in diff_runs({}, load_run(b))] == ["BACKFILL"]
 
 
 def test_exit_fired_outranks_new_candidate():
     assert TRANSITION_ORDER.index("EXIT_FIRED") < \
            TRANSITION_ORDER.index("NEW_CANDIDATE")
+
+
+def test_one_transition_per_company(tmp_path: Path):
+    """A company that flips a gate AND an observation is reported once, at its
+    most important class -- the brief must not list a name twice."""
+    a, b = tmp_path / "a.json", tmp_path / "b.json"
+    _write(a, [("AAA", "WATCH", {"G8": "PASS"}, {"stock_pe": (20.0, True)})])
+    _write(b, [("AAA", "CANDIDATE", {"G8": "FAIL"}, {"stock_pe": (40.0, False)})])
+    ts = diff_runs(load_run(a), load_run(b))
+    assert len(ts) == 1
+    assert ts[0].kind == "NEW_CANDIDATE"
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+- [ ] **Step 3: Run test to verify it fails**
 
-Run: `.venv/bin/python -m pytest tests/test_rundiff.py -v`
+Run: `cd ~/Documents/workspace/Claude_Code/soic-ladder && .venv/bin/python -m pytest tests/test_rundiff.py -v`
 Expected: FAIL — `ModuleNotFoundError: No module named 'soic_ladder.rundiff'`
 
-- [ ] **Step 3: Write minimal implementation**
+- [ ] **Step 4: Write the implementation**
 
 ```python
 # src/soic_ladder/rundiff.py
 """What changed between two ladder runs.
 
 A weekly list should answer "what changed", not "what passes". The passing set
-barely moves week to week — the 2026-08-20 -> 2026-08-22 pair moved one verdict
-out of 500 — so suppressing UNCHANGED is what turns a 49-name wall into a
-readable brief.
+barely moves: across 2026-08-20 -> 2026-08-22, 497 of 500 companies were
+identical. Suppressing UNCHANGED is what turns a 49-name wall into a readable
+brief.
 
-EXIT_FIRED is ordered above NEW_CANDIDATE deliberately: the 2026-08-22 run
-already carries a CANDIDATE with two fired exit triggers, and a brief that
-leads with things to buy before things to leave is the wrong way round.
+Observations here are keyed by `metric` -- they carry no rule_id. An earlier
+draft of this module filtered them by rule_id and silently matched nothing.
+
+EXIT_FIRED means `exit_triggers_fired_count` reached EXIT_FIRES_AT. F23's exit
+is systematic and fires only when all three triggers fire together, so 1 or 2 is
+EXIT_ARMING, not an exit. Reporting a sub-threshold count as a fired exit was a
+real misreading before this module existed.
 """
 from __future__ import annotations
 
@@ -622,37 +698,37 @@ from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
+EXIT_METRIC = "exit_triggers_fired_count"
+EXIT_FIRES_AT = 3
+
 TRANSITION_ORDER: List[str] = [
     "BACKFILL",
     "EXIT_FIRED",
     "LOST_CANDIDATE",
     "NEW_CANDIDATE",
     "GATE_FLIP",
+    "EXIT_ARMING",
+    "OBSERVATION_FLIP",
+    "DATA_APPEARED",
+    "DATA_LOST",
 ]
+
+
+class ObsCell(BaseModel):
+    value: Optional[float] = None
+    within_band: Optional[bool] = None
 
 
 class RunRow(BaseModel):
     final: str
     gates: Dict[str, str] = {}
-    exit_triggers: int = 0
+    obs: Dict[str, ObsCell] = {}
 
 
 class Transition(BaseModel):
     company: str
     kind: str
     detail: str = ""
-
-    def __eq__(self, other):  # noqa: D105 - list equality in tests
-        return (isinstance(other, Transition)
-                and (self.company, self.kind) == (other.company, other.kind))
-
-
-def _exit_count(record: dict) -> int:
-    n = 0
-    for o in record.get("observations") or []:
-        if "exit" in str(o.get("rule_id", "")).lower():
-            n += 1
-    return n
 
 
 def load_run(path: Path) -> Dict[str, RunRow]:
@@ -661,8 +737,72 @@ def load_run(path: Path) -> Dict[str, RunRow]:
         out[r["company"]] = RunRow(
             final=r["final"],
             gates={g["gate"]: g["verdict"] for g in (r.get("gates") or [])},
-            exit_triggers=_exit_count(r))
+            obs={o["metric"]: ObsCell(value=o.get("value"),
+                                      within_band=o.get("within_band"))
+                 for o in (r.get("observations") or []) if o.get("metric")})
     return out
+
+
+def _exit_value(row: RunRow) -> Optional[float]:
+    cell = row.obs.get(EXIT_METRIC)
+    return cell.value if cell else None
+
+
+def _classify(company: str, was: RunRow, now: RunRow) -> Optional[Transition]:
+    """At most ONE transition per company, at its most important class."""
+    prev_exit, curr_exit = _exit_value(was), _exit_value(now)
+    if (curr_exit is not None and prev_exit is not None
+            and curr_exit >= EXIT_FIRES_AT > prev_exit):
+        return Transition(
+            company=company, kind="EXIT_FIRED",
+            detail=f"{EXIT_METRIC} {prev_exit:.0f} -> {curr_exit:.0f} "
+                   f"(F23 fires at {EXIT_FIRES_AT}); verdict {now.final}")
+
+    if was.final == "CANDIDATE" and now.final != "CANDIDATE":
+        return Transition(company=company, kind="LOST_CANDIDATE",
+                          detail=f"CANDIDATE -> {now.final}")
+    if was.final != "CANDIDATE" and now.final == "CANDIDATE":
+        return Transition(company=company, kind="NEW_CANDIDATE",
+                          detail=f"{was.final} -> CANDIDATE")
+
+    flips = [f"{g}: {was.gates[g]} -> {v}" for g, v in sorted(now.gates.items())
+             if g in was.gates and was.gates[g] != v]
+    if flips:
+        return Transition(company=company, kind="GATE_FLIP",
+                          detail="; ".join(flips))
+
+    if (curr_exit is not None and prev_exit is not None
+            and curr_exit > prev_exit):
+        return Transition(
+            company=company, kind="EXIT_ARMING",
+            detail=f"{EXIT_METRIC} {prev_exit:.0f} -> {curr_exit:.0f}, "
+                   f"still below {EXIT_FIRES_AT}")
+
+    # within_band changes, ignoring None transitions (data arriving/leaving is
+    # not a signal change and must never be reported as a flip)
+    obs_flips, appeared, lost = [], [], []
+    for metric, cell in sorted(now.obs.items()):
+        old = was.obs.get(metric)
+        if old is None:
+            continue
+        if old.within_band is None and cell.within_band is not None:
+            appeared.append(metric)
+        elif old.within_band is not None and cell.within_band is None:
+            lost.append(metric)
+        elif old.within_band != cell.within_band:
+            obs_flips.append(
+                f"{metric}: {'in' if old.within_band else 'out'} -> "
+                f"{'in' if cell.within_band else 'out'} of band")
+    if obs_flips:
+        return Transition(company=company, kind="OBSERVATION_FLIP",
+                          detail="; ".join(obs_flips))
+    if appeared:
+        return Transition(company=company, kind="DATA_APPEARED",
+                          detail="now measurable: " + ", ".join(appeared))
+    if lost:
+        return Transition(company=company, kind="DATA_LOST",
+                          detail="no longer measurable: " + ", ".join(lost))
+    return None
 
 
 def diff_runs(prev: Dict[str, RunRow],
@@ -673,92 +813,78 @@ def diff_runs(prev: Dict[str, RunRow],
                 for c, r in sorted(curr.items())]
     out: List[Transition] = []
     for company in sorted(curr):
-        now = curr[company]
         was = prev.get(company)
         if was is None:
-            if now.final == "CANDIDATE":
+            if curr[company].final == "CANDIDATE":
                 out.append(Transition(company=company, kind="NEW_CANDIDATE",
                                       detail="not in previous universe"))
             continue
-        if now.exit_triggers > was.exit_triggers and now.final == "CANDIDATE":
-            out.append(Transition(
-                company=company, kind="EXIT_FIRED",
-                detail=f"exit triggers {was.exit_triggers} -> "
-                       f"{now.exit_triggers} while still CANDIDATE"))
-            continue
-        if was.final != "CANDIDATE" and now.final == "CANDIDATE":
-            out.append(Transition(company=company, kind="NEW_CANDIDATE",
-                                  detail=f"{was.final} -> CANDIDATE"))
-            continue
-        if was.final == "CANDIDATE" and now.final != "CANDIDATE":
-            out.append(Transition(company=company, kind="LOST_CANDIDATE",
-                                  detail=f"CANDIDATE -> {now.final}"))
-            continue
-        flips = [f"{g}: {was.gates[g]} -> {v}"
-                 for g, v in sorted(now.gates.items())
-                 if g in was.gates and was.gates[g] != v]
-        if flips:
-            out.append(Transition(company=company, kind="GATE_FLIP",
-                                  detail="; ".join(flips)))
+        t = _classify(company, was, curr[company])
+        if t is not None:
+            out.append(t)
     out.sort(key=lambda t: (TRANSITION_ORDER.index(t.kind), t.company))
     return out
 ```
 
-- [ ] **Step 4: Run test to verify it passes**
+- [ ] **Step 5: Run test to verify it passes**
 
-Run: `.venv/bin/python -m pytest tests/test_rundiff.py -v`
-Expected: PASS, 5 passed
+Run: `cd ~/Documents/workspace/Claude_Code/soic-ladder && .venv/bin/python -m pytest tests/test_rundiff.py -v`
+Expected: PASS, 9 passed
 
-- [ ] **Step 5: Add the `diff` subcommand**
+- [ ] **Step 6: Add the `diff` subcommand**
 
-In `src/soic_ladder/cli.py`, immediately after the `judge` subparser block
-(currently ending at the `judge.add_argument("--out", default="out")` line), add:
+In `src/soic_ladder/cli.py`, after the `judge` subparser block (which ends at
+`judge.add_argument("--out", default="out")`), add:
 
 ```python
     dif = sub.add_parser("diff", help="what changed between two stored runs")
-    dif.add_argument("--prev", required=True, help="path to the earlier ladder-<as-of>.json")
-    dif.add_argument("--curr", required=True, help="path to the later ladder-<as-of>.json")
+    dif.add_argument("--prev", required=True, help="earlier ladder-<as-of>.json")
+    dif.add_argument("--curr", required=True, help="later ladder-<as-of>.json")
 ```
 
-and in the command dispatch, add a branch:
+and in the command dispatch add:
 
 ```python
     if args.command == "diff":
         from .rundiff import load_run, diff_runs
         prev, curr = load_run(Path(args.prev)), load_run(Path(args.curr))
         transitions = diff_runs(prev, curr)
-        shown = {t.company for t in transitions}
         print(f"{len(prev)} -> {len(curr)} companies; "
-              f"{len(curr) - len(shown)} unchanged (suppressed)\n")
+              f"{len(curr) - len(transitions)} unchanged (suppressed)\n")
         for t in transitions:
-            print(f"{t.kind:15} {t.company:14} {t.detail}")
+            print(f"{t.kind:18} {t.company:14} {t.detail}")
         return 0
 ```
 
-- [ ] **Step 6: Run it against the two runs already on disk**
+- [ ] **Step 7: Run against the two stored runs**
 
-Run:
 ```bash
-.venv/bin/python -m soic_ladder.cli diff \
+cd ~/Documents/workspace/Claude_Code/soic-ladder && .venv/bin/python -m soic_ladder.cli diff \
   --prev runs/out/ladder-2026-08-20.json \
   --curr runs/out/ladder-2026-08-22.json
 ```
-Expected: `500 -> 500 companies; 497 unchanged (suppressed)`, then one
-`NEW_CANDIDATE COFORGE` line and 20 `GATE_FLIP` lines, every flip on `G8`.
+Expected: `500 -> 500 companies` with the large majority suppressed; one
+`NEW_CANDIDATE COFORGE`; roughly 20 `GATE_FLIP` lines, all on `G8`. Record the
+exact counts in your report — they are the baseline for the weekly loop, and any
+`EXIT_FIRED` rows are a genuine finding worth reporting.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Run the ladder's own suite to confirm nothing regressed**
+
+Run: `cd ~/Documents/workspace/Claude_Code/soic-ladder && .venv/bin/python -m pytest -q`
+Expected: the pre-existing suite still passes; report the totals.
+
+- [ ] **Step 9: Commit**
 
 ```bash
+cd ~/Documents/workspace/Claude_Code/soic-ladder
 git add src/soic_ladder/rundiff.py tests/test_rundiff.py src/soic_ladder/cli.py
 git commit -m "feat: ladder run diff — what changed, not what passes
 
-On the two runs already stored, 497 of 500 companies are unchanged and
-suppressed, leaving one new candidate and 20 gate flips — every flip on G8.
-That asymmetry is itself a finding: over two days only the technical gate
-moves, because quarterly fundamentals land four times a year.
-
-EXIT_FIRED is ordered above NEW_CANDIDATE: the current run already carries a
-CANDIDATE with two fired exit triggers and nobody is told."
+Observations are keyed by metric and carry no rule_id; an earlier draft
+filtered them by rule_id and matched nothing. EXIT_FIRED requires
+exit_triggers_fired_count to reach 3, because F23 fires only when all three
+triggers fire together — 1 or 2 is EXIT_ARMING. within_band None transitions
+are data arriving or leaving, never reported as a flip."
 ```
 
 ---
