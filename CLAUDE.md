@@ -606,6 +606,20 @@ See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICAT
   below (`test-driven-development`, `verification-before-completion`,
   `writing-plans`, `systematic-debugging`) wherever they overlap or conflict.
   `EXAMPLES.md` alongside it has before/after cases.
+- `grill-me` (`/grill-me`) — relentless one-question-at-a-time interview that
+  **checkpoints every answer to `brainstorms/{date}-{topic}.md` before asking
+  the next one**, so the file rather than the context window is the source of
+  truth. Use it when the knowledge is in the owner's head and the goal is to get
+  it onto disk; use `superpowers:brainstorming` instead when the session will
+  end in code, since that one gates on approval and hands off to
+  `writing-plans`. **Vendored** (see the provenance block in its `SKILL.md`):
+  supplied by the repo owner from Nate Herk's second-brain video, crediting Matt
+  Pocock as the original author. `brainstorms/` is gitignored — captures are
+  unfiltered personal/business notes — but `graphify` still indexes it locally,
+  which is the point: it closes this repo's one real capture gap, the owner's
+  undocumented *reasoning*. `pe_context-001`'s `ref: null` and
+  `growth_trap_flag-001`'s non-existent timestamp both exist because the
+  thinking behind them was never written down.
 - `soic-extract`, `substack-capture`, `youtube-capture`, `media-capture`,
   `instagram-capture` — source-specific capture recipes.
 - `justin-sung-persona`, `ben-dicken-persona` — the persona frameworks above.

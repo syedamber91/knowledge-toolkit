@@ -41,3 +41,7 @@ output/
 vault/
 venv/
 webapp/backend/toolkit.db
+
+# grill-me capture sessions -- the owner's own unfiltered notes.
+# Gitignored by default; graphify still indexes them locally.
+brainstorms/
