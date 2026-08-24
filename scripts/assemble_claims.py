@@ -45,6 +45,8 @@ REASSESSMENT_REFS = [
 def main(in_dir: str, out_path: str) -> int:
     raw = []
     for path in sorted(Path(in_dir).glob("*.json")):
+        if path.name == "claims.json":
+            continue  # assembled output, not a per-brief extraction
         rows = json.loads(path.read_text(encoding="utf-8"))
         raw.extend(rows)
         print(f"  {path.name}: {len(rows)} claim(s)")
