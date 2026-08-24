@@ -386,6 +386,7 @@ def main():
 def _run_all():
     main()
     build_findings_and_home()
+    build_typed_edges()
 
 # ---------------------------------------------------------------------------
 # Findings + Home + START-HERE. Appended as a second pass so the ranked
@@ -663,6 +664,193 @@ def build_findings_and_home():
         home.append(f"- [[{p.stem}]]")
     (VAULT / "Home.md").write_text("\n".join(home))
     print(f"findings={len(fnames)} unmentioned_companies={len(unmentioned)}")
+
+
+
+
+# ---------------------------------------------------------------------------
+# TYPED EDGES (a narrow Level-4 slice over the Level-2 wiki).
+#
+# A wiki's backlinks say "see also". They do not say HOW two notes relate --
+# VALU2 *sources* the P/E band, ARTBV *contradicts* it, FMODA *qualifies* it,
+# and a plain link flattens all three into one list. These passes read the
+# brief's own wording around each mention and stamp a relation on the edge,
+# then emit a flat claims table so a narrow question ("which lectures
+# contradict pe_context-001?") is answered without opening a 30KB note.
+#
+# The classifier is deterministic and conservative: no keyword hit -> the edge
+# is typed "mentions"/"neutral", never guessed into a stronger claim.
+# ---------------------------------------------------------------------------
+
+SUBJECT_WINDOW = 160   # chars of a block treated as its subject line
+
+RULE_REL = [
+    ("contradicts",  r"(?i)\b(contradict|directly contradicts|undercut|"
+                     r"is wrong|does not survive|never states|refutes)"),
+    ("qualifies",    r"(?i)\b(qualif|condition|carve-?out|caveat|narrow|"
+                     r"scope[sd]?\b|only applies|override|softens|exception)"),
+    ("corroborates", r"(?i)\b(corroborat|confirms|independently reaches|"
+                     r"same threshold|matches|supports the rule|reinforc)"),
+    ("sources",      r"(?i)\b(provenance|is the source|states it twice|"
+                     r"stated here|word[- ]for[- ]word|verbatim source)"),
+]
+CO_REL = [
+    ("doubt",   r"(?i)(specific doubt|doubt raised|cautionary|negative|"
+                r"红|red flag|argues against|expensive|overvalued|"
+                r"warning|caution)"),
+    ("support", r"(?i)(specific support|positive (example|case|mention)|"
+                r"endorse|argues for|textbook (positive|example)|"
+                r"real, specific|genuine .{0,20}support)"),
+]
+
+
+def classify(text, table, default):
+    for label, pat in table:
+        if re.search(pat, text):
+            return label
+    return default
+
+
+def one_line(text, limit=190):
+    t = re.sub(r"\s+", " ", re.sub(r"^[-*#]+\s*", "", text)).strip()
+    return (t[:limit] + "...") if len(t) > limit else t
+
+
+def build_typed_edges():
+    briefs = read_briefs()
+    sl = shortlist()
+    rl = rules()
+    mentions = build_mentions(briefs, sl)
+    edges = []
+
+    # lecture -> rule
+    rule_ids = [r["id"] for r in rl]
+    for b in briefs:
+        sec = b["secs"]["WHAT THE LADDER MISSES"]
+        for unit in re.split(r"\n(?=[-*#\d] )|\n\n", sec):
+            # A block is ABOUT the rule it leads with. Rules named later in the
+            # same block are comparisons ("...the way leverage-001 already
+            # does"), not claims about them. Attributing the block to every id
+            # it contains produced edges asserting a P/E claim against the ROCE
+            # and leverage rules -- the same error class as the roster scan:
+            # matching a string without checking what the sentence is about.
+            head = unit[:SUBJECT_WINDOW]
+            for rid in rule_ids:
+                if rid in head:
+                    edges.append(dict(
+                        src=b["ref"], src_title=b["meta"].get("title", b["ref"]),
+                        course=b["tag"], kind="rule", dst=rid,
+                        relation=classify(unit, RULE_REL, "mentions"),
+                        claim=one_line(unit)))
+
+    # lecture -> company
+    for tkr, ms in mentions.items():
+        for b, blk in ms:
+            edges.append(dict(
+                src=b["ref"], src_title=b["meta"].get("title", b["ref"]),
+                course=b["tag"], kind="company", dst=tkr,
+                relation=classify(blk, CO_REL, "neutral"),
+                claim=one_line(blk)))
+
+    # dedupe: keep the strongest, longest claim per (src, dst)
+    STRENGTH = {"contradicts": 4, "sources": 4, "qualifies": 3,
+                "corroborates": 3, "doubt": 4, "support": 4,
+                "mentions": 1, "neutral": 1}
+    best = {}
+    for e in edges:
+        k = (e["src"], e["kind"], e["dst"])
+        cur = best.get(k)
+        if cur is None or (STRENGTH[e["relation"]], len(e["claim"])) > \
+                          (STRENGTH[cur["relation"]], len(cur["claim"])):
+            best[k] = e
+    edges = sorted(best.values(), key=lambda e: (e["kind"], e["dst"], e["src"]))
+
+    # ---- flat claims table (the lightweight lookup) ------------------------
+    by_kind = defaultdict(list)
+    for e in edges:
+        by_kind[e["kind"]].append(e)
+    lines = [fm(tags=["reference", "claims-table"], edges=len(edges)), "",
+             "# Claims table — typed edges", "",
+             "Every edge between a lecture and a rule or a company, with the "
+             "**relation** stamped on it. Built for narrow lookups: answer "
+             '"which lectures contradict this rule?" here, without opening a '
+             "lecture note.", "",
+             "Relations are classified from each brief's own wording. Where the "
+             "wording is not explicit the edge is typed `mentions` / `neutral` "
+             "rather than guessed into a stronger claim.", ""]
+    for kind, title in (("rule", "Lecture → Rule"), ("company", "Lecture → Company")):
+        lines += [f"## {title}", "",
+                  "| Lecture | Course | Relation | Target | Claim |",
+                  "|---|---|---|---|---|"]
+        for e in by_kind[kind]:
+            claim = e["claim"].replace("|", "\\|")   # keep table cells intact
+            lines.append(f'| [[{e["src"]}]] | {e["course"]} | `{e["relation"]}` | '
+                         f'[[{e["dst"]}]] | {claim} |')
+        lines += [""]
+    (VAULT / "claims.md").write_text("\n".join(lines))
+
+    # ---- stamp relations back onto rule notes ------------------------------
+    for r in rl:
+        p = VAULT / "rules" / f'{r["id"]}.md'
+        if not p.exists():
+            continue
+        rel = [e for e in edges if e["kind"] == "rule" and e["dst"] == r["id"]]
+        if not rel:
+            continue
+        grouped = defaultdict(list)
+        for e in rel:
+            grouped[e["relation"]].append(e)
+        block = ["", "## How lectures relate to this rule", ""]
+        for label in ("contradicts", "qualifies", "corroborates", "sources", "mentions"):
+            if label not in grouped:
+                continue
+            block += [f"### {label} ({len(grouped[label])})", ""]
+            for e in sorted(grouped[label], key=lambda x: x["src"]):
+                block.append(f'- [[{e["src"]}|{e["src_title"]}]] ({e["course"]}) — {e["claim"]}')
+            block += [""]
+        block += ["*See [[claims]] for the full typed-edge table.*", ""]
+        txt = p.read_text()
+        txt = re.sub(r"\n## Lectures that engage this rule\n.*?(?=\Z)", "\n",
+                     txt, flags=re.S)
+        p.write_text(txt.rstrip() + "\n" + "\n".join(block))
+
+    # ---- stamp polarity onto company notes ---------------------------------
+    for tkr in sl:
+        p = VAULT / "companies" / f"{tkr}.md"
+        if not p.exists():
+            continue
+        rel = [e for e in edges if e["kind"] == "company" and e["dst"] == tkr]
+        if not rel:
+            continue
+        counts = defaultdict(int)
+        for e in rel:
+            counts[e["relation"]] += 1
+        summary = " · ".join(f"**{k}** {v}" for k, v in sorted(counts.items()))
+        txt = p.read_text()
+        txt = txt.replace("## What the lectures say",
+                          f"**Lecture verdicts:** {summary}\n\n"
+                          "## What the lectures say", 1)
+        if counts.get("doubt") and counts.get("support"):
+            txt = txt.replace("## What the lectures say",
+                              "> [!warning] Contested\n> This company is both "
+                              "supported and doubted by different lectures. "
+                              "Read both before concluding.\n\n"
+                              "## What the lectures say", 1)
+        p.write_text(txt)
+
+    # ---- machine index -----------------------------------------------------
+    idx = yaml.safe_load((VAULT / "index.yaml").read_text())
+    idx["claims"] = {"file": "claims.md", "edges": len(edges),
+                     "relations": sorted({e["relation"] for e in edges})}
+    idx["routing"]["which lectures contradict rule Z"] = "claims.md (Lecture -> Rule)"
+    idx["routing"]["is company Y contested"] = "companies/Y.md front block"
+    (VAULT / "index.yaml").write_text(yaml.safe_dump(idx, sort_keys=False, width=100))
+
+    tally = defaultdict(int)
+    for e in edges:
+        tally[f'{e["kind"]}:{e["relation"]}'] += 1
+    print("edges:", len(edges), dict(sorted(tally.items())))
+    return edges
 
 
 if __name__ == "__main__":
