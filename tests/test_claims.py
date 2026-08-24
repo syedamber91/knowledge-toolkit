@@ -5,6 +5,7 @@ import pytest
 
 from soic_wiki.claims import (
     CLAIM_TYPES, Claim, load_claims, save_claims, verify_all, verify_claim)
+from soic_wiki.ref_crosswalk import Resolver
 
 
 def _claim(**kw):
@@ -84,3 +85,40 @@ def test_round_trip_through_json(tmp_path: Path):
     assert len(back) == 1
     assert back[0].claim_id == _claim().claim_id
     assert json.loads(path.read_text())[0]["kind"] == "threshold"
+
+
+# The FakeResolver above only supplies resolve()/window() -- exactly the
+# interface Claim's verifier is documented to need. But Resolver.window() was
+# deleted once as a "zero-caller" method and this module became its first
+# real caller, so every test above would still pass green against a Resolver
+# that has no window() at all. Only a genuine Resolver instance would catch
+# that drift, so this test builds one against the real corpus instead of a
+# fake.
+REFS = Path.home() / (
+    "Library/Mobile Documents/iCloud~md~obsidian/Documents/"
+    "Learning Vault Invest/wiki/personas/soic/refs")
+CONTENT = Path.home() / "Documents/workspace/Claude_Code/SOIC_Scraper/data/content.json"
+
+needs_real = pytest.mark.skipif(
+    not (REFS.exists() and CONTENT.exists()),
+    reason="needs the local vault + corpus")
+
+
+@needs_real
+def test_verify_claim_against_the_real_resolver():
+    """MASTEC 00:09:35 is a known-good, unambiguously-resolving (REF,
+    timestamp) pair (see test_ref_crosswalk.py) whose real transcript window
+    genuinely contains "more than 15% sales growth". An invented phrase over
+    the same pair must fail -- that is the whole point of verification."""
+    resolver = Resolver(REFS, CONTENT)
+    genuine = _claim(
+        claim_id="MASTEC-00:09:35-sales_growth", ref="MASTEC", ts="00:09:35",
+        quote="more than 15% sales growth",
+        statement="quarterly sales growth of at least 15%")
+    assert verify_claim(genuine, resolver) is True
+
+    invented = _claim(
+        claim_id="MASTEC-00:09:35-invented", ref="MASTEC", ts="00:09:35",
+        quote="the company will triple its revenue every single quarter",
+        statement="a fabricated claim never made in this lecture")
+    assert verify_claim(invented, resolver) is False

@@ -76,6 +76,27 @@ class Resolver:
     def has_timestamp(self, ref: str, ts: str) -> bool:
         return self.resolve(ref, ts) is not None
 
+    def window(self, ref: str, start: str, end: Optional[str] = None) -> str:
+        """Raw transcript text from `start` to `end` inclusive; "" if the pair
+        does not resolve. Used to check a claim's quote against the passage it
+        cites rather than against the whole lecture -- a quote that appears
+        somewhere else entirely is not evidence for the timestamp claimed."""
+        le = self.resolve(ref, start)
+        if le is None:
+            return ""
+        body = le.body_text
+        m = re.search(re.escape(f"[{start}]"), body)
+        if not m:
+            return ""
+        if end:
+            e = re.search(re.escape(f"[{end}]"), body[m.start():])
+            if e:
+                tail = m.start() + e.start()
+                nl = body.find("\n", tail)
+                stop = nl if nl != -1 else len(body)
+                return body[m.start():stop]
+        return body[m.start(): min(m.start() + 800, len(body))]
+
     def nearby_timestamps(self, ref: str, ts: str) -> List[str]:
         """Markers sharing the same HH:MM prefix across ALL candidates — for
         reporting a near-miss even when nothing resolves."""

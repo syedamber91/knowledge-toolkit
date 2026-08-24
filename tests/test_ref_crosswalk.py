@@ -80,6 +80,56 @@ def test_resolve_returns_none_when_timestamp_in_multiple_candidates(tmp_path: Pa
     assert r.resolve("DUPTS", "00:09:35") is None
 
 
+def test_window_returns_text_containing_the_cited_timestamp(tmp_path: Path):
+    d = tmp_path / "refs"
+    d.mkdir()
+    (d / "a.json").write_text(json.dumps({"L1": "WNDWA"}))
+    content = tmp_path / "content.json"
+    _write_content(content, [
+        ("L1", "Lesson One",
+         "[00:01:00] intro line\n"
+         "[00:09:35] more than 15% sales growth here\n"
+         "[00:09:40] next line entirely\n"),
+    ])
+    r = Resolver(d, content)
+    win = r.window("WNDWA", "00:09:35")
+    assert "[00:09:35]" in win
+    assert "more than 15% sales growth" in win
+
+
+def test_window_returns_empty_string_when_the_pair_does_not_resolve(tmp_path: Path):
+    d = tmp_path / "refs"
+    d.mkdir()
+    (d / "a.json").write_text(json.dumps({"L1": "WNDWB"}))
+    content = tmp_path / "content.json"
+    _write_content(content, [
+        ("L1", "Lesson One", "[00:01:00] intro line\n"),
+    ])
+    r = Resolver(d, content)
+    assert r.window("WNDWB", "00:09:35") == ""
+    assert r.window("NOPE", "00:01:00") == ""
+
+
+def test_window_with_end_spans_both_timestamps(tmp_path: Path):
+    d = tmp_path / "refs"
+    d.mkdir()
+    (d / "a.json").write_text(json.dumps({"L1": "WNDWC"}))
+    content = tmp_path / "content.json"
+    _write_content(content, [
+        ("L1", "Lesson One",
+         "[00:01:00] intro line\n"
+         "[00:09:35] more than 15% sales growth here\n"
+         "[00:09:40] and margins expanded too\n"
+         "[00:15:00] unrelated later line\n"),
+    ])
+    r = Resolver(d, content)
+    win = r.window("WNDWC", "00:09:35", "00:09:40")
+    assert "[00:09:35]" in win
+    assert "[00:09:40]" in win
+    assert "margins expanded too" in win
+    assert "unrelated later line" not in win
+
+
 REFS = Path.home() / (
     "Library/Mobile Documents/iCloud~md~obsidian/Documents/"
     "Learning Vault Invest/wiki/personas/soic/refs")
