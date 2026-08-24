@@ -32,6 +32,11 @@ actually resolve. Building extraction before knowing that would be guessing.
   like "TVGP Framework" and actually resolves to `18.01.26 Part 1 Valuations`.
   **Always** resolve through the crosswalk. This mistake was made independently
   by two agents in one session and produced a false "broken citation" finding.
+- **A REF code alone is NOT a unique key. 25 of 221 codes map to more than one
+  lesson** (`MODULB` maps to eight). Resolve by the pair `(REF, timestamp)`:
+  among the candidates for that code, the correct lesson is the one containing
+  that timestamp. A last-wins loader over the crosswalk produced two false
+  "broken citation" findings before this was noticed.
 - Never resolve a lesson by title or slug. Four courses share a lesson titled
   "What you will Learn in this Course? Intro". Resolve by `lesson_id`.
 - Read-only against `soic-ladder`. This plan adds one subcommand; it never edits
@@ -446,10 +451,13 @@ if __name__ == "__main__":
 - [ ] **Step 6: Run it against the real rulebook**
 
 Run: `.venv/bin/python scripts/audit_rulebook.py`
-Expected: a 16-row table. Two rows are already known and must appear:
-`pe_context-001  NO_REF` and `canslim_sales-001 / canslim_pat-001  BAD_TIMESTAMP`
-(MASTEC resolves to "Part 3 Masterclass on Low Float Stocks", where `00:09:35`
-does not exist; nearby markers are `00:09:21` and `00:09:39`). Exit code 1.
+Expected: a 16-row table. One row is a known real defect and must appear:
+`pe_context-001  NO_REF`. All other citations should resolve, including
+`canslim_sales-001`/`canslim_pat-001` (MASTEC) and `growth_trap_flag-001`
+(TVGPF) — both were earlier reported as broken by faulty resolution, and both
+are sound. Exit code 1 (the `NO_REF` row alone does not set it; only
+UNRESOLVED_REF/BAD_TIMESTAMP do — so expect exit 0 unless a real defect
+appears).
 
 - [ ] **Step 7: Pin the real-data findings as a regression test**
 
@@ -473,11 +481,13 @@ needs_real = pytest.mark.skipif(
 def test_known_citation_defects_are_still_reported():
     by_id = {c.rule_id: c for c in audit(RULEBOOK, Resolver(REFS, CONTENT))}
     assert by_id["pe_context-001"].status == "NO_REF"
-    # G0 cites MASTEC, which resolves to the Low Float masterclass, where the
-    # cited 00:09:35 does not exist. The sentence itself is real, at 00:09:35
-    # of "Tools To Find Epic Stocks" — so this is a mis-attribution, not a
-    # fabricated number. Re-sourcing is a separate, human decision (D9).
-    assert by_id["canslim_sales-001"].status == "BAD_TIMESTAMP"
+    # G0's MASTEC 00:09:35 IS sound: MASTEC is one of 25 ambiguous REF codes,
+    # and the candidate containing 00:09:35 is "15.12.24 Class 4 How to Filter
+    # Epic Stocks", where that timestamp carries the 15%/20% sentence verbatim.
+    # An earlier last-wins loader picked the other candidate and reported a
+    # false defect. Ambiguity must be resolved by (REF, timestamp), never by
+    # REF alone.
+    assert by_id["canslim_sales-001"].status == "OK"
 
 
 @needs_real
