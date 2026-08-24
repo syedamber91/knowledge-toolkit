@@ -262,9 +262,18 @@ def main():
         if row["rsi"] and row["rsi"].replace(".", "").isdigit() and float(row["rsi"]) >= 75:
             flags.append(f'RSI {row["rsi"]} sits in the 75-85 "don\'t buy now" '
                          f'zone reported in [[TVPDT]] / [[HGBYH]].')
-        if row["exit_triggers"] not in ("0", ""):
-            flags.append(f'{row["exit_triggers"]} exit trigger(s) fired while the '
-                         f'verdict is {row["verdict"]} — see [[F05-exittriggers-orphaned]].')
+        et = row["exit_triggers"]
+        if et not in ("0", ""):
+            # NOT "exits fired": the column counts how many of F23's THREE
+            # triggers are currently firing, against a band of `< 3`. F23 fires
+            # only at three. Calling 1 or 2 a fired exit was a misreading --
+            # see ERRATA E3.
+            fired_all = str(et).startswith("3")
+            flags.append(
+                (f'**All three** of F23\'s exit triggers are firing '
+                 if fired_all else
+                 f'{et} of F23\'s three exit triggers firing (F23 fires only at 3) ')
+                + f'while the verdict is {row["verdict"]}.')
         if flags:
             lines += ["> [!warning] Automatic flags", ""] + \
                      [f"> - {x}" for x in flags] + [""]
@@ -432,57 +441,81 @@ FINDINGS = [
   "which it names as the margin-of-safety zone.",
   ["FESTF", "TFELT", "ARTBV"], ["capital_efficiency_gate-001"]),
 
- ("F04", "G8 encodes two legs of a four-leg setup", "REPORTED, MULTI-SOURCE",
+ ("F04", "G8 gates on two legs of a four-leg setup", "REPORTED / PARTLY CORRECTED",
   "[[SESCS]] states the buying setup as RSI>50 **AND** ADX>20 **AND** relative "
-  "strength vs Nifty 500 **>0**. The ladder encodes the first two and has no "
-  "concept of relative strength at all — two other lectures call it his "
-  "highest-conviction screen.\n\n"
-  "Worse, L4's synthesis finds the **Volatility Stop** is the load-bearing "
-  "signal (the stated bare-minimum entry condition across ~8 lectures, and the "
-  "only sanctioned exit across ~10) while **ADX** — which the instructor "
-  "personally runs at zero and calls whipsaw-prone at 20 — is a hard gate.\n\n"
-  "The RSI floor is **contested inside the corpus**: 45 in [[ESRLE]]/[[CSLRC]] "
-  "(which document the SOIC LTI tool itself), 50 in [[TVPDT]]/[[TVPD2]]. The "
-  "rulebook silently picked one source. There is also a hedged **75-85 "
-  "'don't buy now' ceiling** the ladder lacks entirely.",
+  "strength vs Nifty 500 **>0**.\n\n"
+  "**Correction (see [[ERRATA]] E2):** an earlier version of this note claimed "
+  "the ladder had \"no concept of relative strength at all\". That was wrong — "
+  "`judge.py` computes `nifty500_relative_strength` on every run. The accurate "
+  "finding is narrower: the third leg is **computed but does not gate**. G8's "
+  "PASS/FAIL rests on RSI and ADX only.\n\n"
+  "L4's synthesis adds that the **Volatility Stop** is the load-bearing signal "
+  "(the stated bare-minimum entry condition across ~8 lectures) while **ADX** — "
+  "which the instructor personally runs at zero and calls whipsaw-prone at 20 — "
+  "is the hard gate.\n\n"
+  "The RSI floor is also **contested inside the corpus**: 45 in "
+  "[[ESRLE]]/[[CSLRC]] (which document the SOIC LTI tool itself), 50 in "
+  "[[TVPDT]]/[[TVPD2]]. The rulebook silently picked one source.",
   ["SESCS", "ESRLE", "CSLRC", "TVPDT", "WBPNW", "MAAIM"],
   ["entry_rsi-001", "entry_adx-001"]),
 
- ("F05", "ExitTriggers is orphaned — and contradicts its own verdicts",
-  "VERIFIED (data) / INFERRED (meaning)",
-  "The 38-name table carries an `ExitTriggers` column that **no rulebook entry "
-  "defines or cites**. L4 repeatedly defines an exit trigger as the Volatility "
-  "Stop turning negative, which would make the column a count of fired exits.\n\n"
-  "If so, the table contradicts itself:\n\n"
-  "| Company | Verdict | ExitTriggers |\n|---|---|---|\n"
-  "| HINDCOPPER | CANDIDATE | 1 |\n| **NATIONALUM** | **CANDIDATE** | **2** |\n"
-  "| SPLPETRO | WATCH | 2 |\n\n"
-  "The meaning is a vocabulary inference from the lectures — **verify against "
-  "the compute code before acting**.", ["SESCS", "WBPNW"], []),
+ ("F05", "The exit layer exists and gates nothing", "VERIFIED",
+  "**This finding replaces an earlier, wrong one** which claimed the "
+  "`ExitTriggers` column was orphaned and that NATIONALUM was a self-"
+  "contradiction. Both were controller errors — see [[ERRATA]] E2 and E3.\n\n"
+  "`judge.py` computes, and `cli.py` appends on every run, cited to `FRAMEC`:\n\n"
+  "| Metric | What it is |\n|---|---|\n"
+  "| `ema30_break_pct` | the 30-week EMA break |\n"
+  "| `nifty500_relative_strength` | relative strength vs the Nifty 500 |\n"
+  "| `weekly_volatility_stop` | the volatility stop |\n"
+  "| `exit_triggers_fired_count` | F23's 3-trigger exit count |\n"
+  "| `ema_period_used` | flags when the recent-IPO EMA fallback applied |\n\n"
+  "`ExitTriggers` is **how many of the three are firing**, against a band of "
+  "`< 3`; F23 fires only when all three fire together. Across the 2026-08-22 "
+  "run: 222 companies at zero, 43 at one, 54 at two, **151 at three**, 30 "
+  "unmeasurable — and **zero CANDIDATEs have all three firing**. The ladder is "
+  "internally consistent here.\n\n"
+  "The real finding: this whole layer is **observation-only**. It never changes "
+  "a verdict, by the same deliberate design that leaves G2 and G6 unoccupied.",
+  ["SESCS", "WBPNW"], []),
 
- ("F06", "growth_trap_flag-001's citation points nowhere", "VERIFIED",
-  "Its ref is `TVGPF 00:18:39-00:19:07`. That range **does not exist** in "
-  "[[TVGP2]] — markers jump 00:18:33 -> 00:18:48, and the content there is "
-  "about Ather going private. [[TVGPT]] confirms it is not in part 1 either. A "
-  "corpus-wide search returns no exact match and a best fuzzy match of 51% "
-  "(noise).\n\n"
-  "This does **not** mean the claim is false — genuine growth-trap content "
-  "exists with *different* numbers: 30-35x ([[VALU2]]) and >50x ([[VALUV]]), "
-  "plus the base-effect mechanism in [[SGBTS]]. The rule needs **re-sourcing, "
-  "not deleting, and not guessing**.", ["TVGP2", "TVGPT", "VALU2", "VALUV"],
-  ["growth_trap_flag-001"]),
+ ("F06", "Only one rulebook citation is actually defective", "VERIFIED",
+  "`scripts/audit_rulebook.py` resolves every rulebook citation and checks the "
+  "cited timestamp exists in the lesson the REF names. Result: **15 of 16 "
+  "sound**.\n\n"
+  "The single defect is `pe_context-001`, whose `provenance.ref` is literally "
+  "`null` — no lecture, no timestamp, nothing to check.\n\n"
+  "**Two rules were previously reported here as broken and are not** (see "
+  "[[ERRATA]] E1):\n\n"
+  "- `growth_trap_flag-001` — `TVGPF` was assumed to abbreviate \"TVGP "
+  "Framework\" and searched for in the wrong lectures. It resolves to "
+  "*18.01.26 Part 1 Valuations*, where the cited window does discuss growth "
+  "traps.\n"
+  "- `canslim_sales-001` / `canslim_pat-001` — **a REF code is not a unique "
+  "key**: 25 of 221 codes map to several lessons (`MODULB` maps to eight). A "
+  "last-wins loader picked the wrong `MASTEC`. Resolving the pair `(REF, "
+  "timestamp)` lands on *15.12.24 Class 4 How to Filter Epic Stocks*, where "
+  "00:09:35 carries the cited sentence verbatim.\n\n"
+  "Both are now pinned as regression tests — on the analysis, not the rulebook.",
+  ["TVGP2", "TVGPT", "VALU2", "VALUV"], ["pe_context-001", "growth_trap_flag-001"]),
 
- ("F07", "There is no exit rule anywhere", "REPORTED, MULTI-SOURCE",
-  "G8 gates entries only. [[SESCS]] alone yields four computable exit "
-  "triggers: a 10-week EMA break, price >80% above the 200-DMA, a 30-week EMA "
-  "breakdown paired with the Volatility Stop, and relative strength crossing "
-  "below zero. [[RSSER]] demonstrates a monthly-RSI<50 multi-year-top signal "
-  "live on **ASIANPAINT**.\n\n"
-  "All of it is computable from the price series the ladder **already "
-  "fetches** for RSI and ADX. Caveat: the Volatility Stop multiplier is "
-  "horizon- and regime-dependent (2x / 2.5x / lower for cyclicals) and there is "
-  "a source discrepancy on ATR length (14 vs 10) — it must never be hard-coded "
-  "as a single constant.", ["SESCS", "RSSER", "ARTBV", "ODDM", "BUFF"], []),
+ ("F07", "The corpus teaches exits the ladder computes but never acts on",
+  "REPORTED, MULTI-SOURCE",
+  "**Corrected** from an earlier claim that there was \"no exit rule anywhere\" "
+  "— there is a full exit layer, it simply gates nothing (see [[ERRATA]] E2 and "
+  "[[F05-the-exit-layer-exists-and-gates-nothing|F05]]).\n\n"
+  "[[SESCS]] alone yields four computable exit triggers: a 10-week EMA break, "
+  "price >80% above the 200-DMA, a 30-week EMA breakdown paired with the "
+  "Volatility Stop, and relative strength crossing below zero. [[RSSER]] "
+  "demonstrates a monthly-RSI<50 multi-year-top signal live on **ASIANPAINT**.\n\n"
+  "Three of those are already computed. The gap is that a fired exit cannot "
+  "change a verdict, and the 10-week EMA break and 200-DMA extension are not "
+  "computed at all.\n\n"
+  "Caveat that must survive into any rule: the Volatility Stop multiplier is "
+  "horizon- and regime-dependent (2x / 2.5x / lower for cyclicals) and the "
+  "corpus disagrees with itself on ATR length (14 in HGBYH, 10 elsewhere). It "
+  "must never be hard-coded as a single constant.",
+  ["SESCS", "RSSER", "ARTBV", "ODDM", "BUFF"], []),
 
  ("F08", "Sector selection comes first, and the ladder has no sector dimension",
   "REPORTED, MULTI-SOURCE",
@@ -530,8 +563,9 @@ FINDINGS = [
   "Consequence: the 80% presence check that validated all 58 lecture briefs "
   "**cannot be applied to the rulebook**. The only usable audit is per-rule: "
   "*does the cited timestamp exist, and does the content there support the "
-  "rule?* Two entries already fail it — [[F02-the-p-e-band-is-the-only-unsourced-rule-and-lost-its-condition|F02]] "
-  "and [[F06-growth-trap-flag-001-s-citation-points-nowhere|F06]]. The other 14 have not been checked.",
+  "rule?* That audit now exists (`scripts/audit_rulebook.py`) and reports "
+  "**15 of 16 sound** — see [[F06-only-one-rulebook-citation-is-actually-defective|F06]]. "
+  "The single failure is `pe_context-001`, whose ref is `null`.",
   [], []),
 
  ("F12", "Data-quality issues to resolve before acting", "OPEN",
@@ -566,7 +600,17 @@ def slugify(s):
 def build_findings_and_home():
     briefs = read_briefs()
     sl = shortlist()
-    (VAULT / "findings").mkdir(parents=True, exist_ok=True)
+    fdir = VAULT / "findings"
+    fdir.mkdir(parents=True, exist_ok=True)
+    # Retitling a finding changes its slug, so a plain rewrite leaves the OLD
+    # file behind and the vault ends up carrying the superseded version of a
+    # correction beside the corrected one -- the worst possible outcome for a
+    # document whose whole purpose is being trustworthy. Prune first.
+    expected = {f"{fid}-{slugify(title)}.md" for fid, title, _, _, _, _ in FINDINGS}
+    expected.add("false-positive-matches.md")
+    for stale in fdir.glob("*.md"):
+        if stale.name not in expected:
+            stale.unlink()
     fnames = []
     for fid, title, status, body, lects, rules_ in FINDINGS:
         name = f"{fid}-{slugify(title)}"
@@ -612,11 +656,19 @@ def build_findings_and_home():
         "**endorsements cluster in WATCH**. The screen is a faithful copy of "
         "individual numbers with the conditions stripped off them.", "",
         "## Read these five, in order", "",
-        "1. [[F01-g0-s-screen-lost-a-whole-leg]] — the screen is missing a leg its own author states",
-        "2. [[F03-the-roce-gate-dropped-or-trending-toward-it]] — why the filter runs backwards",
-        "3. [[F04-g8-encodes-two-legs-of-a-four-leg-setup]] — the entry gate keeps the optional signals",
-        "4. [[F02-the-p-e-band-is-the-only-unsourced-rule-and-lost-its-condition]] — the one unsourced rule",
-        "5. [[F11-the-rulebook-s-provenance-cannot-be-machine-verified]] — why you cannot automate this audit",
+    ]
+    # Derive slugs from FINDINGS rather than hardcoding them: retitling a
+    # finding silently broke this list once, which is a bad failure mode for
+    # the vault's own entry point.
+    _title = {fid: t for fid, t, _, _, _, _ in FINDINGS}
+    for n, (fid, why) in enumerate([
+            ("F01", "the screen is missing a leg its own author states"),
+            ("F03", "why the filter runs backwards"),
+            ("F06", "what is actually wrong with the citations, and what is not"),
+            ("F02", "the one unsourced rule"),
+            ("F11", "why you cannot automate this audit by quote-matching")], 1):
+        start.append(f"{n}. [[{fid}-{slugify(_title[fid])}]] — {why}")
+    start += [
         "", "## Where to look for what", "",
         "| Question | Go to |", "|---|---|",
         "| Why is company X on the list? | `companies/X.md` |",
