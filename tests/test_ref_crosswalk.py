@@ -4,7 +4,11 @@ from typing import List, Tuple
 
 import pytest
 
-from soic_wiki.ref_crosswalk import load_crosswalk, Resolver
+from soic_wiki.ref_crosswalk import (
+    load_crosswalk,
+    load_reassessment_crosswalk,
+    Resolver,
+)
 
 
 def _write_content(path: Path, lessons: List[Tuple[str, str, str]]) -> None:
@@ -45,6 +49,22 @@ def test_duplicate_ref_returns_both_candidates(tmp_path: Path):
     (d / "b.json").write_text(json.dumps({"222": "DUPE"}))
     xw = load_crosswalk(d)
     assert xw["DUPE"] == {"111", "222"}
+
+
+def test_load_reassessment_crosswalk_reads_nested_shape(tmp_path: Path):
+    """The reassessment refs.json shape is REF -> {"lesson_id": ..., ...},
+    the inverse of the sector crosswalk's lesson_id -> REF."""
+    f1 = tmp_path / "level-3-refs.json"
+    f1.write_text(json.dumps({
+        "FESTF": {"lesson_id": "3543153", "slug": "s", "title": "T"},
+    }))
+    f2 = tmp_path / "crash-refs.json"
+    f2.write_text(json.dumps({
+        "VALU2": {"lesson_id": "999", "slug": "s2", "title": "T2"},
+    }))
+    xw = load_reassessment_crosswalk([f1, f2])
+    assert xw["FESTF"] == {"3543153"}
+    assert xw["VALU2"] == {"999"}
 
 
 def test_resolve_disambiguates_by_timestamp(tmp_path: Path):
@@ -137,6 +157,13 @@ CONTENT = Path.home() / "Documents/workspace/Claude_Code/SOIC_Scraper/data/conte
 RULEBOOK = Path.home() / (
     "Documents/workspace/Claude_Code/soic-ladder/rulebook/"
     "soic-ladder-rules-v1.yaml")
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+REASSESSMENT_REFS = [
+    _REPO_ROOT / "docs/reassessment/level-3/refs.json",
+    _REPO_ROOT / "docs/reassessment/l4/refs.json",
+    _REPO_ROOT / "docs/reassessment/l5/refs.json",
+    _REPO_ROOT / "docs/reassessment/crash/refs.json",
+]
 
 needs_real = pytest.mark.skipif(
     not (REFS.exists() and CONTENT.exists()),
@@ -193,3 +220,35 @@ def test_mastec_resolves_by_timestamp_not_first_candidate():
 def test_modulb_ambiguity_is_measured_not_assumed():
     r = Resolver(REFS, CONTENT)
     assert r.ambiguity("MODULB") == 8
+
+
+@needs_real
+def test_resolver_with_extra_refs_resolves_reassessment_code():
+    """FESTF only exists in the reassessment vocabulary (docs/reassessment/
+    crash/refs.json), never in the sector refs dir. A Resolver built with
+    extra_refs must actually resolve it -- this must run for real, not
+    skip, since a skipped test would silently re-hide this exact bug."""
+    r = Resolver(REFS, CONTENT, extra_refs=REASSESSMENT_REFS)
+    le = r.resolve("FESTF", "00:09:35")
+    assert le is not None
+    assert le.title == "15.12.24 Class 4 How to Filter Epic Stocks"
+
+
+@needs_real
+def test_resolver_with_extra_refs_still_resolves_sector_code():
+    """Both vocabularies must live at once: adding the reassessment refs
+    must not crowd out the sector crosswalk's own codes."""
+    r = Resolver(REFS, CONTENT, extra_refs=REASSESSMENT_REFS)
+    le = r.resolve("MASTEC", "00:09:35")
+    assert le is not None
+    assert le.title == "15.12.24 Class 4 How to Filter Epic Stocks"
+
+
+@needs_real
+def test_two_argument_constructor_still_resolves_sector_code():
+    """extra_refs is optional -- existing callers (tests, audit_rulebook.py)
+    that only pass (refs_dir, content_json) must keep working unchanged."""
+    r = Resolver(REFS, CONTENT)
+    le = r.resolve("MASTEC", "00:09:35")
+    assert le is not None
+    assert le.title == "15.12.24 Class 4 How to Filter Epic Stocks"

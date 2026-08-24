@@ -21,7 +21,7 @@ from __future__ import annotations
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, Iterable, List, Optional, Set
 
 from soic_method.corpus import load_corpus
 from soic_method.models import LessonRecord
@@ -43,9 +43,34 @@ def load_crosswalk(refs_dir: Path) -> Dict[str, Set[str]]:
     return out
 
 
+def load_reassessment_crosswalk(refs_paths: Iterable[Path]) -> Dict[str, Set[str]]:
+    """REF -> {lesson_id} from the reassessment refs.json files.
+
+    These map REF -> {"lesson_id": ...}, the inverse shape of the sector
+    crosswalk's lesson_id -> REF. Two vocabularies exist and neither is a
+    superset of the other; a resolver that silently knows only one reports
+    every code from the other as unresolvable, which reads identically to a
+    fabricated citation.
+    """
+    out: Dict[str, Set[str]] = {}
+    for f in refs_paths:
+        for ref, entry in json.loads(Path(f).read_text()).items():
+            lesson_id = entry["lesson_id"]
+            out.setdefault(ref, set()).add(lesson_id)
+    return out
+
+
 class Resolver:
-    def __init__(self, refs_dir: Path, content_json: Path) -> None:
+    def __init__(
+        self,
+        refs_dir: Path,
+        content_json: Path,
+        extra_refs: Optional[Iterable[Path]] = None,
+    ) -> None:
         self._xw = load_crosswalk(refs_dir)
+        if extra_refs is not None:
+            for ref, lesson_ids in load_reassessment_crosswalk(extra_refs).items():
+                self._xw.setdefault(ref, set()).update(lesson_ids)
         self._by_id = {le.lesson_id: le for le in load_corpus(content_json)}
 
     def candidates(self, ref: str) -> List[LessonRecord]:
