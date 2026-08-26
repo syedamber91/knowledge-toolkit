@@ -199,6 +199,48 @@ signals SOIC actually teaches. Findings, and the owner's decision on them
   page — the gap is purely that this project's own fetch code hasn't
   scraped it yet.
 
+## A candidate accelerator for promoter holding: Chartink (checked, not adopted)
+
+Chartink was investigated live this session as a possible faster path to the
+promoter-holding gap above. Findings, kept separate from the dependency
+check because nothing here changes its conclusion:
+
+- **Confirmed real, filterable fields on chartink.com**: a "Shareholding
+  pattern" category (promoter holding, foreign-promoter %, encumbered-holding
+  %) and delivery percentage/volume, the latter with several ready-made
+  community scan templates already built.
+- **No official Chartink API.** Checked directly on their site — no
+  "API"/"Developer" link anywhere in the nav or footer.
+- **An unofficial third-party tool exists**: `shahparthiv/chartink-mcp`
+  (verified real on GitHub, MIT licensed). It wraps Chartink's own internal
+  `/screener/process` and `/backtest/process` endpoints — the same ones
+  their web frontend calls, not a supported API. Authentication is a
+  manually-copied browser session cookie (`XSRF-TOKEN`, `ci_session`), not
+  an API key. It is a small, single-maintainer project (2 stars, 4 commits)
+  with no stability guarantee if Chartink changes its internal endpoints.
+  **Chartink's Terms of Usage did not load during this check** — whether
+  this kind of automated access is even permitted remains unconfirmed.
+- **The cookie-expiry problem this creates is not new to this project.**
+  `src/soic_senses/notebook_preflight.py` already solves the identical
+  shape of problem for NotebookLM. Its own header states the governing
+  principle: minting a session needs a human-supplied cookie, and
+  "pretending otherwise would just relocate the same mid-run failure into a
+  background thread." It is deliberately **not an auto-refresher** — it is
+  a fail-fast preflight that checks cached-token age *and* makes one cheap
+  live functional call before a long job starts (age alone was found to
+  lie: a token that looks fresh by age can already be dead server-side),
+  and refuses to start with an error that names the exact refresh steps,
+  rather than dying silently mid-run. If Chartink is ever adopted, the same
+  shape applies directly — a `chartink_preflight.py`-style check before the
+  monthly cron runs, refusing a dead cookie loudly and early, never
+  auto-logging in.
+- **Status: informational only.** This addendum adopts nothing. The
+  screener.in / `parse_statement_section` path in the dependency check above
+  remains the primary route scoped for promoter holding. Chartink is
+  recorded here as a possible accelerator only if that path proves harder
+  than expected, and any use of it is gated on the unresolved ToS question
+  and the single-maintainer risk of `chartink-mcp` above.
+
 ## What's proposed here vs. what's still open
 
 Following this project's standing discipline — a design doc must never
