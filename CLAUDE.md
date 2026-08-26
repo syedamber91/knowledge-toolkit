@@ -628,6 +628,24 @@ user reaction: "Awesome," asked to keep using it for every future topic.
   overflow, an arrow crossing a box), fix it and re-render; don't treat that
   as a foreseeable failure, the source video itself notes even its
   self-validating pipeline needs 2-4 iterations to land clean.
+- **Confirmed bug, same session: the documented theme CSS variables
+  (`var(--text-primary)` etc.) and `c-{ramp}` classes did NOT resolve on
+  this user's render surface** — every box rendered with no fill and all
+  text was invisible (black-on-black), even after explicitly setting
+  `fill="var(--text-primary)"` on every `<text>` element per the design doc.
+  Diagnosed with a two-box side-by-side test (one plain hex, one
+  class/var-based) — user confirmed only the plain-hex box was readable.
+  **Fix that actually worked: skip the class/CSS-variable system entirely.**
+  Use plain hex colors on every `fill`/`stroke` (a pastel palette per
+  concept-role works fine, e.g. `#dbeafe` blue / `#d8b4fe` purple / `#fde68a`
+  amber / `#fecaca` red / `#dcfce7` green, `#16181d` primary text, `#5b6472`
+  secondary text, `#cbd5e1` borders, `#6b7280` arrow strokes), and paint an
+  explicit background `<rect x="0" y="0" width="…" height="…" fill="#f8f9fb"/>`
+  as the SVG's first child so nothing depends on the host's page background
+  showing through. Treat the design doc's CSS-variable/class system as
+  unreliable until proven otherwise on a fresh render surface — verify with
+  a cheap two-box test before committing to it across a whole lesson's worth
+  of diagrams, the way this session eventually did after guessing wrong twice.
 
 ## `.claude/` assets
 
