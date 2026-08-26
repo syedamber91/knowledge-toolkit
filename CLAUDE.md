@@ -590,6 +590,63 @@ Upload: `python3 scripts/gdrive_upload.py output/vutr_spark.pdf output/ben_dicke
 
 See [`docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md`](docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md).
 
+## Teaching with inline diagrams (`mcp__visualize`)
+
+**When tutoring a user through persona-wiki content (any hub, any persona —
+SOIC, `sj`, `lucsystemdesign`, `vutr`, etc.), pair prose with an inline
+diagram via `mcp__visualize__show_widget` rather than tables/prose alone.**
+Confirmed working 2026-08-25 while teaching `sj`'s LLD-foundations topic
+(is-a/has-a/aggregation/composition, the 3 pattern buckets, HLD→LLD zoom) —
+user reaction: "Awesome," asked to keep using it for every future topic.
+
+- **Call `mcp__visualize__read_me({modules:["diagram"]})` once per session
+  before the first widget.** Its output is large (~630 lines) and will blow
+  past a direct-read token limit — dispatch a Sonnet subagent to read the
+  saved file in chunks and report back only the load-bearing facts (exact
+  CSS variable / `c-{ramp}` class names, the required `<defs>` arrow-marker
+  boilerplate, and the anti-pattern list) rather than reading it inline.
+- **Design philosophy, sourced from a Claude Code Excalidraw-diagram-skill
+  demo video** (youtu.be/m3fqyXZ4k4I — NOT SOIC/persona content, a different
+  creator's skill-building video; extract *principles*, not facts, from a
+  video like this): **"argue visually"** — the shape and position must carry
+  the meaning even with every label stripped out. Before showing a diagram,
+  ask: *does the visual structure mirror how the concept actually behaves?*
+  and *could someone learn something concrete from it alone?* Avoid "boxes
+  and boxes and boxes" — vary the shape grammar so each construct means one
+  specific thing, consistently.
+- **This design system's shape grammar (concrete, reusable):** containment
+  (child rect nested fully inside a parent rect) = ownership/composition —
+  destroy the parent, the child goes with it. Two separate boxes joined by a
+  thin arrow = independence/aggregation — the child can outlive the parent.
+  A vertical tree with arrows pointing *up* from child to parent = is-a
+  (inheritance). **There is no diamond shape in this design system** (unlike
+  UML) — express aggregation/composition strength through containment vs.
+  separation instead of inventing a diamond glyph.
+- **No self-render-validate loop exists here**, unlike the Excalidraw skill's
+  render→screenshot→fix cycle — a widget is written blind from the design
+  rules and shown once. If a user reports a diagram looks off (text
+  overflow, an arrow crossing a box), fix it and re-render; don't treat that
+  as a foreseeable failure, the source video itself notes even its
+  self-validating pipeline needs 2-4 iterations to land clean.
+- **Confirmed bug, same session: the documented theme CSS variables
+  (`var(--text-primary)` etc.) and `c-{ramp}` classes did NOT resolve on
+  this user's render surface** — every box rendered with no fill and all
+  text was invisible (black-on-black), even after explicitly setting
+  `fill="var(--text-primary)"` on every `<text>` element per the design doc.
+  Diagnosed with a two-box side-by-side test (one plain hex, one
+  class/var-based) — user confirmed only the plain-hex box was readable.
+  **Fix that actually worked: skip the class/CSS-variable system entirely.**
+  Use plain hex colors on every `fill`/`stroke` (a pastel palette per
+  concept-role works fine, e.g. `#dbeafe` blue / `#d8b4fe` purple / `#fde68a`
+  amber / `#fecaca` red / `#dcfce7` green, `#16181d` primary text, `#5b6472`
+  secondary text, `#cbd5e1` borders, `#6b7280` arrow strokes), and paint an
+  explicit background `<rect x="0" y="0" width="…" height="…" fill="#f8f9fb"/>`
+  as the SVG's first child so nothing depends on the host's page background
+  showing through. Treat the design doc's CSS-variable/class system as
+  unreliable until proven otherwise on a fresh render surface — verify with
+  a cheap two-box test before committing to it across a whole lesson's worth
+  of diagrams, the way this session eventually did after guessing wrong twice.
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
