@@ -37,6 +37,7 @@ substack-toolkit = "substack_toolkit.cli:app"
 youtube-toolkit = "youtube_toolkit.cli:app"
 web-toolkit = "web_toolkit.cli:app"
 instagram-toolkit = "instagram_toolkit.cli:app"
+udemy-toolkit = "udemy_toolkit.cli:app"
 soic-method = "soic_method.cli:app"
 
 [tool.setuptools.packages.find]
