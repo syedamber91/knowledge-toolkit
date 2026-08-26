@@ -1,5 +1,20 @@
 # Level 5 agent memory — design proposal
 
+> **PARTIALLY SUPERSEDED (2026-08-27) by
+> [`LEVEL5-BACKTEST-MEMORY-DESIGN.md`](LEVEL5-BACKTEST-MEMORY-DESIGN.md).**
+> The owner reframed the mechanism from *forward predictions* to
+> *document-based backtesting*: the question is not "what will happen" but
+> "what would the framework have said in March 2023, and was it any good?"
+> The successor doc carries the new design, and also records that
+> `--as-of` does **not** constrain fundamentals today — a live hazard in
+> which the snapshot pipeline will stamp today's screener.in numbers with a
+> past date and judge them without warning.
+>
+> **Still valid here:** the phasing discipline, the human-in-the-loop rule
+> (never let the agent grade and rewrite its own rulebook), the four traps
+> below, the promoter-holding dependency check, and the Chartink addendum.
+> **Two attributions in this document are corrected inline below.**
+
 Written 2026-08-26. **This is a design proposal, not an implementation** —
 nothing described below has been built. It follows on from
 [`LEVEL4-KNOWLEDGE-GRAPH.md`](LEVEL4-KNOWLEDGE-GRAPH.md) (the graphify
@@ -10,13 +25,25 @@ CANDIDATE/WATCH/REJECT verdicts). Level 4 gave an agent a map to consult;
 this doc designs the memory that would let an agent *learn from its own
 track record* while consulting it.
 
-## What "Level 5" means here — and Nate Herk's own warning about it
+## What "Level 5" means here — and the caution attached to it
+
+> **ATTRIBUTION CORRECTION (2026-08-27).** The two bullets below are marked
+> **UNVERIFIED**. They are attributed to Nate Herk, but a check against the
+> grounded `nate-herk` persona corpus this session returned no such quote and
+> no "Level 5 / Brain OS auto-ingest" framing. The corpus may simply not hold
+> the transcript this section's author read — so the claim is flagged rather
+> than deleted, pending a re-check of the source video. Do not cite it as his
+> stated position until then. What *is* grounded from that corpus, and says
+> something similar, is the context-rot guidance: bloated context costs more
+> and produces worse output. See
+> [`LEVEL5-BACKTEST-MEMORY-DESIGN.md`](LEVEL5-BACKTEST-MEMORY-DESIGN.md) §1.2.
 
 In the same taxonomy Level 4 came from ("Every Level of a Claude Second
-Brain Explained", `youtu.be/DTCyvo6cC54`, verified against the captured
-transcript), Level 5 is making the second brain "super autonomous" — an
+Brain Explained", `youtu.be/DTCyvo6cC54`, described by this doc's author as
+verified against the captured transcript — see the correction above),
+Level 5 is making the second brain "super autonomous" — an
 always-on "Brain OS", constantly syncing and refreshing memories. Two
-things he says about it matter more than the definition:
+things said about it matter more than the definition:
 
 - **He explicitly does not call it the best level, and doesn't run it
   himself.** His stated goal is finding the *lowest* level that solves your
@@ -57,10 +84,11 @@ Mapped onto this project:
 
 ## Phase 1 (buildable now): ledger, one cron, one human-reviewed diff
 
-This phase is deliberately unglamorous, matching both Nate Herk's caution
-against overbuilding and the grounded input gathered this session from the
-`jack-roberts` persona agent. Jack's framing: the minimal honest unit of
-memory is a **prediction record — a "bet slip", not a diary entry**:
+This phase is deliberately unglamorous, matching the caution against
+overbuilding above. The minimal honest unit of memory is a **prediction
+record — a "bet slip", not a diary entry** (framing recorded during the
+2026-08-26 session; **not attributable to Jack Roberts** — see the
+correction under "The traps" below):
 
 ```
 prediction:  { company, verdict, timestamp,
@@ -127,7 +155,25 @@ performance rather than binary gate pass/fail. Constraints already agreed:
   scoring, accumulating 100 closed pairs will take real calendar time, and
   that is the point — the gate is data volume, not engineering effort.
 
-## The traps (Jack Roberts, preserved faithfully)
+## The traps
+
+> **ATTRIBUTION CORRECTION (2026-08-27).** This section was previously headed
+> *"The traps (Jack Roberts, preserved faithfully)"*. **That attribution is
+> false and has been removed.** A search of the grounded `jack-roberts`
+> persona corpus returns nothing for "bet slip", survivorship bias,
+> overfitting, correlation-vs-edge, or hindsight contamination; his material
+> covers AI tooling, agency sales and model routing, and states no position on
+> statistical rigour for investing track records. This doc records the traps
+> as *"grounded input gathered this session from the `jack-roberts` persona
+> agent"* — so the likely history is that an earlier session's persona agent
+> generated the framing and it was then written down as a faithful quote.
+>
+> **The four traps themselves are retained.** They are sound, standard
+> statistical discipline and stand without an authority attached. Only the
+> attribution is wrong. See
+> [`LEVEL5-BACKTEST-MEMORY-DESIGN.md`](LEVEL5-BACKTEST-MEMORY-DESIGN.md) §1.1
+> and §8, where they are carried forward with two additional sources of
+> survivorship bias found since.
 
 Four failure modes a stock-picking learning loop walks into by default.
 Each one shaped a concrete design choice above:
