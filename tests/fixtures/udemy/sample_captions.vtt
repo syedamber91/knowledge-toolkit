@@ -1,0 +1,17 @@
+WEBVTT
+
+1
+00:00:01.000 --> 00:00:04.000
+first line here
+
+2
+00:00:04.000 --> 00:00:08.000 align:start position:10%
+<v Instructor>second line here</v>
+
+3
+00:00:08.000 --> 00:00:09.000
+
+
+4
+01:02:03.500 --> 01:02:06.000
+much later line

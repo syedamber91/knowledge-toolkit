@@ -39,7 +39,7 @@ and builds cross-linked [Obsidian](https://obsidian.md) vaults so the material
 can be explored as a graph. It also generates a database-internals "learning
 pack" PDF that is verified by two persona agents.
 
-Six independent toolkits live under `src/`, sharing a small `media_core`. Stack:
+Seven independent toolkits live under `src/`, sharing a small `media_core`. Stack:
 **Python 3.9+**, [Typer](https://typer.tiangolo.com/) CLIs, [Pydantic](https://docs.pydantic.dev/)
 models, [Playwright](https://playwright.dev/) for browser sessions,
 [Instaloader](https://instaloader.github.io/) for Instagram.
@@ -97,6 +97,7 @@ scripts/             # generate_learning_pack.py (HTML→PDF learning pack)
 | `web_toolkit/` | Readable articles | none (public HTML) | `data/media.json` (shared) | `MEDIA_VAULT_DIR` (shared) |
 | `instagram_toolkit/` | Public post/reel captions + metadata (no media, no comment text) | `sessionid` cookie (from Chrome or login) — **use a burner account** | `data/media.json` (shared) | `MEDIA_VAULT_DIR` (shared) |
 | `media_core/` | — (shared infra) | — | `data/media.json` | builds the unified YouTube+web+Instagram vault |
+| `udemy_toolkit/` | Udemy lecture transcripts (transcript text only — never video) | Interactive Playwright login → `.auth/udemy_state.json` | `data/udemy.json` | `UDEMY_VAULT_DIR` (standalone iCloud "Udemy Vault") |
 
 Per-package files follow a consistent shape:
 - `cli.py` — Typer command (the installed entry point).
@@ -122,6 +123,8 @@ instagram-toolkit login --from-chrome
 instagram-toolkit crawl <username> --limit 30
 instagram-toolkit crawl-hashtag <tag> --limit 30
 instagram-toolkit build
+# Udemy (one course at a time; transcripts only, never video)
+udemy-toolkit login && udemy-toolkit crawl "<course-url>" --limit 5 && udemy-toolkit build-vault
 ```
 
 ## Key conventions (reuse, don't reinvent)
