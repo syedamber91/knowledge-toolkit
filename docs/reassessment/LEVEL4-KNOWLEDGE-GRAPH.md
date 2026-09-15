@@ -116,3 +116,28 @@ verdict, and doesn't resolve which of two contested numbers (e.g. entry RSI
 45 vs 50, both real per `entry_rsi_context-001`) is correct — those stay
 human/`soic_ladder` decisions. It's the map an agent consults before or
 alongside that work, not a replacement for it.
+
+
+## Rebuild 2026-09-15 — after the Market Signals series landed
+
+The vault grew from 145 to 196 files (39 MS lectures, `courses/ms-moc.md`,
+7 new rules, 17 more company notes). Rebuilt with the same pipeline: 261
+nodes served from the semantic cache, 98 uncached files split into 4
+Sonnet extraction chunks with stable IDs (`<REF>_lecture`, `<rule-id>_rule`,
+`company_<TICKER>`, `<slug>_topic`) so cross-chunk edges resolve.
+
+Result: **557 nodes · 1,943 edges · 28 communities · 97% EXTRACTED**
+(was 488 / 1,686 / 15). Fourteen of the 28 communities are Market Signals
+clusters — forensic red flags, StockScans screen types, special
+situations/SOTP, J-curve, EV ecosystem, sector rotation, etc. — i.e. the
+series added distinct structure rather than just more lecture nodes.
+
+Known imperfection, again: the older cache used a different ID scheme for a
+handful of nodes (`FMODB` vs `FMODB_lecture`, `F01 — …` vs `finding_F01-…`),
+which produced 24 degree-0 duplicates. They were dropped before clustering
+(`graph.json` needed `force=True` to accept the net -24). A full cache clear
+and re-extract would remove the root cause; not done here.
+
+`graph.html` again ships with vis-network inlined (SRI verified) plus the
+error-box / forced-size / stabilization-timeout patches, because the
+generated file pulls the library from a CDN that some viewers block.

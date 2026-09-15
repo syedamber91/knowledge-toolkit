@@ -32,6 +32,7 @@ COURSES = {
     "l4":      ("L4 - When to Hold, Buy & Sell using Technicals",        "L4"),
     "l5":      ("Level 5 - How to Screen & Filter Epic Stocks",          "L5"),
     "crash":   ("Crash Course (4 modules)",                              "CC"),
+    "ms":      ("SOIC Market Signals (weekly, 39 lectures)",             "MS"),
 }
 
 SECTIONS = ["CRUX", "MECHANISM", "SIGNALS", "WHAT THE LADDER MISSES",

@@ -98,6 +98,14 @@ Citation soundness is no longer a matter of careful reading:
 - `level-3/the-backwards-filter.html` — the plain-language reader
 - `level-3/refs.json` — REF -> lesson_id map (resolution key; never title)
 - `ladder-context-2026-08-22.md` — the rulebook + 38-name shortlist under test
+- `ms/` — **SOIC Market Signals series (2026-09-15):** 39 weekly-show briefs
+  (`MS<DDMM>[A-C].md`, REF = date), `SYNTHESIS.md` (Fable), `refs.json`,
+  `gate_report.md` (39/39 pass, 471/488 quotes verbatim). Read against the
+  CURRENT rulebook (7 rules / 21 observations) and the 48 CANDIDATEs of the
+  2026-08-29 judge run — not the 38-name list the four course folders use.
+  Four transcripts (MS0103, MS0803A, MS1503B, MS2402) carry no timestamps and
+  cite `(REF NO-TS)`; `scripts/verify_briefs.py` maps that to a presence-only
+  check. MS1005B/C are byte-identical recordings of L5's SDBES/SIBES.
 
 ## Not yet done
 

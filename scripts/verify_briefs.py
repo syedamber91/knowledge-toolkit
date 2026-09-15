@@ -40,8 +40,16 @@ from soic_wiki.gates import verify_cited_quotes      # noqa: E402
 # untouched: its output is pinned byte-for-byte against committed sector data.
 _BRACKETED = re.compile(r"\[[^\]]*\]")
 
+# Four Market Signals transcripts (MS0103, MS0803A, MS1503B, MS2402) were
+# captured without inline [HH:MM:SS] markers. Readers cite those as
+# `(REF NO-TS)` per instruction. Presence is checked against the whole
+# body_text regardless of timestamp, so map the sentinel onto a dummy
+# timestamp rather than leave every quote in those briefs unchecked (0/0).
+_NO_TS = re.compile(r"\((MS\w+) (?:NO-TS|verbatim, no timestamp in source[^)]*)\)")
+
 
 def strip_annotations(text: str) -> str:
+    text = _NO_TS.sub(r"(\1 00:00:00)", text)
     return re.sub(r"[ \t]{2,}", " ", _BRACKETED.sub("", text))
 
 CONTENT_JSON = Path.home() / (
