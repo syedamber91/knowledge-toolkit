@@ -647,6 +647,46 @@ user reaction: "Awesome," asked to keep using it for every future topic.
   a cheap two-box test before committing to it across a whole lesson's worth
   of diagrams, the way this session eventually did after guessing wrong twice.
 
+## ponytail — the lazy-senior-dev plugin, installed repo-wide
+
+`.claude/settings.json` registers the `ponytail` marketplace
+(`DietrichGebert/ponytail`) and enables `ponytail@ponytail` v4.10.0, so it loads
+in every session in this checkout. **Nothing is vendored** — the plugin is
+fetched from GitHub at session start and moves when upstream moves. That is the
+trade, and it is the opposite of how a vendored skill is pinned here: its text
+steers future sessions and it can change under us.
+
+**What it does.** Forces the laziest solution that actually works. Its ladder —
+already solved? -> stdlib? -> native platform feature? -> installed dependency?
+-> one line? -> only then the minimum that works — runs **after** it reads the
+code the change touches, not instead of reading it. Lazy about the solution,
+never about reading. Four things it states it will not trade away:
+trust-boundary validation, data-loss handling, security, accessibility.
+
+**Six skills.** `/ponytail` (the mode itself; intensity `lite` / `full` /
+`ultra`), `/ponytail-review` (reviews a diff for over-engineering ONLY — it
+complements a correctness review and does not replace one), `/ponytail-audit`
+(the same, whole repo), `/ponytail-debt`, `/ponytail-gain`, `/ponytail-help`.
+
+**It leaves a paper trail and `/ponytail-debt` is how you read it.** Every
+deliberate shortcut is marked with a `ponytail:` comment naming its ceiling and
+its upgrade path; the skill harvests them into one ledger. So a `ponytail:`
+comment in this repo is a deferral with a stated limit, not a bare TODO.
+
+**`node` must be on PATH** for its two lifecycle hooks — and on the
+NON-INTERACTIVE shell's PATH, the Nix/nvm trap its own README names. Without
+node the six skills still work; only the always-on activation goes quiet.
+
+**Relationship to `karpathy-guidelines`.** They overlap on simplicity-first and
+surgical changes, and ponytail is the narrower, more aggressive of the two. Both
+are general priors and both yield to the repo-specific skills —
+`test-driven-development`, `verification-before-completion`, `writing-plans`,
+`systematic-debugging` — wherever they conflict. In particular, the vault
+builders' index + log + cross-links pattern and the provenance/citation gates
+are requirements, not abstraction to be deleted.
+
+---
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
