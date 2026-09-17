@@ -649,12 +649,19 @@ user reaction: "Awesome," asked to keep using it for every future topic.
 
 ## ponytail — the lazy-senior-dev plugin, installed repo-wide
 
-`.claude/settings.json` registers the `ponytail` marketplace
-(`DietrichGebert/ponytail`) and enables `ponytail@ponytail` v4.10.0, so it loads
-in every session in this checkout. **Nothing is vendored** — the plugin is
-fetched from GitHub at session start and moves when upstream moves. That is the
-trade, and it is the opposite of how a vendored skill is pinned here: its text
-steers future sessions and it can change under us.
+**The six skills are VENDORED into `.claude/skills/ponytail*/`** — pinned at
+upstream `e3ba2aa`, plugin version 4.10.0, each file carrying its own provenance
+block. `.claude/settings.json` ALSO registers the `DietrichGebert/ponytail`
+marketplace and enables `ponytail@ponytail`, but **that file alone installs
+nothing**: measured 2026-09-17 in a fresh cloud session on `main`, the settings
+file was present, `ListPlugins` returned `[]`, `installed_plugins.json` was
+empty and no marketplace had been fetched. The real install is a human running
+`/plugin marketplace add DietrichGebert/ponytail` then `/plugin install
+ponytail@ponytail` — which writes those same two keys into USER settings and
+clones the marketplace. The project entry is a bookmark for that, not a
+substitute. Vendoring is what makes the skills load here with no network, no
+`node` and no per-machine step — the same discipline `grill-me` already
+follows.
 
 **What it does.** Forces the laziest solution that actually works. Its ladder —
 already solved? -> stdlib? -> native platform feature? -> installed dependency?
@@ -673,9 +680,13 @@ deliberate shortcut is marked with a `ponytail:` comment naming its ceiling and
 its upgrade path; the skill harvests them into one ledger. So a `ponytail:`
 comment in this repo is a deferral with a stated limit, not a bare TODO.
 
-**`node` must be on PATH** for its two lifecycle hooks — and on the
-NON-INTERACTIVE shell's PATH, the Nix/nvm trap its own README names. Without
-node the six skills still work; only the always-on activation goes quiet.
+**THE VENDORED COPY CARRIES NO HOOKS, so the mode is NOT automatic here.**
+Upstream's always-on activation is two Node lifecycle hooks and a statusline
+badge, all plugin-only — so invoke `/ponytail` explicitly rather than assuming
+it is on. Where the real plugin IS installed, `node` must be on PATH, and on the
+NON-INTERACTIVE shell's PATH (the Nix/nvm trap its own README names); verified
+2026-09-17 on node v22.22.2, where the hook fires at session start and prints
+`PONYTAIL MODE ACTIVE — level: full`.
 
 **Relationship to `karpathy-guidelines`.** They overlap on simplicity-first and
 surgical changes, and ponytail is the narrower, more aggressive of the two. Both
