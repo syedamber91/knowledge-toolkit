@@ -745,6 +745,15 @@ are requirements, not abstraction to be deleted.
   dispatches an Opus-tier subagent to synthesize the answer from only those
   routed notes. Use for ad-hoc questions against any captured vault that
   don't warrant a dedicated persona.
+- `learn-by-doing` (`/learn-by-doing <course> map|next|done|status`) — learn a
+  Udemy Vault course by building: one course project + one mission per section,
+  every lecture assigned (`scripts/learn_by_doing.py check-map`), every quoted
+  quirk verified against its transcript (`check-quirks`). `[AWS]` steps run in
+  the owner's company dev account (Claude can't see it: proof is pasted, no IAM
+  role creation, region/tags/prefix from `practice/<course>/00-limits.md`),
+  `[LOCAL]` on the Mac, `[TRIAL]` on a personal Snowflake trial. Progress lives
+  in the Udemy Vault under `practice/<course>/`. Spec:
+  `docs/superpowers/specs/2026-09-23-learn-by-doing-design.md`.
 - `storm` (`/storm`) — STORM multi-perspective business-research engine:
   casts expert lenses (auto best-fit from the dynamic persona roster + Mufti
   halal gate), maps their contradictions, adversarially fact-checks, and
