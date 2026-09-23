@@ -55,7 +55,7 @@ The owner learns by building. You plan, coach, and check. You never build it for
 1. Resolve the course. Read `courses/<course>.md` and every `courses/<course>/*.md` section note, in order.
 2. Read every lecture title. If a title doesn't say what the lecture teaches, skim its transcript.
 3. Pick **one course project**: a realistic build that needs every section. A section that doesn't fit becomes a **side quest**. Side quests are still built and checked.
-4. Number the missions: `00` is the limits mission, then one mission per section in course order (`01`, `02`, …). A section with only intro, outro or admin lectures can share a neighbouring mission.
+4. Number the missions: `00` is the limits mission, then one mission per section in course order (`01`, `02`, …). A section with only intro, outro or admin lectures can share a neighbouring mission. A section with more than ~25 lectures splits into several missions, one per service group, so each mission keeps 3-8 steps. A section note with no lectures (e.g. practice exams) gets no mission.
 5. Label every lecture with one kind:
    - `build`: a step makes the owner do it.
    - `theory`: a quick "why" check.
@@ -109,14 +109,18 @@ These checks only read. Nothing here costs money or creates anything.
 2. [AWS] Allowed region(s). **Send:** the list of regions your company allows.
 3. [AWS] Roles you may use. Run `aws iam list-roles --query "Roles[].RoleName"`. If that's denied, ask your platform team. **Send:** the names of the roles you're allowed to pass to Glue, Lambda, EMR, Redshift, and so on.
 4. [AWS] Required tags and name prefix. **Send:** the tag keys and the prefix.
-5. [TRIAL] Snowflake trial (Snowflake courses only). **Send:** the trial end date and the credits left.
-6. [LOCAL] Tools. Run `docker --version; python3 --version`, plus the course's own tools (`dbt --version`, `duckdb --version`, …). **Send:** the output.
+5. [AWS] Guard rails. **Send:** anything you already know is blocked, e.g. public S3 buckets, the Billing console, QuickSight, Bedrock, certain services or instance sizes.
+6. [TRIAL] Snowflake trial (Snowflake courses only). **Send:** the trial end date and the credits left.
+7. [LOCAL] Tools. Run `docker --version; python3 --version`, plus the course's own tools (`dbt --version`, `duckdb --version`, …). **Send:** the output.
+
+Drop the steps that don't apply to the course (no [AWS] steps for a local-only course, no [TRIAL] step outside Snowflake).
 
 ## Your limits
 - Region:
 - Roles allowed:
 - Required tags:
 - Name prefix:
+- Known blocks:
 - Snowflake trial ends:
 - Local tools:
 
