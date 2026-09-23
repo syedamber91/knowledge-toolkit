@@ -218,6 +218,6 @@ Run `status` and print its output as is. Then give the current mission's next op
 | Writing the solution code into a step | State the goal and the "done when" rule. Hints only when asked. |
 | A "create an IAM role" step in the company account | Use a role from `00-limits.md`, or turn it into a platform-team question. |
 | Quirk paraphrased inside quotes | Quotes mean exact transcript text. Put paraphrase after the timestamp. |
-| `\|` missing in a coverage-table link | `check-map` reports the lecture as missing. Escape the pipe. |
+| `\|` missing in a coverage-table link | The cells shift: `check-map` reports `bad kind '<mission>'` and `mission '<kind>' not in ## Missions`. Escape the pipe. |
 | Mission marked done with resources still running | Cleanup proof comes first. No proof, no `done`. |
 | Asking for a full `get-caller-identity` or ARN | Ask for it with the account ID blanked. |

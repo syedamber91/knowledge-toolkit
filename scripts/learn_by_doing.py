@@ -23,7 +23,8 @@ QUIRK_LINE = re.compile(
     r"\[\[(?P<target>lectures/[^|\]\\]+)(?:\\?\|.*?)?\]\]\s*@\s*"
     r"(?P<ts>\d{1,2}:\d{2}:\d{2})"
 )
-STATUS_LINE = re.compile(r"^status:\s*(\S+)\s*$", re.M)
+LOOKS_LIKE_QUIRK = re.compile(r"\[\[lectures/|@\s*\d{1,2}:\d{2}:\d{2}")
+STATUS_LINE = re.compile(r"^status:\s*[\"']?([^\"'\s]+)[\"']?\s*$", re.M)
 
 
 def section(text: str, heading: str) -> list[str] | None:
@@ -93,7 +94,10 @@ def check_map(vault: Path, course: str) -> list[str]:
     rows = parse_coverage(text)
     if rows is None:
         return ["00-map.md has no '## Lecture coverage' section"]
-    expected = {t for _, t in expected_lectures(vault, course)}
+    try:
+        expected = {t for _, t in expected_lectures(vault, course)}
+    except FileNotFoundError as e:
+        return [str(e)]
     missions = listed_missions(text)
     errors: list[str] = []
     counts: Counter = Counter()
@@ -154,7 +158,8 @@ def check_quirks(vault: Path, mission_path: Path) -> list[str]:
         return [f"{mission_path.name} has no '## Quirks' section"]
     errors: list[str] = []
     for line in lines:
-        if not line.startswith("- "):
+        # Indented lines are free text; any other quirk-shaped line must parse, whatever its bullet.
+        if line[:1] in (" ", "\t") or not (line.startswith("- ") or LOOKS_LIKE_QUIRK.search(line)):
             continue
         m = QUIRK_LINE.match(line)
         if not m:
@@ -169,7 +174,11 @@ def check_quirks(vault: Path, mission_path: Path) -> list[str]:
         if not blocks:
             errors.append(f"no transcript in {target}")
             continue
-        near = normalize(window_text(blocks, to_seconds(m.group("ts"))))
+        seconds = to_seconds(m.group("ts"))
+        if seconds >= blocks[-1][0] + 60:
+            errors.append(f"timestamp {m.group('ts')} is past the end of {target}")
+            continue
+        near = normalize(window_text(blocks, seconds))
         if f" {normalize(m.group('quote'))} " not in f" {near} ":
             errors.append(f'quote not found near {m.group("ts")} in {target}: "{m.group("quote")}"')
     return errors
@@ -244,6 +253,8 @@ def main(argv: list[str] | None = None) -> int:
         mission = Path(args.mission).expanduser()
         if not mission.is_absolute():
             mission = vault / mission
+        if not mission.is_file():
+            return _report([f"mission not found: {mission}"])
         return _report(check_quirks(vault, mission))
     return 2
 

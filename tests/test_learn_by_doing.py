@@ -292,3 +292,48 @@ def test_cli_status(tmp_path, capsys):
     assert "Current mission: 00 (not-started)" in capsys.readouterr().out
     (vault / "practice" / COURSE / "00-map.md").unlink()
     assert lbd.main(["--vault", str(vault), "status", COURSE]) == 1
+
+
+# --- Final review fixes --------------------------------------------------------
+
+def test_non_dash_bullet_quirk_is_not_skipped(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [
+        f'* "S3 is a relational database" — {S3} @ 00:00:10',
+        f'"totally invented" — {S3} @ 00:00:10',
+        f'-"no space made up" — {S3} @ 00:00:10',
+    ])
+    errors = lbd.check_quirks(vault, m)
+    assert len(errors) == 3
+    assert errors[0].startswith("malformed quirk line: * ")
+    assert errors[1].startswith("malformed quirk line: \"totally")
+    assert errors[2].startswith("quote not found")
+
+
+def test_timestamp_past_end_of_transcript_fails(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f'- "let you upload more than 160 gigabytes" — {S3} @ 01:30:00'])
+    assert lbd.check_quirks(vault, m) == [
+        f"timestamp 01:30:00 is past the end of lectures/{COURSE}/2-s3-basics-3"
+    ]
+
+
+def test_cli_check_quirks_missing_file(tmp_path, capsys):
+    vault = make_vault(tmp_path)
+    assert lbd.main(["--vault", str(vault), "check-quirks", f"practice/{COURSE}/99-nope.md"]) == 1
+    assert "mission not found" in capsys.readouterr().out
+
+
+def test_check_map_missing_course_notes(tmp_path):
+    vault = make_vault(tmp_path)
+    for p in (vault / "courses" / COURSE).glob("*.md"):
+        p.unlink()
+    (vault / "courses" / COURSE).rmdir()
+    [error] = lbd.check_map(vault, COURSE)
+    assert error.startswith("no section notes at")
+
+
+def test_quoted_status_value(tmp_path):
+    vault = make_vault(tmp_path)
+    (vault / "practice" / COURSE / "00-limits.md").write_text('---\nmission: "00"\nstatus: "done"\n---\n')
+    assert lbd.mission_statuses(vault, COURSE)["00"] == "done"
