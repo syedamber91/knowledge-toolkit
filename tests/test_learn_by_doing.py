@@ -246,3 +246,49 @@ def test_cli_check_quirks_vault_relative(tmp_path):
     assert lbd.main(["--vault", str(vault), "check-quirks", rel]) == 0
     write_mission(vault, [f'- "made up" — {S3} @ 00:00:10'])
     assert lbd.main(["--vault", str(vault), "check-quirks", rel]) == 1
+
+
+# --- Task 3: status ----------------------------------------------------------
+
+def set_status(vault, name, value):
+    (vault / "practice" / COURSE / name).write_text(f"---\nmission: x\nstatus: {value}\n---\n\n# x\n")
+
+
+def test_status_counts_done_missions(tmp_path):
+    vault = make_vault(tmp_path)
+    set_status(vault, "00-limits.md", "done")
+    set_status(vault, "01-foundations.md", "done")
+    assert lbd.status(vault, COURSE).splitlines() == [
+        "1-intro: 2/2 lectures practiced",
+        "2-storage: 0/2 lectures practiced",
+        "Current mission: 02 (not-started)",
+    ]
+
+
+def test_missing_mission_file_is_not_started(tmp_path):
+    vault = make_vault(tmp_path)
+    set_status(vault, "00-limits.md", "done")
+    set_status(vault, "01-foundations.md", "in-progress")
+    assert lbd.status(vault, COURSE).splitlines()[-1] == "Current mission: 01 (in-progress)"
+    assert lbd.mission_statuses(vault, COURSE).get("02") is None
+
+
+def test_only_limits_file_counts_as_mission_00(tmp_path):
+    vault = make_vault(tmp_path)
+    set_status(vault, "00-log.md", "done")  # must be ignored
+    assert lbd.status(vault, COURSE).splitlines()[-1] == "Current mission: 00 (not-started)"
+
+
+def test_all_missions_done(tmp_path):
+    vault = make_vault(tmp_path)
+    for name in ("00-limits.md", "01-a.md", "02-b.md"):
+        set_status(vault, name, "done")
+    assert lbd.status(vault, COURSE).splitlines()[-1] == "All missions done"
+
+
+def test_cli_status(tmp_path, capsys):
+    vault = make_vault(tmp_path)
+    assert lbd.main(["--vault", str(vault), "status", COURSE]) == 0
+    assert "Current mission: 00 (not-started)" in capsys.readouterr().out
+    (vault / "practice" / COURSE / "00-map.md").unlink()
+    assert lbd.main(["--vault", str(vault), "status", COURSE]) == 1

@@ -23,6 +23,7 @@ QUIRK_LINE = re.compile(
     r"\[\[(?P<target>lectures/[^|\]\\]+)(?:\\?\|.*?)?\]\]\s*@\s*"
     r"(?P<ts>\d{1,2}:\d{2}:\d{2})"
 )
+STATUS_LINE = re.compile(r"^status:\s*(\S+)\s*$", re.M)
 
 
 def section(text: str, heading: str) -> list[str] | None:
@@ -174,6 +175,42 @@ def check_quirks(vault: Path, mission_path: Path) -> list[str]:
     return errors
 
 
+def frontmatter(text: str) -> str:
+    if not text.startswith("---"):
+        return ""
+    end = text.find("\n---", 3)
+    return text[3:end] if end != -1 else ""
+
+
+def mission_statuses(vault: Path, course: str) -> dict[str, str]:
+    out: dict[str, str] = {}
+    for p in (vault / "practice" / course).glob("[0-9][0-9]-*.md"):
+        num = p.name[:2]
+        if num == "00" and p.name != "00-limits.md":
+            continue
+        m = STATUS_LINE.search(frontmatter(p.read_text(encoding="utf-8")))
+        out[num] = m.group(1) if m else "not-started"
+    return out
+
+
+def status(vault: Path, course: str) -> str:
+    map_path = vault / "practice" / course / "00-map.md"
+    if not map_path.is_file():
+        raise FileNotFoundError(f"map not found: {map_path}")
+    text = map_path.read_text(encoding="utf-8")
+    statuses = mission_statuses(vault, course)
+    mission_of = {r["target"]: r["mission"] for r in parse_coverage(text) or [] if r["target"]}
+    per: dict[str, list[int]] = {}
+    for sec, target in expected_lectures(vault, course):
+        counts = per.setdefault(sec, [0, 0])
+        counts[0] += statuses.get(mission_of.get(target, ""), "not-started") == "done"
+        counts[1] += 1
+    lines = [f"{sec}: {d}/{t} lectures practiced" for sec, (d, t) in per.items()]
+    current = next((n for n in sorted(listed_missions(text)) if statuses.get(n, "not-started") != "done"), None)
+    lines.append(f"Current mission: {current} ({statuses.get(current, 'not-started')})" if current else "All missions done")
+    return "\n".join(lines)
+
+
 def resolve_vault(arg: str | None) -> Path:
     return Path(arg or os.environ.get("UDEMY_VAULT_DIR") or DEFAULT_VAULT).expanduser()
 
@@ -191,8 +228,16 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("check-map", help="every lecture assigned exactly once").add_argument("course")
     sub.add_parser("check-quirks", help="every quoted quirk is in its transcript").add_argument("mission")
+    sub.add_parser("status", help="progress per section").add_argument("course")
     args = ap.parse_args(argv)
     vault = resolve_vault(args.vault)
+    if args.cmd == "status":
+        try:
+            print(status(vault, args.course))
+        except FileNotFoundError as e:
+            print(e)
+            return 1
+        return 0
     if args.cmd == "check-map":
         return _report(check_map(vault, args.course))
     if args.cmd == "check-quirks":
