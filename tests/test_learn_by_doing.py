@@ -146,3 +146,103 @@ def test_cli_check_map_exit_codes(tmp_path, capsys):
 def test_section_sort_is_numeric():
     paths = [pathlib.Path(p) for p in ("10-x.md", "2-y.md", "1-z.md")]
     assert [p.stem for p in sorted(paths, key=lbd.section_sort_key)] == ["1-z", "2-y", "10-x"]
+
+
+# --- Task 2: check-quirks ----------------------------------------------------
+
+S3 = f"[[lectures/{COURSE}/2-s3-basics-3|S3 Basics]]"
+
+
+def write_mission(vault, quirk_lines, name="01-demo.md"):
+    path = vault / "practice" / COURSE / name
+    path.write_text("---\nstatus: in-progress\n---\n\n## Quirks\n\n" + "\n".join(quirk_lines) + "\n\n## Cleanup\n")
+    return path
+
+
+def test_exact_quote_passes(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f'- "Bucket names must be globally unique" — {S3} @ 00:00:10 — names are global'])
+    assert lbd.check_quirks(vault, m) == []
+
+
+def test_quote_across_block_boundary(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f"- \"the console won't let you upload more than 160 gigabytes\" — {S3} @ 00:01:30"])
+    assert lbd.check_quirks(vault, m) == []
+
+
+def test_curly_quotes_and_punctuation(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f"- “globally unique — you know — across every account” – {S3} @ 00:00:40"])
+    assert lbd.check_quirks(vault, m) == []
+
+
+def test_partial_word_does_not_match(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f'- "bucket name" — {S3} @ 00:00:10'])
+    assert len(lbd.check_quirks(vault, m)) == 1
+
+
+def test_quote_far_from_timestamp_fails(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f'- "Bucket names must be globally unique" — {S3} @ 00:02:30'])
+    assert lbd.check_quirks(vault, m) == [
+        f'quote not found near 00:02:30 in lectures/{COURSE}/2-s3-basics-3: "Bucket names must be globally unique"'
+    ]
+
+
+def test_invented_quote_fails(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f'- "S3 is a relational database" — {S3} @ 00:00:10'])
+    assert len(lbd.check_quirks(vault, m)) == 1
+
+
+def test_bracketed_title_in_quirk_link(tmp_path):
+    vault = make_vault(tmp_path)
+    link = f"[[lectures/{COURSE}/2-important-ui-update-4|[Important] UI Update]]"
+    m = write_mission(vault, [f'- "Hello and welcome" — {link} @ 00:00:05'])
+    assert lbd.check_quirks(vault, m) == []
+
+
+def test_malformed_quirk_line(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, ["- Bucket names must be unique (no quote, no link)"])
+    assert lbd.check_quirks(vault, m) == ["malformed quirk line: - Bucket names must be unique (no quote, no link)"]
+
+
+def test_indented_lines_are_free_text(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [
+        f'- "Bucket names must be globally unique" — {S3} @ 00:00:10',
+        "  - why it matters: you can't reuse a name someone else took",
+    ])
+    assert lbd.check_quirks(vault, m) == []
+
+
+def test_lecture_without_transcript(tmp_path):
+    vault = make_vault(tmp_path)
+    (vault / "lectures" / COURSE / "2-s3-basics-3.md").write_text("# S3 Basics\n\nNo transcript captured.\n")
+    m = write_mission(vault, [f'- "anything" — {S3} @ 00:00:10'])
+    assert lbd.check_quirks(vault, m) == [f"no transcript in lectures/{COURSE}/2-s3-basics-3"]
+
+
+def test_unknown_lecture_in_quirk(tmp_path):
+    vault = make_vault(tmp_path)
+    m = write_mission(vault, [f'- "x" — [[lectures/{COURSE}/9-ghost-9|Ghost]] @ 00:00:10'])
+    assert lbd.check_quirks(vault, m) == [f"lecture not found: lectures/{COURSE}/9-ghost-9"]
+
+
+def test_missing_quirks_section(tmp_path):
+    vault = make_vault(tmp_path)
+    path = vault / "practice" / COURSE / "01-demo.md"
+    path.write_text("---\nstatus: in-progress\n---\n\n## Goal\n")
+    assert lbd.check_quirks(vault, path) == ["01-demo.md has no '## Quirks' section"]
+
+
+def test_cli_check_quirks_vault_relative(tmp_path):
+    vault = make_vault(tmp_path)
+    write_mission(vault, [f'- "Bucket names must be globally unique" — {S3} @ 00:00:10'])
+    rel = f"practice/{COURSE}/01-demo.md"
+    assert lbd.main(["--vault", str(vault), "check-quirks", rel]) == 0
+    write_mission(vault, [f'- "made up" — {S3} @ 00:00:10'])
+    assert lbd.main(["--vault", str(vault), "check-quirks", rel]) == 1

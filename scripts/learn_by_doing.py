@@ -16,6 +16,13 @@ KINDS = {"build", "theory", "skip"}
 LECTURE_TARGET = re.compile(r"\[\[(lectures/[^|\]\\]+)")
 MISSION_ITEM = re.compile(r"^\s*-\s*(\d{2})\b")
 CELL_SPLIT = re.compile(r"(?<!\\)\|")
+TS_LINE = re.compile(r"^\[(\d{2}):(\d{2}):(\d{2})\]\s*(.*)$")
+# Title part is non-greedy up to the first "]]" so titles like "[Important] X" work.
+QUIRK_LINE = re.compile(
+    r'^-\s*["“](?P<quote>[^"”]+)["”]\s*[—–-]\s*'
+    r"\[\[(?P<target>lectures/[^|\]\\]+)(?:\\?\|.*?)?\]\]\s*@\s*"
+    r"(?P<ts>\d{1,2}:\d{2}:\d{2})"
+)
 
 
 def section(text: str, heading: str) -> list[str] | None:
@@ -107,6 +114,66 @@ def check_map(vault: Path, course: str) -> list[str]:
     return errors
 
 
+def transcript_blocks(text: str) -> list[tuple[int, str]]:
+    blocks: list[tuple[int, str]] = []
+    for line in section(text, "Transcript") or []:
+        s = line.strip()
+        m = TS_LINE.match(s)
+        if m:
+            h, mi, sec, rest = m.groups()
+            blocks.append((int(h) * 3600 + int(mi) * 60 + int(sec), rest))
+        elif blocks and s:
+            start, body = blocks[-1]
+            blocks[-1] = (start, f"{body} {s}")
+    return blocks
+
+
+def normalize(s: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
+
+
+def to_seconds(ts: str) -> int:
+    h, m, s = (int(x) for x in ts.split(":"))
+    return h * 3600 + m * 60 + s
+
+
+def window_text(blocks: list[tuple[int, str]], seconds: int) -> str:
+    # Blocks are per-minute and split mid-sentence, so search the block plus one each side.
+    idx = 0
+    for i, (start, _) in enumerate(blocks):
+        if start <= seconds:
+            idx = i
+    lo, hi = max(0, idx - 1), min(len(blocks), idx + 2)
+    return " ".join(body for _, body in blocks[lo:hi])
+
+
+def check_quirks(vault: Path, mission_path: Path) -> list[str]:
+    lines = section(mission_path.read_text(encoding="utf-8"), "Quirks")
+    if lines is None:
+        return [f"{mission_path.name} has no '## Quirks' section"]
+    errors: list[str] = []
+    for line in lines:
+        if not line.startswith("- "):
+            continue
+        m = QUIRK_LINE.match(line)
+        if not m:
+            errors.append(f"malformed quirk line: {line.strip()}")
+            continue
+        target = m.group("target").strip()
+        lecture = vault / f"{target}.md"
+        if not lecture.is_file():
+            errors.append(f"lecture not found: {target}")
+            continue
+        blocks = transcript_blocks(lecture.read_text(encoding="utf-8"))
+        if not blocks:
+            errors.append(f"no transcript in {target}")
+            continue
+        near = normalize(window_text(blocks, to_seconds(m.group("ts"))))
+        if f" {normalize(m.group('quote'))} " not in f" {near} ":
+            errors.append(f'quote not found near {m.group("ts")} in {target}: "{m.group("quote")}"')
+    return errors
+
+
 def resolve_vault(arg: str | None) -> Path:
     return Path(arg or os.environ.get("UDEMY_VAULT_DIR") or DEFAULT_VAULT).expanduser()
 
@@ -123,10 +190,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--vault", help="Udemy Vault root (default: $UDEMY_VAULT_DIR or iCloud path)")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("check-map", help="every lecture assigned exactly once").add_argument("course")
+    sub.add_parser("check-quirks", help="every quoted quirk is in its transcript").add_argument("mission")
     args = ap.parse_args(argv)
     vault = resolve_vault(args.vault)
     if args.cmd == "check-map":
         return _report(check_map(vault, args.course))
+    if args.cmd == "check-quirks":
+        mission = Path(args.mission).expanduser()
+        if not mission.is_absolute():
+            mission = vault / mission
+        return _report(check_quirks(vault, mission))
     return 2
 
 
