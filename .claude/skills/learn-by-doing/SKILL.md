@@ -43,6 +43,7 @@ The owner learns by building. You plan, coach, and check. You never build it for
    | `[TRIAL]` | owner's personal Snowflake trial | cost note (credits), XS warehouse, auto-suspend on, proof the owner pastes |
    Course defaults: AWS courses → `[AWS]`. dbt, DuckDB, Spark, Kafka, Iceberg → `[LOCAL]`. Snowflake → `[TRIAL]`. A step can override the default (DuckDB reading S3 = `[AWS]`).
 3. **Every `[AWS]` step uses the company limits in `00-limits.md`.** Use only the IAM roles listed there. **Never write a "create an IAM role" step.** If a service needs a role that isn't listed, say so and turn it into a question for the owner's platform team. Use the allowed region only. Put the required tags and the name prefix on every resource.
+   If `00-limits.md` says resources are created through an IaC tool (Infrastructure as Code — e.g. Terraform, AWS CDK, CloudFormation): every "Do" that creates or changes something is written as "define it in `<tool>`, then `<the tool's deploy command>`" — never as an `aws ... create-*`/`put-*`/`update-*`/`delete-*` CLI command, and never as "click X in the console." Give the CDK/Terraform snippet's *shape* as a hint if asked, not the finished file. If `00-limits.md` doesn't say whether read-only `describe`/`get`/`list` CLI commands are allowed, ask once in Mission 0 and record the answer; until answered, prefer the IaC tool's own read commands (e.g. `cdk diff`, `terraform plan`, `terraform show`, `aws cloudformation describe-stacks`) for "Send" proof over a bare `aws` CLI call.
 4. **Never ask for** access keys, secret keys, passwords, tokens, session cookies, or full ARNs with account IDs. Tell the owner to replace account IDs with `123456789012`. If they paste a secret anyway, tell them to rotate it, and never repeat it.
 5. **Every `[AWS]` and `[TRIAL]` step has a cost note and a cleanup.** A mission is not `done` until the cleanup is proven.
 6. **Quote quirks word for word.** Every quote must pass `check-quirks`. If one fails, copy the exact transcript text or drop the quirk. Never loosen a quote just to make it pass.
@@ -110,8 +111,9 @@ These checks only read. Nothing here costs money or creates anything.
 3. [AWS] Roles you may use. Run `aws iam list-roles --query "Roles[].RoleName"`. If that's denied, ask your platform team. **Send:** the names of the roles you're allowed to pass to Glue, Lambda, EMR, Redshift, and so on.
 4. [AWS] Required tags and name prefix. **Send:** the tag keys and the prefix.
 5. [AWS] Guard rails. **Send:** anything you already know is blocked, e.g. public S3 buckets, the Billing console, QuickSight, Bedrock, certain services or instance sizes.
-6. [TRIAL] Snowflake trial (Snowflake courses only). **Send:** the trial end date and the credits left.
-7. [LOCAL] Tools. Run `docker --version; python3 --version`, plus the course's own tools (`dbt --version`, `duckdb --version`, …). **Send:** the output.
+6. [AWS] How do you create things? **Send:** whether you must use an IaC tool (Terraform / CDK / CloudFormation / other) for every resource, or the CLI/console are allowed. If IaC-only, also say whether read-only `describe`/`get`/`list` CLI commands are allowed for checking your work (proof), separate from creating resources.
+7. [TRIAL] Snowflake trial (Snowflake courses only). **Send:** the trial end date and the credits left.
+8. [LOCAL] Tools. Run `docker --version; python3 --version`, plus the course's own tools (`dbt --version`, `duckdb --version`, …) and the IaC tool if named above (`cdk --version`, `terraform --version`). **Send:** the output.
 
 Drop the steps that don't apply to the course (no [AWS] steps for a local-only course, no [TRIAL] step outside Snowflake).
 
@@ -121,6 +123,8 @@ Drop the steps that don't apply to the course (no [AWS] steps for a local-only c
 - Required tags:
 - Name prefix:
 - Known blocks:
+- IaC tool (or "CLI/console allowed"):
+- Read-only CLI allowed for proof:
 - Snowflake trial ends:
 - Local tools:
 
@@ -177,10 +181,10 @@ Map: [[practice/<course>/00-map|Course map]] · Limits: [[practice/<course>/00-l
 ## Steps
 ### 1. <name> [AWS]
 - Teaches: [[lectures/<course>/<stem>|<title>]]
-- Do: <the goal, not the code. Use the prefix, tags, region, and allowed role from your limits.>
+- Do: <the goal, not the code. Use the prefix, tags, region, and allowed role from your limits. If IaC-only: "define it in <tool>, then <deploy command>" — never a raw create/put/update CLI call or console click.>
 - Done when: <a rule you can check, e.g. "the crawler made 1 table with 3 partitions">
 - Cost: <what gets billed, a rough size, and how to keep it small>
-- Send: <exact command(s), e.g. `aws glue get-table --database-name <prefix>_raw --name events --query "Table.PartitionKeys"`>
+- Send: <exact command(s) matching what your limits allow — the IaC tool's own read command (`cdk diff`, `terraform plan`) if read-only CLI isn't confirmed, otherwise e.g. `aws glue get-table --database-name <prefix>_raw --name events --query "Table.PartitionKeys"`>
 
 ## Quirks
 - "<verbatim quote>" — [[lectures/<course>/<stem>|<title>]] @ HH:MM:SS — <what it means for you>
@@ -221,3 +225,4 @@ Run `status` and print its output as is. Then give the current mission's next op
 | `\|` missing in a coverage-table link | The cells shift: `check-map` reports `bad kind '<mission>'` and `mission '<kind>' not in ## Missions`. Escape the pipe. |
 | Mission marked done with resources still running | Cleanup proof comes first. No proof, no `done`. |
 | Asking for a full `get-caller-identity` or ARN | Ask for it with the account ID blanked. |
+| A step tells the owner to run `aws ... create-*` when `00-limits.md` says IaC-only | Rewrite as "define it in `<tool>`, then `<deploy command>`". |
