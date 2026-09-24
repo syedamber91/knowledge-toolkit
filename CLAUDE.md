@@ -698,6 +698,33 @@ are requirements, not abstraction to be deleted.
 
 ---
 
+## `.claude/skills/claude-handoff/SKILL.md` — vendored 2026-09-24
+
+End-of-session handoff discipline: reference existing artifacts (PRs,
+commits, docs, specs) by path or URL instead of re-pasting their content,
+name a "suggested skills" section for whatever the next session should
+reach for, redact secrets/PII, and tailor the summary to whatever focus is
+named rather than writing a generic recap. Vendored from
+`mattpocock/skills`, same discipline as `ponytail`/`grill-me` — pinned
+in-repo so the text can't drift under this repo without a diff.
+
+**The upstream mechanism (`claude --bg --name ... "..."`, a CLI flag from
+the author's own tool setup) does not exist in this Claude Code build.**
+`.claude/skills/claude-handoff/SKILL.md`'s own provenance block names the
+two real equivalents here: `mcp__Claude_Code_Remote__create_session` when
+a live background session should actually start now, or — the default —
+a committed handoff doc that a future session's own `CLAUDE.md` points a
+reader at first. Spawning a real session is a consequential,
+cost-incurring action and must never happen silently just because a
+handoff was written.
+
+**It decides nothing and gates nothing** — same tier as `observations:`
+elsewhere in this repo's conventions. A handoff is a courtesy to the next
+reader, never a substitute for that reader opening the actual
+PRs/commits/docs it points at.
+
+---
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
