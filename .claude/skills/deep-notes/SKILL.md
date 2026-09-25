@@ -1,26 +1,31 @@
 ---
 name: deep-notes
-description: Turn a source you want to LEARN — a course chapter or lecture, a transcript, a spec, documentation, a research paper, a long report — into a diagram-rich, skimmable HTML study page published as an Artifact, covering every topic and sub-topic with nothing summarised away, at your choice of diagram density (balanced, heavy, or max for both figures and tables), with an optional layer of relatable real-world examples pitched at a 15-year-old. Use this whenever someone asks to "make notes", "break down this chapter", "help me learn/retain this", "make this easy to remember", "turn this into something I can study from", "explain this visually", asks for notes "with diagrams and tables", asks for examples "a teenager/15-year-old/kid would get", or wants a chapter/lecture/paper rendered as an informative, eye-catching, easy-to-skim page. Also use it when they name a chapter or lecture from a vault, course or folder and ask you to teach it or render it. Prefer this over writing notes in chat: the deliverable is a published page they keep, not terminal text. Do NOT use it for a quick one-paragraph answer, a code review, or a genuine summary request where the user explicitly wants things left out.
+description: Turn a source you want to LEARN — a course chapter or lecture, a transcript, a spec, documentation, a research paper, a long report — into either (a) a diagram-rich, skimmable HTML study page published as an Artifact, covering every topic and sub-topic with nothing summarised away, at your choice of diagram density (balanced, heavy, or max for both figures and tables), with an optional layer of relatable real-world examples pitched at a 15-year-old, or (b) a narrated explainer VIDEO (Remotion or Manim) built around one continuous running analogy that chains every topic together for recall. Use the HTML mode whenever someone asks to "make notes", "break down this chapter", "help me learn/retain this", "make this easy to remember", "turn this into something I can study from", "explain this visually", asks for notes "with diagrams and tables", asks for examples "a teenager/15-year-old/kid would get", or wants a chapter/lecture/paper rendered as an informative, eye-catching, easy-to-skim page. Use the video mode whenever someone asks for a "video", "voiceover", "explainer video", wants something they can "just watch and remember", asks for a scenario/analogy/story to understand a topic, or asks to turn a chapter/topic into a narrated walkthrough. Also use either mode when they name a chapter or lecture from a vault, course or folder and ask you to teach it or render it. Prefer this over writing notes in chat: the deliverable is a published page or a video file the user keeps, not terminal text. Do NOT use it for a quick one-paragraph answer, a code review, or a genuine summary request where the user explicitly wants things left out.
 trigger: /deep-notes
 ---
 
 # /deep-notes
 
-Render a source into a study page a person can actually learn from: every topic and sub-topic present, arranged so it can be skimmed in two minutes or read in twenty.
+Render a source into something a person can actually learn from: every topic and sub-topic present, arranged so it can be skimmed in two minutes, read in twenty, or watched start to finish and remembered.
 
-The output is an HTML Artifact. Not a chat message, not a markdown file — a page the user keeps and returns to.
+Two output types, chosen by the user or inferred from how they asked:
+
+- **Page mode** (default) — an HTML Artifact. Not a chat message, not a markdown file — a page the user keeps and returns to. Covered by the rest of this file.
+- **Video mode** — a narrated MP4 (Remotion or Manim), built around one continuous running analogy that chains every topic together. Covered in `references/video-mode.md` — **read that file in full before starting a video**; the rest of this SKILL.md is written for page mode and its density/figure guidance does not apply to video the same way.
 
 ## Usage
 
 ```
 /deep-notes <path or description of the source> [balanced | heavy | max] [+eli15]
+/deep-notes <path or description of the source> video [+eli15]
 ```
 
-If the user did not say which density they want, **ask before building.** It changes how long the run takes and what the page feels like, and it is cheap to ask:
+If the user did not say which density they want (page mode) or asked for `video` with no further detail, **ask before building.** It changes how long the run takes and what the output feels like, and it is cheap to ask:
 
 - **balanced** — a figure where an idea is genuinely spatial, sequential or comparative; tables and card grids everywhere else. Roughly one figure per major section. On a dense six-part chapter, expect ~9 figures and ~14 tables.
 - **heavy** — diagram-led. Every mechanism, worked number, before/after and architecture gets its own figure. Tables reserved for pure enumerations. Expect 20–30 figures on a dense chapter.
 - **max** — both at once: `heavy`'s full figure set **and** `balanced`'s full table set, on the same page. Nothing is rendered one way instead of another; the mechanisms get drawn *and* the specifics get tabulated. The reference page for that is one where a figure teaches the shape of an idea and a table underneath it carries the exact values. Expect 25+ figures, 15+ tables, and a file two to three times the size of either single mode. Use it when the page is a long-term reference rather than a first read.
+- **video** — a narrated MP4, typically 10–20 minutes for a dense topic, built entirely on the pattern in `references/video-mode.md`: slower deliberate narration, every jargon term defined in plain language the moment it appears, ONE running scenario established at the start and revisited at every single topic transition with a callback line, and illustrated diagrams for that scenario alongside the technical diagrams. This is a different deliverable shape from a page — do not treat it as "page content read aloud."
 
 **Density changes rendering, never coverage.** A `balanced` page and a `heavy` page from the same source contain the same facts. If you find yourself dropping a detail because you chose `balanced`, you have misunderstood the setting — put the detail in a table instead.
 
@@ -196,6 +201,7 @@ In `max` mode, stop choosing. Anything with a shape gets its figure **and** anyt
 
 - `references/page-system.md` — the HTML/CSS scaffold: theme tokens for all three theme states, the component classes (`.card`, `.note`, `.stamp`, `.plain`, `.term`, `.bars`, `.fig`, `.gloss`, `.recall`), layout rules, and the swap points where you choose this page's own palette and type. Read it before writing any HTML.
 - `references/diagram-library.md` — the recurring inline-SVG figure archetypes with coordinates that work, plus the theming rules that keep figures legible in light and dark. Read it before drawing any figure.
+- `references/video-mode.md` — the full video pipeline: the shared script/TTS/timeline contract, the running-analogy device (scenario panel, callback line, persistent corner icon), the proportional-pacing fix that keeps visuals tracking narration length however long a script grows, and the QA/delivery checklist. Read it in full before starting any video — it is the whole skill for that mode, not a supplement to the sections above.
 
 ---
 
