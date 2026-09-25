@@ -772,6 +772,24 @@ PRs/commits/docs it points at.
   dispatches an Opus-tier subagent to synthesize the answer from only those
   routed notes. Use for ad-hoc questions against any captured vault that
   don't warrant a dedicated persona.
+- `deep-notes` (`/deep-notes <source> [balanced|heavy|max]`) — renders one
+  source you want to *learn* (a course chapter, a lecture transcript, a spec,
+  a paper, a book chapter from a vault) into a diagram-rich, skimmable HTML
+  study page published as an Artifact. Its governing rule is **no information
+  loss**: read the whole source, build an inventory of every named tool,
+  number, worked example, caveat and judgement, then write the page against
+  that inventory — density changes how a fact is *rendered*, never whether it
+  survives. `balanced` ≈ 9 figures / 14 tables per dense chapter, `heavy` is
+  diagram-led (20–30 figures), `max` emits both full sets (25+ figures *and*
+  15+ tables) for a long-term reference page. Two reference files carry the
+  reusable craft — `references/page-system.md` (the HTML/CSS scaffold: theme
+  tokens for all three theme states, component classes, and the swap points
+  where each page picks its own palette and type) and
+  `references/diagram-library.md` (inline-SVG figure archetypes with
+  coordinates that work). Every block is stamped with its source anchor
+  (`[mm:ss]`, page, or section heading) so the page stays a study *aid*
+  rather than a rewrite. **Continuity rule:** a page belonging to a series
+  already rendered keeps that series' palette and typefaces.
 - `learn-by-doing` (`/learn-by-doing <course> map|next|done|status`) — learn a
   Udemy Vault course by building: one course project + one mission per section,
   every lecture assigned (`scripts/learn_by_doing.py check-map`), every quoted
