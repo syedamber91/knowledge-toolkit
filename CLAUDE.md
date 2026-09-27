@@ -31,6 +31,46 @@ its community labels. To refresh properly, run `/graphify .` (re-extracts code
 **and** docs, re-clusters, re-labels). Keep it current — it is the first thing
 every session reads.
 
+**⚠️ Verified 2026-09-27: the committed graph is dated 2026-07-05 and has
+zero mentions of `soic_wiki`, persona-wiki, `docs/reassessment/` or any
+vendored skill** — i.e. it does not cover this file's own two largest
+bodies of content (the SOIC persona-wiki pipeline section and the closing
+Pointers list). Treat "read the graph first" as covering the six capture
+toolkits only until `/graphify .` is re-run; for the persona-wiki and
+reassessment threads, this file's own sections and the docs they point to
+are still the primary source.
+
+## SESSION DEFAULTS — precedence order
+
+Added 2026-09-27 as a single findable answer to "how should I behave in
+this repo," after an Opus-tier structural review found it stated only
+near the very end of the file, after two other sub-projects' worth of
+material. Nothing here is new policy — every line below already exists
+elsewhere in this file; this section only ranks what wins on conflict.
+
+**Precedence, highest first:**
+1. **Guardrails** (Overview, below) — no DRM circumvention, no stored
+   passwords, personal use only, nothing captured is ever committed.
+2. **Citation/verification gates** — the persona-wiki pipeline's own G2
+   (cited-quote verification, 80% threshold) and the `ms` reassessment
+   corpus's `verify_briefs.py` check. These two are separate mechanisms
+   that happen to share the name "G2" with a third, unrelated gate in the
+   sibling `soic-ladder` repo's rulebook — see the caveman section below
+   for the disambiguation. Never invent a threshold or a quote to satisfy
+   either.
+3. **Repo-specific process skills** (`soic-extract`, `substack-capture`,
+   `youtube-capture`, `instagram-capture`, the persona-wiki pipeline's own
+   rules).
+4. **`karpathy-guidelines` / `ponytail`** — code-volume discipline.
+5. **`/caveman` (full)** — the default communication style for this
+   repo's sessions, per the `.claude/skills/caveman*/SKILL.md` section
+   below. Invoke it near the start of a session unless the user has
+   already said otherwise; "stop caveman" / "normal mode" reverts it.
+
+**Never run `/caveman-compress` on this file, on any file under
+`docs/reassessment/`, or on a persona-wiki concept/topic note** — those
+carry citation-pinned quotes a lossy rewrite would damage.
+
 ## Overview
 
 `knowledge-toolkit` is a **personal knowledge-capture toolkit**. It logs into
@@ -746,7 +786,7 @@ and numbers untouched. Six intensity levels (`lite`/`full`/`ultra` plus
 three classical-Chinese `wenyan-*` variants), default `full`. Persists for
 the session until "stop caveman" or "normal mode". Companions:
 `caveman-commit`, `caveman-review`, `caveman-compress` (never point this
-at a persona-wiki concept note or a Grill-Sheet extraction record — those
+at a persona-wiki concept note or a `docs/reassessment/` brief — those
 carry citation-pinned quotes this file's own discipline forbids
 paraphrasing), `caveman-stats` (its dependent hook isn't vendored — see
 its own provenance note), `caveman-help`.
@@ -763,13 +803,19 @@ It complements `karpathy-guidelines`/`ponytail` (both about code volume,
 not prose) rather than overlapping them.
 
 **It never overrides this repo's own citation discipline.** The
-persona-wiki/Grill-Sheet pipelines above gate on cited-quote verification
-(G2, 80% threshold) and forbid inventing a threshold or a quote — caveman
+persona-wiki pipeline's own G2 gate (cited-quote verification against the
+raw transcript, 80% threshold, in `soic_wiki/sector_gate.py`) and the
+`ms` reassessment corpus's `verify_briefs.py` check both gate on citation
+verification and forbid inventing a threshold or a quote — caveman
 compresses PROSE STYLE only, never a quoted transcript excerpt, a REF
-code, or a number. Its own Rules section already says this ("Never drop
-not/never/no/only/except... Numbers, units exact") and its Auto-Clarity
-section drops the mode outright rather than risk a misreadable
-compression.
+code, or a number. **Note "G2" names a second, unrelated thing elsewhere
+in this file's own Pointers** — `docs/reassessment/ms/SYNTHESIS.md`'s "G2
+has one gate-shaped bright line" refers to the SOIC-ladder rulebook's
+forensic-veto gate in the sibling `soic-ladder` repo, not this pipeline's
+citation gate; don't conflate the two when reasoning about either. Its own
+Rules section already says this ("Never drop not/never/no/only/except...
+Numbers, units exact") and its Auto-Clarity section drops the mode
+outright rather than risk a misreadable compression.
 
 **It decides nothing and gates nothing** — same tier as `observations:`,
 `ponytail`, `claude-handoff`. Its own Boundaries section already keeps
