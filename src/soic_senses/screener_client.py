@@ -99,18 +99,64 @@ def fetch_screener_ratios(symbol: str) -> Dict[str, RatioValue]:
     return parse_top_ratios(_fetch_company_html(symbol))
 
 
+def _page_has_financial_data(html: str) -> bool:
+    """A cheap, section-agnostic sanity check on a fetched screener.in page:
+    does its "quarters" table carry any real value cell, or only a row
+    label? Checks "quarters" specifically because it is the one statement
+    section virtually every company renders (unlike "profit-loss", which a
+    bank's page may omit under that exact row set).
+
+    Measured live, 2026-09-27: screener.in's `/consolidated/` URL for a
+    company with no subsidiaries to consolidate (ABBOTINDIA, GILLETTE,
+    GRSE, SBILIFE all confirmed) returns HTTP 200 with the full page shape
+    -- every row label present, on every statement section -- but ZERO
+    numeric cells anywhere. `/` (standalone) carries the real data. A
+    status-code-only fallback accepts that empty page as final.
+    """
+    soup = BeautifulSoup(html, "lxml")
+    section = soup.find(id="quarters")
+    if section is None:
+        return False
+    table = section.find("table")
+    if table is None:
+        return False
+    body = table.find("tbody")
+    if body is None:
+        return False
+    first_row = body.find("tr")
+    if first_row is None:
+        return False
+    return len(first_row.find_all("td")) > 1
+
+
 def _fetch_company_html(symbol: str) -> str:
-    """Fetch a screener.in company page, consolidated first then standalone."""
+    """Fetch a screener.in company page, consolidated first then standalone.
+
+    Falls back to standalone not only on a non-200 status but also when the
+    consolidated page returns 200 with no real financial data (see
+    _page_has_financial_data). If standalone also fails outright, the
+    (possibly empty) consolidated page is still returned rather than
+    raising -- it proved the company exists, it just has nothing better to
+    offer than what screener itself shows.
+    """
     consolidated_url = _BASE_URL.format(symbol=symbol, suffix="consolidated/")
-    response = requests.get(consolidated_url, headers=_HEADERS, timeout=15)
-    if response.status_code != 200:
-        standalone_url = _BASE_URL.format(symbol=symbol, suffix="")
-        response = requests.get(standalone_url, headers=_HEADERS, timeout=15)
-        if response.status_code != 200:
-            raise CompanyNotFoundError(
-                f"No screener.in page found for {symbol!r} (tried consolidated and standalone)"
-            )
-    return response.text
+    consolidated_response = requests.get(consolidated_url, headers=_HEADERS, timeout=15)
+    if consolidated_response.status_code == 200 and _page_has_financial_data(
+        consolidated_response.text
+    ):
+        return consolidated_response.text
+
+    standalone_url = _BASE_URL.format(symbol=symbol, suffix="")
+    standalone_response = requests.get(standalone_url, headers=_HEADERS, timeout=15)
+    if standalone_response.status_code == 200:
+        return standalone_response.text
+
+    if consolidated_response.status_code == 200:
+        return consolidated_response.text
+
+    raise CompanyNotFoundError(
+        f"No screener.in page found for {symbol!r} (tried consolidated and standalone)"
+    )
 
 
 # --------------------------------------------------------------------------
