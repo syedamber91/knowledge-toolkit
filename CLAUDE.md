@@ -725,6 +725,59 @@ PRs/commits/docs it points at.
 
 ---
 
+## `.claude/skills/caveman*/SKILL.md` — vendored 2026-09-27
+
+Six skills — `caveman`, `caveman-help`, `caveman-commit`, `caveman-review`,
+`caveman-compress`, `caveman-stats` — copied verbatim from
+`github.com/JuliusBrussee/caveman` @ `2fd153c6`, plugin version **2.7.0**,
+author Julius Brussee. Same vendoring discipline as `ponytail`/
+`claude-handoff`: pinned to a commit so the text can't drift under this
+repo without a diff, no marketplace-add / network step at session start.
+Full source, the MIT/BSL licensing split (only the MIT `skills/` tree is
+vendored — the compression Engine, provider proxy, prompt rewriter,
+browser driver and MCP server stay upstream, unvendored, BSL-1.1), and
+which of upstream's ~20+ `skills/*` directories were deliberately left
+out (the Engine-driver skills and `cavecrew`) are all recorded once, in
+`caveman/SKILL.md`'s own provenance block.
+
+**What it does.** Ultra-compressed communication mode: drops articles,
+filler, pleasantries and hedging; keeps code, commands, exact error text
+and numbers untouched. Six intensity levels (`lite`/`full`/`ultra` plus
+three classical-Chinese `wenyan-*` variants), default `full`. Persists for
+the session until "stop caveman" or "normal mode". Companions:
+`caveman-commit`, `caveman-review`, `caveman-compress` (never point this
+at a persona-wiki concept note or a Grill-Sheet extraction record — those
+carry citation-pinned quotes this file's own discipline forbids
+paraphrasing), `caveman-stats` (its dependent hook isn't vendored — see
+its own provenance note), `caveman-help`.
+
+**No lifecycle hook is vendored, so it is not automatic** — same
+limitation `ponytail`'s vendored copy already carries. Invoke `/caveman`
+(or say "talk like caveman") explicitly to turn it on.
+
+**Per the repo owner's own instruction, `/caveman` (full) is the intended
+default going forward for chats in this repo** — invoke it near the start
+of a session unless the user has already said otherwise; "stop caveman" /
+"normal mode" reverts it mid-session, per the skill's own boundary rule.
+It complements `karpathy-guidelines`/`ponytail` (both about code volume,
+not prose) rather than overlapping them.
+
+**It never overrides this repo's own citation discipline.** The
+persona-wiki/Grill-Sheet pipelines above gate on cited-quote verification
+(G2, 80% threshold) and forbid inventing a threshold or a quote — caveman
+compresses PROSE STYLE only, never a quoted transcript excerpt, a REF
+code, or a number. Its own Rules section already says this ("Never drop
+not/never/no/only/except... Numbers, units exact") and its Auto-Clarity
+section drops the mode outright rather than risk a misreadable
+compression.
+
+**It decides nothing and gates nothing** — same tier as `observations:`,
+`ponytail`, `claude-handoff`. Its own Boundaries section already keeps
+code, comments, commits, docs and vault/note content in normal prose
+regardless of mode.
+
+---
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
