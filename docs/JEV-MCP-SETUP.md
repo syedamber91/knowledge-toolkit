@@ -12,8 +12,10 @@ checks (see CLAUDE.md).
 ## What was measured (cloud session, 2026-09-30)
 
 - The server starts and answers `initialize` / `tools/list` by hand.
-- A real tool call was NOT proven: the egress proxy answered 403 to
-  `CONNECT api.typesafe.ai:443`. `TYPESAFE_API_KEY` validity is unchecked.
+- Before the allowlist the egress proxy answered 403 to
+  `CONNECT api.typesafe.ai:443`. After it, a real call needed the proxy
+  gotcha below; with both fixed a real `jev_noul` call succeeded and the key
+  is valid.
 - The session's working directory was `/home/user`, not a repo, so no
   repo's `.mcp.json` was read and no `mcp__jev__*` tool loaded.
 
@@ -41,6 +43,18 @@ checks (see CLAUDE.md).
    where `.mcp.json` holds another server that must stay gated.
 3. **Verify:** `claude mcp list` shows `jev`; `/mcp` shows it connected; make
    one real tool call. Unset the key and confirm the session still works.
+
+## Proxy gotcha (measured 2026-09-30) — why "request failed" after the allowlist
+
+Node's built-in `fetch` ignores `HTTPS_PROXY` unless `NODE_USE_ENV_PROXY=1`
+is set (Node >= 22.21). In a cloud container all egress goes through the
+proxy, so with the allowlist in place `jev-mcp` still returned
+`Jev provider typesafe: request failed`, while `curl` to the same host
+worked. With `NODE_USE_ENV_PROXY=1` a real `jev_noul` call succeeded
+(`provider: typesafe`, `status: ok`) and `GET /v1/models` with the key
+returned HTTP 200, so the key is valid. `.mcp.json` now sets it for the
+`jev` server. Locally it is harmless: with no proxy configured it does
+nothing; behind a proxy it makes Jev use it.
 
 ## Not done, on purpose
 
