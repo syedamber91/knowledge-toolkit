@@ -824,6 +824,45 @@ regardless of mode.
 
 ---
 
+## `jev` MCP server — added 2026-09-30
+
+`.mcp.json` now carries two servers: the existing `tradingview` (`uv run
+--script mcp_servers/tradingview_mcp_server.py`) and a new `jev`
+(`npx -y @jkudish/jev-mcp`, stdio, needs `TYPESAFE_API_KEY` — set it in
+this environment's own settings, never in chat). Jev is TypeSafe's System
+One model, exposed here as twelve ready-made judgment tools: `jev_verify`,
+`jev_audit`, `jev_screen`, `jev_noul`, `jev_find`, `jev_rerank`,
+`jev_classify`, `jev_decide`, `jev_compare`, `jev_extract`, `jev_review`,
+`jev_gate`. Each is a typed, calibrated judgment in ~150-500ms, not
+generated text.
+
+**It gates nothing in this repo's own two real gates and never replaces
+either.** The persona-wiki pipeline's G2 (cited-quote verification against
+the raw transcript in `soic_wiki/sector_gate.py`, 80% threshold) and the
+`ms` reassessment corpus's `verify_briefs.py` check are both mechanical,
+citation-pinned verifications — the same tier `karpathy-guidelines` and
+`ponytail` already occupy relative to this file's harder rules, and Jev
+sits there too. `jev_verify`/`jev_audit` must never stand in for either
+gate: they return a calibrated probability that a claim is supported, not
+a check that a quote is byte-verifiable against the source transcript,
+and this repo's whole persona-wiki discipline exists because that
+distinction has already cost real analysis time once (the framework-
+evolution fabricated-quote incident this file records elsewhere).
+
+**Where it fits:** `jev_review`/`jev_gate` as a second look at a diff
+before calling a task complete, alongside — never instead of —
+`verification-before-completion` and the repo's own test suite;
+`jev_decide` for a genuinely close implementation choice; `jev_classify`
+as a candidate for tasks like the vault's own fixed 12-tag classification
+pass (still verified afterward by a script that reads the whole tagged
+set, the way that pass already is — a Jev call does not remove the need
+for that check); `jev_screen` on content pulled from an untrusted capture
+(a scraped page, a fetched transcript) before treating it as safe input.
+Typed output guarantees the interface, not truth, per Jev's own docs — a
+low-confidence result means go read the primary source, not skip it.
+
+---
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
