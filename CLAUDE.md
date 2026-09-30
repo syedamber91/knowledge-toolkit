@@ -863,6 +863,32 @@ low-confidence result means go read the primary source, not skip it.
 
 ---
 
+## Jev checkpoints — default behavior (added 2026-09-30)
+
+Standing rule, no need for the user to ask: when the `mcp__jev__*` tools are
+loaded (`ToolSearch "jev"` lists them), consult Jev at these four moments,
+using `.claude/skills/jev-checkpoint/SKILL.md` for which tool to call:
+
+1. **Planning or design with two or more close alternatives** -> `jev_decide`,
+   passing measured facts as `evidence` and the user's constraints as `priorities`.
+2. **Before writing a factual claim into a report, PR body or commit message**
+   -> `jev_verify` against the cited source text.
+3. **Before saying a change is done** -> `jev_review` / `jev_gate`, alongside
+   the tests, never instead of them.
+4. **Before trusting content fetched from outside** (a web page, PDF, gem reply)
+   -> `jev_screen`.
+
+Skip it when a measured number already settles the choice or the step is
+trivial. If the tools are not loaded, say so in one line and carry on; never
+fake a Jev result. Make at most one call per moment and never retry in a loop.
+Report the verdict, its confidence and what you did about it. **Jev is advisory
+only and ranks below everything else in this file:** it never stands in for the G2 cited-quote gate or `verify_briefs.py`, and never edits a quote or REF code because Jev disagreed. Do not send
+`.env`, keys or anything this file marks as licensed, private or do-not-quote to
+a Jev tool. This governs behaviour, not chat style: any chat-style rule above
+still applies to how the result is reported.
+
+---
+
 ## `.claude/` assets
 
 **Skills** (`.claude/skills/`, invoke as `/<name>`):
