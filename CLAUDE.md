@@ -865,9 +865,14 @@ low-confidence result means go read the primary source, not skip it.
 
 ## Jev checkpoints — default behavior (added 2026-09-30)
 
-Standing rule, no need for the user to ask: when the `mcp__jev__*` tools are
-loaded (`ToolSearch "jev"` lists them), consult Jev at these four moments,
-using `.claude/skills/jev-checkpoint/SKILL.md` for which tool to call:
+Standing rule, no need for the user to ask. **At the start of any analysis,
+plan or code task, run `ToolSearch "jev"` once, unconditionally.** The Jev tools
+are usually *deferred* -- not loaded at session start -- so "are they loaded?" is
+the wrong test, and `ToolSearch` waits for MCP servers that are still connecting.
+Measured 2026-09-30: an unprompted DIXON analysis in a fresh session made zero Jev
+calls because the tools arrived late and this step was skipped. If `ToolSearch`
+lists `mcp__jev__*` tools, consult Jev at these four moments, using
+`.claude/skills/jev-checkpoint/SKILL.md` for which tool to call:
 
 1. **Planning or design with two or more close alternatives** -> `jev_decide`,
    passing measured facts as `evidence` and the user's constraints as `priorities`.
@@ -879,7 +884,7 @@ using `.claude/skills/jev-checkpoint/SKILL.md` for which tool to call:
    -> `jev_screen`.
 
 Skip it when a measured number already settles the choice or the step is
-trivial. If the tools are not loaded, say so in one line and carry on; never
+trivial. If `ToolSearch` lists none, say so in one line and carry on; never
 fake a Jev result. Make at most one call per moment and never retry in a loop.
 Report the verdict, its confidence and what you did about it. **Jev is advisory
 only and ranks below everything else in this file:** it never stands in for the G2 cited-quote gate or `verify_briefs.py`, and never edits a quote or REF code because Jev disagreed. Do not send
