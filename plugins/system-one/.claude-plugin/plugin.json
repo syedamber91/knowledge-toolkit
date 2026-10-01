@@ -1,0 +1,8 @@
+{
+  "name": "system-one",
+  "description": "When and how to use System One decision models (TypeSafe Jev hosted, Laya/Kev local), MiniLM-style embeddings, deterministic code, Sonnet (read/condense) and Opus (synthesise/retrieve/route). Skill with self-contained references + an Opus advisor agent.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Syed Amber Iqbal"
+  }
+}

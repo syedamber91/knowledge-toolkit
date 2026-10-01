@@ -1,0 +1,48 @@
+---
+title: Calibration & confidence
+kind: topic
+source: generated from note frontmatter
+tags: [system-one]
+topics: []
+---
+# Calibration & confidence
+> Probabilities that mean something; confidence vs probability; thresholds.
+
+## Notes on this topic (35)
+- [[ai-primer-calibrated-decisions]] — Why TypeSafe trains models for calibrated decisions (RLCD) rather than generated text (RLHF/RLVR): the theory behind Jev's probabilities and confidence.
+- [[jev-introduction]] — Jev = TypeSafe's flagship model and the first System One model: send a state plus typed questions, get typed answers (+ probabilities, + confidence for Choice/Score) your code can branch on. Read this first to know what Jev is and the three question types.
+- [[system-one-model-category]] — What a "System One model" is (fast, structured, calibrated decisions for software), how it differs from an LLM, and the refund-workflow example of using it inside a larger system.
+- [[confidence]] — A 0-1 summary of how peaked an answer's probability distribution is, returned on every Choice and Score answer; use it to decide act / confirm / escalate.
+- [[how-to-build-with-system-one]] — Design recipe: keep code in control of the workflow, give System One narrow typed questions, run many in one parallel request, combine in code, route on confidence. Includes the 8-step workflow and a full triage example.
+- [[noul]] — A yes/no question; returns one number 0..1 = probability the answer is yes. Use for checks, guardrails, verification and as a ranking signal.
+- [[score]] — Rate content against ordered, descriptive levels; returns a fractional position (probability-weighted level number), per-level probabilities, a legend and confidence. Use for spectra (severity, frustration, experience) and as building blocks for weighted composites.
+- [[confidence-gated-routing]] — The answer says WHAT; confidence says WHETHER to act. Set per-action thresholds by risk, escalate to a human or ask for confirmation in the middle band.
+- [[cb-autoresearch-feature-discovery]] — Turn free text into numeric features by having an LLM propose System One questions, answering them per row, training CatBoost on the answers, and feeding CatBoost's errors/importances back into the next proposal round. Reached held-out RMSE 1.77 on wine-review scores.
+- [[cb-citation-check]] — Catch wrong or hallucinated LLM citations: an ordinary string match finds fabricated quotes, then ONE `Choice` question reads the quote's section and decides supports / contradicts / says nothing; a 0.8 confidence gate sends weak verdicts to a human.
+- [[cb-classification-using-confidence]] — One 75-option `Choice` per document; read its `confidence`; if >= 0.9 report the fine label (industry group), else report the parent label (division). One request per document, no second model, no extra calls.
+- [[cb-classifying-rag-passages]] — Between retrieval and generation, score every retrieved passage with ONE `system_one` call of four `Noul` questions, then route it in plain code to evidence / conflict / dropped. Use when similarity search hands noisy, contradicting or prompt-injected passages to an answering LLM.
+- [[cb-consistency-choices]] — Re-run one borderline moderation post through an 8-`Choice` rubric 15 times per condition (TypeSafe vs LLMs) and measure label stability; adding an `uncertain` outcome below top-probability 0.60 lifts TypeSafe agreement from 90.8% to 99.2% while still acting automatically on 74.2% of answers.
+- [[cb-consistency-nouls]] — Re-run one auto-insurance claim through a 14-`Noul` rubric 15 times per condition (TypeSafe vs LLMs); TypeSafe's probabilities barely move (mean std 0.0102) but can still straddle 0.5, so map P(true) into yes / uncertain (0.30-0.70 inclusive) / no and send the middle to a human.
+- [[cb-date-extraction]] — Read a date's PARTS off the text with 7 `Choice` questions in one call, then resolve them to a real `date` in code (code does the calendar math, never the model); min-confidence across used parts gates human review.
+- [[cb-entity-alignment]] — Decide, for each of 450 candidate duplicate pairs (two beer catalogues), whether to merge, drop, or send to a human curator, using ONE `Score` question (3 levels) plus three companion `Noul` questions in a single request. No fitted threshold anywhere.
+- [[cb-function-calling]] — Turn a natural-language sentence into a call to an ordinary typed Python function (name + arguments), where every argument is an evaluated enum with a probability, via a `Dispatcher` built from a plain-words spec. Reach for it when function arguments come from fixed lists and you want per-argument confidence.
+- [[cb-line-by-line-search]] — Semantic search over one document in a single request: tag each line with an ID, use a Choice over the line IDs to rank lines, and a Noul in the same request to say whether the document answers at all. Returns `exists` probability + one relevance score per line.
+- [[cb-llm-guardrails]] — Screen every message into and out of an LLM app with ONE request (a battery of `Noul` hazard questions + one `Score` severity question), then threshold in your own code to pass / review / block / support.
+- [[cb-parallel-questions]] — Put all N questions about one document into ONE call: answers are identical to N single-question calls (no bias, no added noise), but 12.2x cheaper and 10.0x faster on a 13-question GDPR briefing. Always batch.
+- [[cb-pre-parsed-value-extraction]] — Regex finds candidate spans (emails, phones, amounts), TypeSafe picks the one the question asks for, code copies it verbatim and normalizes it. Reach for it when you need an exact value out of a document and must never get an invented or digit-transposed one.
+- [[cb-reranking]] — Fast search (BM25) builds a 30-passage shortlist; one Noul question per (query, candidate) pair scores each; sort by noul. On 40 CLERC legal queries: top-1 5% -> 18%, top-10 38% -> 62%, 1,200 calls for $0.0645.
+- [[sdk-python-types]] — Reference for question objects (`Noul`, `Choice`, `Score`), their TypedDict twins, answer models (`NoulAnswer`, `ChoiceAnswer`, `ScoreAnswer`), `SystemOneResponse`, `Usage` and `ListModelsResponse`.
+- [[awesome-typesafe-jev]] — THIRD-PARTY, independent, not affiliated with TypeSafe. A curated catalogue of ~246 community SDKs, agent tools, apps, games, evaluations and open alternatives around Jev, plus five "before you trust a decision" independent findings. Reach for it to find an existing client/tool or to see what independent tests measured. All numbers below are author-reported by the listed projects, as the directory relays them; many are single-run, small-sample, or private-data.
+- [[community-guide-marktechpost]] — THIRD-PARTY runnable notebook (Python, typesafe-sdk 0.7.0) covering all three primitives, state shapes, the confidence formula, fan-out vs separate calls, gated routing, composite scoring, function calling, counting, and the async/typed production shape. Contains code and prose but **no measured outputs** — it prints results at runtime; the article quotes none.
+- [[typesafe-agent-skill]] — The vendor's drop-in skill (`typesafe-ai`) that tells coding agents how to build with System One/Jev: read live docs first, pick the right primitive, design narrow questions, compose in parallel, verify; plus install steps and troubleshooting.
+- [[benchmarks-and-comparisons]] — Every benchmark number the third-party sources give for Jev vs Laya vs open alternatives, labelled by who measured it, on what data, and how much to trust it. One independent run (SOTAAZ), many self-reported claims.
+- [[jev-vs-laya]] — Hosted, closed, zero-shot-capable Jev vs open, local, small, fine-tune-first Laya: the decision turns on privacy, option count, context length, fine-tuning appetite and volume. All figures are third-party; see [[benchmarks-and-comparisons]] for trust levels.
+- [[kev]] — Apache-2.0, locally runnable Jev-style choice/score/noul models fine-tuned from Qwen by Jared Palmer; the "bigger, more accurate, open" self-host option next to the small encoder Laya. Reach for it when you want to self-host Jev-compatible endpoints and have a GPU (or an Apple Silicon Mac for the smallest).
+- [[laya]] — Open (Apache 2.0), local, non-autoregressive encoder from Convai Innovations that answers Jev-style choice/score/noul questions in one forward pass. Fast and private, but weak zero-shot and with many options; reach for it for few-option English/multilingual routing you will fine-tune.
+- [[agent-operating-protocol]] — Runbook for an autonomous agent deciding whether and how to use a System One model: availability check -> classify shape -> pick tool -> design question -> fan out once -> route on confidence -> act/escalate -> report. Advisory only in this owner's repo.
+- [[anti-patterns]] — Every documented failure mode, trap and pitfall across the vault, grouped, each with the fix and the note that proves it. Section F lists source disagreements and vendor bias.
+- [[cheat-sheet]] — One page: primitives, thresholds, latency/cost, minimal calls, model landscape, the 12 jev-mcp tools. Follow links for caveats.
+- [[question-design-checklist]] — Write the state, pick Choice/Score/Noul, word options/levels/criteria, add escape outcomes, set thresholds, add companion Nouls, batch in one call. Every rule carries the example or number that proves it.
+- [[when-to-use-which-model]] — Executable decision matrix: deterministic code vs MiniLM-style embeddings vs a System One model (Jev hosted / Laya local / Kev / openjev) vs Sonnet vs Opus. Ladder, escalation triggers, never-use list. Every number cites the note it came from; trust labels matter.
+
+Back to [[Home]].
