@@ -1,0 +1,11 @@
+{
+  "name": "knowledge-toolkit",
+  "owner": { "name": "Syed Amber Iqbal" },
+  "plugins": [
+    {
+      "name": "system-one",
+      "source": "./plugins/system-one",
+      "description": "When and how to use System One decision models (Jev, Laya, MiniLM) and which Claude tier (Sonnet read/condense, Opus synthesise/retrieve) to use. Skill + Opus advisor agent."
+    }
+  ]
+}
