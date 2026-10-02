@@ -958,5 +958,2815 @@
     "mtime": 1783253608.795812,
     "ast_hash": "a328b184eea0dbd4f3d8851a318c8131",
     "semantic_hash": ""
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude-plugin/marketplace.json": {
+    "mtime": 1790923362.6276944,
+    "ast_hash": "d1228564f741f95f8880e1ec53a7c3bf",
+    "semantic_hash": "d1228564f741f95f8880e1ec53a7c3bf"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/settings.json": {
+    "mtime": 1790923362.479325,
+    "ast_hash": "5e5a16de707e969c12d9f9e5893365a3",
+    "semantic_hash": "5e5a16de707e969c12d9f9e5893365a3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/settings.local.json": {
+    "mtime": 1790923362.5579069,
+    "ast_hash": "1f407040c790fd426caa097e048b56e7",
+    "semantic_hash": "1f407040c790fd426caa097e048b56e7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/workflows/storm.js": {
+    "mtime": 1790923362.5515275,
+    "ast_hash": "1fab3ec89d632620e4ebf7cf3e49eb06",
+    "semantic_hash": "1fab3ec89d632620e4ebf7cf3e49eb06"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/workflows/verify-sdcourse-luc.js": {
+    "mtime": 1790923362.5520256,
+    "ast_hash": "157fae2303fdd4f273310e168138e669",
+    "semantic_hash": "157fae2303fdd4f273310e168138e669"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.githooks/post-commit": {
+    "mtime": 1790923362.6281247,
+    "ast_hash": "13e79b5c49af7e05007fc93eda0f1c63",
+    "semantic_hash": "13e79b5c49af7e05007fc93eda0f1c63"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.mcp.json": {
+    "mtime": 1790923362.55238,
+    "ast_hash": "f5d4a2770d429bea238dd96f46bbd6ac",
+    "semantic_hash": "f5d4a2770d429bea238dd96f46bbd6ac"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/refs.json": {
+    "mtime": 1790923362.6289513,
+    "ast_hash": "cdee98d9c35859994b3e1eba15cd38ec",
+    "semantic_hash": "cdee98d9c35859994b3e1eba15cd38ec"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/refs.json": {
+    "mtime": 1790923362.6523883,
+    "ast_hash": "e3d6525b83cd1dc5bbc2fe16e15040fd",
+    "semantic_hash": "e3d6525b83cd1dc5bbc2fe16e15040fd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/refs.json": {
+    "mtime": 1790923362.6572683,
+    "ast_hash": "da6031f6c3c83efa6503359a1c5dbf3e",
+    "semantic_hash": "da6031f6c3c83efa6503359a1c5dbf3e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/refs.json": {
+    "mtime": 1790923362.6667194,
+    "ast_hash": "d820edd43c62e321aaaeb7a8bb27e302",
+    "semantic_hash": "d820edd43c62e321aaaeb7a8bb27e302"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/refs.json": {
+    "mtime": 1790923362.65527,
+    "ast_hash": "7fabb1b0567c72ffcb111ac9501fed33",
+    "semantic_hash": "7fabb1b0567c72ffcb111ac9501fed33"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/mcp_servers/tradingview_mcp_server.py": {
+    "mtime": 1790923362.638389,
+    "ast_hash": "39645423b034b6f0035d59560383723a",
+    "semantic_hash": "39645423b034b6f0035d59560383723a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/.claude-plugin/plugin.json": {
+    "mtime": 1790923362.647014,
+    "ast_hash": "94b645b92baeacc06389f1ec5d1b24dc",
+    "semantic_hash": "94b645b92baeacc06389f1ec5d1b24dc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/pyproject.toml": {
+    "mtime": 1790931363.8501148,
+    "ast_hash": "75f8e55c28254596053fbace47ded97b",
+    "semantic_hash": "75f8e55c28254596053fbace47ded97b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/_pdf_export.py": {
+    "mtime": 1790923362.6549602,
+    "ast_hash": "43f396592766e8cfd88291a5cf0aa385",
+    "semantic_hash": "43f396592766e8cfd88291a5cf0aa385"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/a2_assemble.py": {
+    "mtime": 1790923362.6550937,
+    "ast_hash": "8292c9b25b3e832c6c696c59d21ef803",
+    "semantic_hash": "8292c9b25b3e832c6c696c59d21ef803"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/a2_report.py": {
+    "mtime": 1790923362.655533,
+    "ast_hash": "2d67b8745a155a3a180fde2a8c11a566",
+    "semantic_hash": "2d67b8745a155a3a180fde2a8c11a566"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/a2_write_prep.py": {
+    "mtime": 1790923362.6565232,
+    "ast_hash": "40ab3ad7a715d4d3996c9c7aa2de736a",
+    "semantic_hash": "40ab3ad7a715d4d3996c9c7aa2de736a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/assemble_claims.py": {
+    "mtime": 1790923362.6572359,
+    "ast_hash": "55d17bf8c38cc7b2970edecc0d4b9548",
+    "semantic_hash": "55d17bf8c38cc7b2970edecc0d4b9548"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/audit_existing_wiki.py": {
+    "mtime": 1790923362.657694,
+    "ast_hash": "ff4a21a6bb05d1a436496df00621b996",
+    "semantic_hash": "ff4a21a6bb05d1a436496df00621b996"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/audit_rulebook.py": {
+    "mtime": 1790923362.6580958,
+    "ast_hash": "d9952eb9a6a192360c6c240507f5e891",
+    "semantic_hash": "d9952eb9a6a192360c6c240507f5e891"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/audit_vault_sectors.py": {
+    "mtime": 1790923362.6588972,
+    "ast_hash": "8d2bfbead12730d3afc4501c68d1162e",
+    "semantic_hash": "8d2bfbead12730d3afc4501c68d1162e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/build_framework_vault.py": {
+    "mtime": 1790923362.6596644,
+    "ast_hash": "90d5b1ed92223e51d0e5ab803cd9559f",
+    "semantic_hash": "90d5b1ed92223e51d0e5ab803cd9559f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/build_keyword_index.py": {
+    "mtime": 1790923362.6598492,
+    "ast_hash": "83b24034c0411bb1268bf376e3c6b6d0",
+    "semantic_hash": "83b24034c0411bb1268bf376e3c6b6d0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/build_system_one_vault.py": {
+    "mtime": 1790923362.6601508,
+    "ast_hash": "02df61a2c23786654766ed656aa0c454",
+    "semantic_hash": "02df61a2c23786654766ed656aa0c454"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_chapter_overlap.py": {
+    "mtime": 1790923362.6605744,
+    "ast_hash": "9f41ba9201bf1bcbc1c27aa51c3a3b5a",
+    "semantic_hash": "9f41ba9201bf1bcbc1c27aa51c3a3b5a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/corpus_verified_results.json": {
+    "mtime": 1790923362.662507,
+    "ast_hash": "20566587031759dd179bb1c54efa0769",
+    "semantic_hash": "20566587031759dd179bb1c54efa0769"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/query_corpus.py": {
+    "mtime": 1790923362.6628165,
+    "ast_hash": "59343efe3ef8a745d5010a9b308b6af2",
+    "semantic_hash": "59343efe3ef8a745d5010a9b308b6af2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/query_themes.py": {
+    "mtime": 1790923362.6629868,
+    "ast_hash": "520c787c4acead161cf1060234bd8966",
+    "semantic_hash": "520c787c4acead161cf1060234bd8966"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/route_company.py": {
+    "mtime": 1790923362.664061,
+    "ast_hash": "f98e6f7e67a40f2d66513ad3b79eeadf",
+    "semantic_hash": "f98e6f7e67a40f2d66513ad3b79eeadf"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/seed_corpus.py": {
+    "mtime": 1790923362.664872,
+    "ast_hash": "2518aa6afbfbff3964ad42c660473986",
+    "semantic_hash": "2518aa6afbfbff3964ad42c660473986"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/seed_notebook.py": {
+    "mtime": 1790923362.6651714,
+    "ast_hash": "7a9d56bd71c762f54c23d94fdd138ccf",
+    "semantic_hash": "7a9d56bd71c762f54c23d94fdd138ccf"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/verify_claims.py": {
+    "mtime": 1790923362.665453,
+    "ast_hash": "371be29c31dddea0f4d2a882cf992a12",
+    "semantic_hash": "371be29c31dddea0f4d2a882cf992a12"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_extraction/verify_corpus.py": {
+    "mtime": 1790923362.666518,
+    "ast_hash": "794d892b45add68ba06223c4314a56b0",
+    "semantic_hash": "794d892b45add68ba06223c4314a56b0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/check_system_one_vault.py": {
+    "mtime": 1790923362.6674135,
+    "ast_hash": "396abc51bb35cbaf48a41c36213e851e",
+    "semantic_hash": "396abc51bb35cbaf48a41c36213e851e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/claims_yield.py": {
+    "mtime": 1790923362.6682427,
+    "ast_hash": "a8f95cf59922b4b609b0d5cc73cf58c0",
+    "semantic_hash": "a8f95cf59922b4b609b0d5cc73cf58c0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/detect_lost_conditions.py": {
+    "mtime": 1790923362.6688187,
+    "ast_hash": "a6bd9a82fab49ff3f46380a9ef6e6164",
+    "semantic_hash": "a6bd9a82fab49ff3f46380a9ef6e6164"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/gdrive_upload.py": {
+    "mtime": 1790923362.669126,
+    "ast_hash": "8613f02ea34c4946d4bd10399b596246",
+    "semantic_hash": "8613f02ea34c4946d4bd10399b596246"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/generate_learning_pack.py": {
+    "mtime": 1790923362.6736562,
+    "ast_hash": "9606d0392bc0589a39030bd21272e29d",
+    "semantic_hash": "9606d0392bc0589a39030bd21272e29d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/generate_sdcourse_luc.py": {
+    "mtime": 1790923362.6755865,
+    "ast_hash": "ba6e9fd5fe84049583ece1ff457301ad",
+    "semantic_hash": "ba6e9fd5fe84049583ece1ff457301ad"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/generate_vutr_spark.py": {
+    "mtime": 1790923362.6791158,
+    "ast_hash": "b24c6935934fb400afd9aee61d48ac43",
+    "semantic_hash": "b24c6935934fb400afd9aee61d48ac43"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/learn_by_doing.py": {
+    "mtime": 1790923362.6795163,
+    "ast_hash": "ab93cbb430fe778d07a2d22d53f01ad7",
+    "semantic_hash": "ab93cbb430fe778d07a2d22d53f01ad7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/learning_pack_wiki.py": {
+    "mtime": 1790923362.6800115,
+    "ast_hash": "e0e06960f8062c69d28a308493111a9c",
+    "semantic_hash": "e0e06960f8062c69d28a308493111a9c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/pilot_run.py": {
+    "mtime": 1790923362.68057,
+    "ast_hash": "ac557bb537b9ed183708eb54155608cc",
+    "semantic_hash": "ac557bb537b9ed183708eb54155608cc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/recover_sector_refs_from_scratch.py": {
+    "mtime": 1790923362.6807256,
+    "ast_hash": "8f4378f1e788b3a7cc03924d48a199db",
+    "semantic_hash": "8f4378f1e788b3a7cc03924d48a199db"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/sector_report.py": {
+    "mtime": 1790923362.6808455,
+    "ast_hash": "f9c76cb4ab2b0833d5d7394fb4e5620b",
+    "semantic_hash": "f9c76cb4ab2b0833d5d7394fb4e5620b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/sync_notes_to_vault.py": {
+    "mtime": 1790923362.680994,
+    "ast_hash": "3578cfdfaf0c07735416e1170b2836c3",
+    "semantic_hash": "3578cfdfaf0c07735416e1170b2836c3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/sync_system_one.sh": {
+    "mtime": 1790923362.6811647,
+    "ast_hash": "ac237cf7f9d2232b8843e716eea3a2e6",
+    "semantic_hash": "ac237cf7f9d2232b8843e716eea3a2e6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/common.py": {
+    "mtime": 1790923362.6815388,
+    "ast_hash": "1015f17c3b780b01f1cb53440417da47",
+    "semantic_hash": "1015f17c3b780b01f1cb53440417da47"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/deploy/install_vps.sh": {
+    "mtime": 1790923362.682428,
+    "ast_hash": "57be1b6f5674e3aceb3455147e332d0f",
+    "semantic_hash": "57be1b6f5674e3aceb3455147e332d0f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/deploy/make_bundle.sh": {
+    "mtime": 1790923362.6833925,
+    "ast_hash": "3438ffc3da7c68eb1b1017e8b4881559",
+    "semantic_hash": "3438ffc3da7c68eb1b1017e8b4881559"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/eval_laya.py": {
+    "mtime": 1790923362.684479,
+    "ast_hash": "535f6d50e0e111d3eda1cfb99a1189b9",
+    "semantic_hash": "535f6d50e0e111d3eda1cfb99a1189b9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/export_laya_dataset.py": {
+    "mtime": 1790923362.6847804,
+    "ast_hash": "213e57db1cd91c0711537e25d6d3d1da",
+    "semantic_hash": "213e57db1cd91c0711537e25d6d3d1da"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/finetune_laya_soic.py": {
+    "mtime": 1790923362.6852612,
+    "ast_hash": "569a5b6b3644d3dbbe488609fa162266",
+    "semantic_hash": "569a5b6b3644d3dbbe488609fa162266"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/kaggle/build_kernel.py": {
+    "mtime": 1790965169.0861437,
+    "ast_hash": "3e9641e8cbd0e0f0f99537fd63663ef2",
+    "semantic_hash": "3e9641e8cbd0e0f0f99537fd63663ef2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/laya_data.py": {
+    "mtime": 1790923362.6856887,
+    "ast_hash": "f9a5530ff36c49c490ac0544ead55105",
+    "semantic_hash": "f9a5530ff36c49c490ac0544ead55105"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/minilm_core.py": {
+    "mtime": 1790923362.685961,
+    "ast_hash": "0b59ccea8b198e4cac3a3f34eb73e333",
+    "semantic_hash": "0b59ccea8b198e4cac3a3f34eb73e333"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/serve.py": {
+    "mtime": 1790923362.6862016,
+    "ast_hash": "13b431f25a6adee24e34861f44d8e656",
+    "semantic_hash": "13b431f25a6adee24e34861f44d8e656"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/train_minilm.py": {
+    "mtime": 1790923362.6864407,
+    "ast_hash": "fa5639f252f6fc3add48e1c184a48abb",
+    "semantic_hash": "fa5639f252f6fc3add48e1c184a48abb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/system_one_train/vault_finder.py": {
+    "mtime": 1790923362.6866868,
+    "ast_hash": "49f8a8df2e577c0fc8c3276e950094b6",
+    "semantic_hash": "49f8a8df2e577c0fc8c3276e950094b6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/scripts/verify_briefs.py": {
+    "mtime": 1790923362.686847,
+    "ast_hash": "efc5faf5214530f515d26f3335c72223",
+    "semantic_hash": "efc5faf5214530f515d26f3335c72223"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/instagram_toolkit/__init__.py": {
+    "mtime": 1790923362.6349683,
+    "ast_hash": "d1c6ed23615c222b92b84884991ce091",
+    "semantic_hash": "d1c6ed23615c222b92b84884991ce091"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/instagram_toolkit/auth.py": {
+    "mtime": 1790923362.635348,
+    "ast_hash": "6d8c3be8c1f3fba611f37eae4521644c",
+    "semantic_hash": "6d8c3be8c1f3fba611f37eae4521644c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/instagram_toolkit/cli.py": {
+    "mtime": 1790923362.6364691,
+    "ast_hash": "dec47c5d3fb4c22fe7f99a8dde9b8bb5",
+    "semantic_hash": "dec47c5d3fb4c22fe7f99a8dde9b8bb5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/instagram_toolkit/config.py": {
+    "mtime": 1790923362.6366034,
+    "ast_hash": "083dea054e35457742003274cd1ba936",
+    "semantic_hash": "083dea054e35457742003274cd1ba936"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/instagram_toolkit/crawler.py": {
+    "mtime": 1790923362.6369627,
+    "ast_hash": "6647b930f8a40e3104ca3736e4e5bb89",
+    "semantic_hash": "6647b930f8a40e3104ca3736e4e5bb89"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/instagram_toolkit/extract.py": {
+    "mtime": 1790923362.6374116,
+    "ast_hash": "8910756a1fc859ffe7ef4dba52081d57",
+    "semantic_hash": "8910756a1fc859ffe7ef4dba52081d57"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/__init__.py": {
+    "mtime": 1790923362.6433384,
+    "ast_hash": "9ec280ede19aa1db653e9c808b8a36d7",
+    "semantic_hash": "9ec280ede19aa1db653e9c808b8a36d7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/config.py": {
+    "mtime": 1790923362.6475673,
+    "ast_hash": "780624046739b13299e5641994ada121",
+    "semantic_hash": "780624046739b13299e5641994ada121"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/models.py": {
+    "mtime": 1790923362.6481254,
+    "ast_hash": "4fc7de1ed160f2b346ae10a94810312e",
+    "semantic_hash": "4fc7de1ed160f2b346ae10a94810312e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/pdf_text.py": {
+    "mtime": 1790931265.8434675,
+    "ast_hash": "d46c9c4328873b28225f419a36c9e18a",
+    "semantic_hash": "d46c9c4328873b28225f419a36c9e18a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/store.py": {
+    "mtime": 1790923362.6485152,
+    "ast_hash": "3d62276acb761010658c0582e779c513",
+    "semantic_hash": "3d62276acb761010658c0582e779c513"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/topics.py": {
+    "mtime": 1790923362.6492317,
+    "ast_hash": "3fb64802a463bcb88451aed9443fa8c2",
+    "semantic_hash": "3fb64802a463bcb88451aed9443fa8c2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/media_core/unified_vault.py": {
+    "mtime": 1790923362.6503394,
+    "ast_hash": "290b8ca670203739ae5d6ff624d0e8af",
+    "semantic_hash": "290b8ca670203739ae5d6ff624d0e8af"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/__init__.py": {
+    "mtime": 1790923362.6510398,
+    "ast_hash": "626057902261bd8c2b7a07017698dca8",
+    "semantic_hash": "626057902261bd8c2b7a07017698dca8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/cli.py": {
+    "mtime": 1790923362.6513548,
+    "ast_hash": "bbdc34a84f34eb4591b204f99b2dbe1a",
+    "semantic_hash": "bbdc34a84f34eb4591b204f99b2dbe1a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/corpus.py": {
+    "mtime": 1790923362.651983,
+    "ast_hash": "d8402ba836e90ffef0c8456073a77c95",
+    "semantic_hash": "d8402ba836e90ffef0c8456073a77c95"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/corroborate.py": {
+    "mtime": 1790923362.6523676,
+    "ast_hash": "851629b76a0da7e8e2be7739b39bae76",
+    "semantic_hash": "851629b76a0da7e8e2be7739b39bae76"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/eligibility.py": {
+    "mtime": 1790923362.6527965,
+    "ast_hash": "7909a92bcc4ce278d32261a9eda2d306",
+    "semantic_hash": "7909a92bcc4ce278d32261a9eda2d306"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/extract.py": {
+    "mtime": 1790923362.653465,
+    "ast_hash": "b9ffb77a93288d635e5a698d8b85512c",
+    "semantic_hash": "b9ffb77a93288d635e5a698d8b85512c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/models.py": {
+    "mtime": 1790923362.6536129,
+    "ast_hash": "7eca8b3599a3f75e4e049609367935f3",
+    "semantic_hash": "7eca8b3599a3f75e4e049609367935f3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/publish.py": {
+    "mtime": 1790923362.6547773,
+    "ast_hash": "234ceaf12e7383693db800800d3f89fa",
+    "semantic_hash": "234ceaf12e7383693db800800d3f89fa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/reconcile.py": {
+    "mtime": 1790923362.6560779,
+    "ast_hash": "0d056c0a603cd301afc79bc0d5711ae8",
+    "semantic_hash": "0d056c0a603cd301afc79bc0d5711ae8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/refute.py": {
+    "mtime": 1790923362.656197,
+    "ast_hash": "40eb6555f65b388adc40fc507ae2ca16",
+    "semantic_hash": "40eb6555f65b388adc40fc507ae2ca16"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/router.py": {
+    "mtime": 1790923362.6563532,
+    "ast_hash": "00a1a57d57675d713e8b57579611b74f",
+    "semantic_hash": "00a1a57d57675d713e8b57579611b74f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/screen.py": {
+    "mtime": 1790923362.6572788,
+    "ast_hash": "7a946addb0c94152bad7bacbf55b3b5c",
+    "semantic_hash": "7a946addb0c94152bad7bacbf55b3b5c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_method/verify.py": {
+    "mtime": 1790923362.6581051,
+    "ast_hash": "8a9051e8fb927774233d491d85969f94",
+    "semantic_hash": "8a9051e8fb927774233d491d85969f94"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/__init__.py": {
+    "mtime": 1790923362.6581755,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/decision_engine.py": {
+    "mtime": 1790923362.6586127,
+    "ast_hash": "96cb9df9670e6ce1bc0aa58942e945f6",
+    "semantic_hash": "96cb9df9670e6ce1bc0aa58942e945f6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/decision_rules.py": {
+    "mtime": 1790923362.6592245,
+    "ast_hash": "292f5f05961e9aca36f13df750e03171",
+    "semantic_hash": "292f5f05961e9aca36f13df750e03171"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/framework_router.py": {
+    "mtime": 1790923362.659975,
+    "ast_hash": "8656645bc7cf1163b16b617f6d328e5b",
+    "semantic_hash": "8656645bc7cf1163b16b617f6d328e5b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/notebook_client.py": {
+    "mtime": 1790923362.660702,
+    "ast_hash": "116ad827f5b952a75c670991278bdfa0",
+    "semantic_hash": "116ad827f5b952a75c670991278bdfa0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/notebook_preflight.py": {
+    "mtime": 1790923362.6612227,
+    "ast_hash": "f60f9b85e98e79431af9277cc7c1c0a6",
+    "semantic_hash": "f60f9b85e98e79431af9277cc7c1c0a6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/screener_client.py": {
+    "mtime": 1790923362.6618297,
+    "ast_hash": "ca6d35e80d2e27fde06c60e1d87249e2",
+    "semantic_hash": "ca6d35e80d2e27fde06c60e1d87249e2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/sector_router.py": {
+    "mtime": 1790923362.6621044,
+    "ast_hash": "43c1c2383b4ab4d583c4b7bb86790dda",
+    "semantic_hash": "43c1c2383b4ab4d583c4b7bb86790dda"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_senses/tradingview_client.py": {
+    "mtime": 1790923362.6632864,
+    "ast_hash": "353097af068e6628da3d6ce22ddaa741",
+    "semantic_hash": "353097af068e6628da3d6ce22ddaa741"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/__init__.py": {
+    "mtime": 1790923362.6643603,
+    "ast_hash": "a7a503a51bc9083d14da2934fe966a54",
+    "semantic_hash": "a7a503a51bc9083d14da2934fe966a54"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/auth.py": {
+    "mtime": 1790923362.6647592,
+    "ast_hash": "8ce838359a4b46931c8f66ee4d7a87e9",
+    "semantic_hash": "8ce838359a4b46931c8f66ee4d7a87e9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/cli.py": {
+    "mtime": 1790923362.6649592,
+    "ast_hash": "5a25293f3428c35d9a1dae2757f0818f",
+    "semantic_hash": "5a25293f3428c35d9a1dae2757f0818f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/config.py": {
+    "mtime": 1790923362.6654541,
+    "ast_hash": "ac85a9130d246bbc428b76692da13d55",
+    "semantic_hash": "ac85a9130d246bbc428b76692da13d55"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/crawler.py": {
+    "mtime": 1790923362.665716,
+    "ast_hash": "b665b01235de93ba44d2d2dff83e0aa1",
+    "semantic_hash": "b665b01235de93ba44d2d2dff83e0aa1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/extract.py": {
+    "mtime": 1790923362.665905,
+    "ast_hash": "c8ba0f8db9d2916a25b6177cb28b0961",
+    "semantic_hash": "c8ba0f8db9d2916a25b6177cb28b0961"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/mindmap.py": {
+    "mtime": 1790923362.6660583,
+    "ast_hash": "e2755d078b933bf39231b36ff28fabff",
+    "semantic_hash": "e2755d078b933bf39231b36ff28fabff"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/models.py": {
+    "mtime": 1790923362.6662076,
+    "ast_hash": "3529bb824661f82950233fab384a5b7c",
+    "semantic_hash": "3529bb824661f82950233fab384a5b7c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_toolkit/vault.py": {
+    "mtime": 1790923362.6668363,
+    "ast_hash": "19b97522c8ff72bd7f9595b04b71f8ea",
+    "semantic_hash": "19b97522c8ff72bd7f9595b04b71f8ea"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/__init__.py": {
+    "mtime": 1790923362.6668916,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/adjudication.py": {
+    "mtime": 1790923362.6672077,
+    "ast_hash": "74814b06f75ae1dfcc2509aab392ef88",
+    "semantic_hash": "74814b06f75ae1dfcc2509aab392ef88"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/chunk.py": {
+    "mtime": 1790923362.6678908,
+    "ast_hash": "c8afbc341b1cf84d409ebb031aad69cf",
+    "semantic_hash": "c8afbc341b1cf84d409ebb031aad69cf"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/citation_audit.py": {
+    "mtime": 1790923362.6684859,
+    "ast_hash": "498bc3342e2d1d849147b7709f6504ab",
+    "semantic_hash": "498bc3342e2d1d849147b7709f6504ab"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/claims.py": {
+    "mtime": 1790923362.6691148,
+    "ast_hash": "34557f6c841b4cc250af3a925328ccff",
+    "semantic_hash": "34557f6c841b4cc250af3a925328ccff"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/cli.py": {
+    "mtime": 1790923362.6696398,
+    "ast_hash": "516711c6070d737c9ef35ca9d0a229d2",
+    "semantic_hash": "516711c6070d737c9ef35ca9d0a229d2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/framework_evolution.py": {
+    "mtime": 1790923362.6704135,
+    "ast_hash": "96ab6ae7e20f7bf88391c6356fe9fe52",
+    "semantic_hash": "96ab6ae7e20f7bf88391c6356fe9fe52"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/gates.py": {
+    "mtime": 1790923362.6712828,
+    "ast_hash": "856da306620fa62a37b0ecca1560fba9",
+    "semantic_hash": "856da306620fa62a37b0ecca1560fba9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/keyword_index.py": {
+    "mtime": 1790923362.6714885,
+    "ast_hash": "bac565c8c2cf051db28aaeffe6fc255f",
+    "semantic_hash": "bac565c8c2cf051db28aaeffe6fc255f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/log.py": {
+    "mtime": 1790923362.6719007,
+    "ast_hash": "276023355202f0ea8c2c358e10883b2c",
+    "semantic_hash": "276023355202f0ea8c2c358e10883b2c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/lost_conditions.py": {
+    "mtime": 1790923362.6723096,
+    "ast_hash": "144461de69550b3bb306c761837ac338",
+    "semantic_hash": "144461de69550b3bb306c761837ac338"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/notebooklm_sector_pipeline.py": {
+    "mtime": 1790923362.6728568,
+    "ast_hash": "d3fa3be9a45bcc8eb1c2a1d6f7cad215",
+    "semantic_hash": "d3fa3be9a45bcc8eb1c2a1d6f7cad215"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/oracle.py": {
+    "mtime": 1790923362.6735642,
+    "ast_hash": "02fbf2c01987a77146a1c2fb460bbd37",
+    "semantic_hash": "02fbf2c01987a77146a1c2fb460bbd37"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/pipeline.py": {
+    "mtime": 1790923362.674001,
+    "ast_hash": "ef959cb187dd0ce9a3ec4ddb9f7fac9f",
+    "semantic_hash": "ef959cb187dd0ce9a3ec4ddb9f7fac9f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/reduce.py": {
+    "mtime": 1790923362.6741421,
+    "ast_hash": "3fea4a0c98869e7da42f1d31e199962b",
+    "semantic_hash": "3fea4a0c98869e7da42f1d31e199962b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/ref_crosswalk.py": {
+    "mtime": 1790923362.674277,
+    "ast_hash": "dda5e3d8a74107264a07b7e3e7e0c18c",
+    "semantic_hash": "dda5e3d8a74107264a07b7e3e7e0c18c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/sector_gate.py": {
+    "mtime": 1790923362.6746733,
+    "ast_hash": "b3be170622632a051602bb550caf8d2e",
+    "semantic_hash": "b3be170622632a051602bb550caf8d2e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/soic_wiki/vault_sync.py": {
+    "mtime": 1790923362.6752048,
+    "ast_hash": "901b4a297c109bc5f4b3edb9761b2a7a",
+    "semantic_hash": "901b4a297c109bc5f4b3edb9761b2a7a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/__init__.py": {
+    "mtime": 1790923362.6756966,
+    "ast_hash": "c772972eb77480d682c59d5f2796787b",
+    "semantic_hash": "c772972eb77480d682c59d5f2796787b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/__main__.py": {
+    "mtime": 1790923362.675867,
+    "ast_hash": "c02c7bcad1ea496542e9f44f9be634a2",
+    "semantic_hash": "c02c7bcad1ea496542e9f44f9be634a2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/config.py": {
+    "mtime": 1790923362.676219,
+    "ast_hash": "b8cd7973f03929487161535387883c8e",
+    "semantic_hash": "b8cd7973f03929487161535387883c8e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/html_render.py": {
+    "mtime": 1790923362.6763363,
+    "ast_hash": "4afbcb17ef58ea30ff21e8fd21437e42",
+    "semantic_hash": "4afbcb17ef58ea30ff21e8fd21437e42"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/models.py": {
+    "mtime": 1790923362.6768088,
+    "ast_hash": "eb33b22c7fb2bedb184559bbd2c2be12",
+    "semantic_hash": "eb33b22c7fb2bedb184559bbd2c2be12"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/report.py": {
+    "mtime": 1790923362.6770453,
+    "ast_hash": "98060654b5a939a8a9cff44e979a368b",
+    "semantic_hash": "98060654b5a939a8a9cff44e979a368b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/storm_core/roster.py": {
+    "mtime": 1790923362.6779296,
+    "ast_hash": "2c782577f498cf9e0963415932f711c2",
+    "semantic_hash": "2c782577f498cf9e0963415932f711c2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/__init__.py": {
+    "mtime": 1790923362.678288,
+    "ast_hash": "33604b3710426f68e0c315c5928fa741",
+    "semantic_hash": "33604b3710426f68e0c315c5928fa741"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/auth.py": {
+    "mtime": 1790923362.6347516,
+    "ast_hash": "2b5502794dedb9f9ed7bcb0ee47ff998",
+    "semantic_hash": "2b5502794dedb9f9ed7bcb0ee47ff998"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/cli.py": {
+    "mtime": 1790923362.6349254,
+    "ast_hash": "ca7ea90c6ed048357b416ef0ce6ae5f5",
+    "semantic_hash": "ca7ea90c6ed048357b416ef0ce6ae5f5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/config.py": {
+    "mtime": 1790923362.6372309,
+    "ast_hash": "0b9a641df82adc69df642a048b0a44f1",
+    "semantic_hash": "0b9a641df82adc69df642a048b0a44f1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/crawler.py": {
+    "mtime": 1790923362.646477,
+    "ast_hash": "8bb863b68daa77a1ba1a95d4bd1d4b38",
+    "semantic_hash": "8bb863b68daa77a1ba1a95d4bd1d4b38"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/extract.py": {
+    "mtime": 1790923362.647731,
+    "ast_hash": "dc0463eb5a9a5f6da16ac0248773ced3",
+    "semantic_hash": "dc0463eb5a9a5f6da16ac0248773ced3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/models.py": {
+    "mtime": 1790923362.6479015,
+    "ast_hash": "22198b2f6f49c1b925c075db1246f177",
+    "semantic_hash": "22198b2f6f49c1b925c075db1246f177"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/topics.py": {
+    "mtime": 1790923362.6481016,
+    "ast_hash": "861144481e81e442edd01e7c03eecb89",
+    "semantic_hash": "861144481e81e442edd01e7c03eecb89"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/substack_toolkit/vault.py": {
+    "mtime": 1790923362.6489193,
+    "ast_hash": "bb39ea8828c4d69cc1a1559e3c87fbd7",
+    "semantic_hash": "bb39ea8828c4d69cc1a1559e3c87fbd7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/web_toolkit/__init__.py": {
+    "mtime": 1790923362.649122,
+    "ast_hash": "003cc1b5aa1bf60d5e18fa4da18184d2",
+    "semantic_hash": "003cc1b5aa1bf60d5e18fa4da18184d2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/web_toolkit/capture.py": {
+    "mtime": 1790923362.649394,
+    "ast_hash": "b9bfeb33ac70918bf13568d2620f5d6a",
+    "semantic_hash": "b9bfeb33ac70918bf13568d2620f5d6a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/web_toolkit/cli.py": {
+    "mtime": 1790923362.6495433,
+    "ast_hash": "cd63314315ffb1a68b9366a7be85b77f",
+    "semantic_hash": "cd63314315ffb1a68b9366a7be85b77f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/youtube_toolkit/__init__.py": {
+    "mtime": 1790923362.6497562,
+    "ast_hash": "a6622f52e6683ebf0a462ea0a0a41824",
+    "semantic_hash": "a6622f52e6683ebf0a462ea0a0a41824"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/youtube_toolkit/capture.py": {
+    "mtime": 1790923362.6504042,
+    "ast_hash": "2d4118aa107809d9bd001b9607f1b700",
+    "semantic_hash": "2d4118aa107809d9bd001b9607f1b700"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/src/youtube_toolkit/cli.py": {
+    "mtime": 1790923362.6508248,
+    "ast_hash": "6172a2617b9e5ae5731b86de0af0084f",
+    "semantic_hash": "6172a2617b9e5ae5731b86de0af0084f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/instagram_profile_posts.json": {
+    "mtime": 1790923362.653078,
+    "ast_hash": "3a897810ce88db675b47071f8ce884d3",
+    "semantic_hash": "3a897810ce88db675b47071f8ce884d3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_check_extraction_attribute_gate.py": {
+    "mtime": 1790923362.657674,
+    "ast_hash": "1f0704cd68aee8cfb41c6d3f4fbab2a7",
+    "semantic_hash": "1f0704cd68aee8cfb41c6d3f4fbab2a7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_citation_audit.py": {
+    "mtime": 1790923362.6585035,
+    "ast_hash": "e3fe8fba0ecc0d4de00e0b1044d48393",
+    "semantic_hash": "e3fe8fba0ecc0d4de00e0b1044d48393"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_claims.py": {
+    "mtime": 1790923362.658837,
+    "ast_hash": "a7bb8cea494c563ee26f9d81e40fcb68",
+    "semantic_hash": "a7bb8cea494c563ee26f9d81e40fcb68"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_crawl_integration.py": {
+    "mtime": 1790923362.6590393,
+    "ast_hash": "f683549b185b81ad849bd40508e08f8c",
+    "semantic_hash": "f683549b185b81ad849bd40508e08f8c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_extract.py": {
+    "mtime": 1790923362.6592267,
+    "ast_hash": "eebdb99d94baebcd7dc5a357bf6fb0fe",
+    "semantic_hash": "eebdb99d94baebcd7dc5a357bf6fb0fe"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_instagram_extract.py": {
+    "mtime": 1790923362.6595786,
+    "ast_hash": "94a3379d1493c9173e379ccbe4ae4935",
+    "semantic_hash": "94a3379d1493c9173e379ccbe4ae4935"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_learn_by_doing.py": {
+    "mtime": 1790923362.660183,
+    "ast_hash": "3246ba6f65d22c935ae059e1181664f0",
+    "semantic_hash": "3246ba6f65d22c935ae059e1181664f0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_learning_pack_wiki.py": {
+    "mtime": 1790923362.6603365,
+    "ast_hash": "049d4e2d40091dc7fe3c9864536b0398",
+    "semantic_hash": "049d4e2d40091dc7fe3c9864536b0398"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_lost_conditions.py": {
+    "mtime": 1790923362.660562,
+    "ast_hash": "4630574712596977210b547d3874cbd2",
+    "semantic_hash": "4630574712596977210b547d3874cbd2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_media_topics.py": {
+    "mtime": 1790923362.6610112,
+    "ast_hash": "a7a06f8e9268ba521baf26b8140bd942",
+    "semantic_hash": "a7a06f8e9268ba521baf26b8140bd942"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_media_vault.py": {
+    "mtime": 1790923362.661485,
+    "ast_hash": "3a4b55e28799dcd329bfa60376701731",
+    "semantic_hash": "3a4b55e28799dcd329bfa60376701731"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_media_web.py": {
+    "mtime": 1790923362.6616259,
+    "ast_hash": "dbe6efffb1bba146780053e15286e74d",
+    "semantic_hash": "dbe6efffb1bba146780053e15286e74d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_media_youtube.py": {
+    "mtime": 1790923362.6619782,
+    "ast_hash": "68107758b0f77cdd177c66a59458cf5c",
+    "semantic_hash": "68107758b0f77cdd177c66a59458cf5c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_mindmap.py": {
+    "mtime": 1790923362.6621902,
+    "ast_hash": "4f32aabf390cb42af2c798acd43e6e35",
+    "semantic_hash": "4f32aabf390cb42af2c798acd43e6e35"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_pdf_ingest_guard.py": {
+    "mtime": 1790931887.3212152,
+    "ast_hash": "76c5081672d0d92e68bd03811883d047",
+    "semantic_hash": "76c5081672d0d92e68bd03811883d047"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_pdf_text.py": {
+    "mtime": 1790931258.5034268,
+    "ast_hash": "b209c80f9b4d8d4657c834c293a1c83a",
+    "semantic_hash": "b209c80f9b4d8d4657c834c293a1c83a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_portal.py": {
+    "mtime": 1790923362.6639147,
+    "ast_hash": "97a308022d49dfa30a264799a4a8a78c",
+    "semantic_hash": "97a308022d49dfa30a264799a4a8a78c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_ref_crosswalk.py": {
+    "mtime": 1790923362.6644804,
+    "ast_hash": "0b0eae2c7028b16327ca96e48fc986a4",
+    "semantic_hash": "0b0eae2c7028b16327ca96e48fc986a4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_corpus.py": {
+    "mtime": 1790923362.6651657,
+    "ast_hash": "57547e71061e8b959954d6484bcafbf3",
+    "semantic_hash": "57547e71061e8b959954d6484bcafbf3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_corroborate.py": {
+    "mtime": 1790923362.6659322,
+    "ast_hash": "2a1ea64747e622e7573ceb172ef1e1a8",
+    "semantic_hash": "2a1ea64747e622e7573ceb172ef1e1a8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_eligibility.py": {
+    "mtime": 1790923362.666066,
+    "ast_hash": "7869e4a18c7426f912cbba0f4a745a47",
+    "semantic_hash": "7869e4a18c7426f912cbba0f4a745a47"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_extract.py": {
+    "mtime": 1790923362.6667936,
+    "ast_hash": "02f27a9ea778eb330e2f43b985fcfdc9",
+    "semantic_hash": "02f27a9ea778eb330e2f43b985fcfdc9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_models.py": {
+    "mtime": 1790923362.6677125,
+    "ast_hash": "82e32fcfd3f20a8ef8bf47abc4619ba5",
+    "semantic_hash": "82e32fcfd3f20a8ef8bf47abc4619ba5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_pipeline.py": {
+    "mtime": 1790923362.668232,
+    "ast_hash": "4f8ef3e1a767babaae5429d252327248",
+    "semantic_hash": "4f8ef3e1a767babaae5429d252327248"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_publish.py": {
+    "mtime": 1790923362.6691136,
+    "ast_hash": "3cb2c4ed8a8b996d2c0d3df415d513b4",
+    "semantic_hash": "3cb2c4ed8a8b996d2c0d3df415d513b4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_reconcile.py": {
+    "mtime": 1790923362.6696396,
+    "ast_hash": "d988b10bf1b69fcc89d0df1e21a81318",
+    "semantic_hash": "d988b10bf1b69fcc89d0df1e21a81318"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_refute.py": {
+    "mtime": 1790923362.6704087,
+    "ast_hash": "6a9035db06aa9bd27c2afb91b4607555",
+    "semantic_hash": "6a9035db06aa9bd27c2afb91b4607555"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_router.py": {
+    "mtime": 1790923362.6707013,
+    "ast_hash": "e68bbb0c1f99ceb3b012b138021f5103",
+    "semantic_hash": "e68bbb0c1f99ceb3b012b138021f5103"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_screen.py": {
+    "mtime": 1790923362.6713846,
+    "ast_hash": "b5a63dcd56db3ea0231ed8209ff68c3e",
+    "semantic_hash": "b5a63dcd56db3ea0231ed8209ff68c3e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_method_verify.py": {
+    "mtime": 1790923362.6718574,
+    "ast_hash": "5d5541d1d2ef89cca01b9cd3fbcbd463",
+    "semantic_hash": "5d5541d1d2ef89cca01b9cd3fbcbd463"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_decision_engine.py": {
+    "mtime": 1790923362.6723943,
+    "ast_hash": "d58d186120175131c286aa74051a0375",
+    "semantic_hash": "d58d186120175131c286aa74051a0375"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_decision_rules.py": {
+    "mtime": 1790923362.6725714,
+    "ast_hash": "46bbe1d5f09be09ecfe6d8181e4220af",
+    "semantic_hash": "46bbe1d5f09be09ecfe6d8181e4220af"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_framework_router.py": {
+    "mtime": 1790923362.67311,
+    "ast_hash": "ff2e6430cc30d7cafac1d91690e2ac37",
+    "semantic_hash": "ff2e6430cc30d7cafac1d91690e2ac37"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_notebook_client.py": {
+    "mtime": 1790923362.6735563,
+    "ast_hash": "0f9f3be53ace931d09471ef572fa5cf1",
+    "semantic_hash": "0f9f3be53ace931d09471ef572fa5cf1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_notebook_preflight.py": {
+    "mtime": 1790923362.6739707,
+    "ast_hash": "52a3e45334328741fd042eb4218042b1",
+    "semantic_hash": "52a3e45334328741fd042eb4218042b1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_screener.py": {
+    "mtime": 1790923362.6741652,
+    "ast_hash": "43dbe65ce2d416f688875db80c0a88fe",
+    "semantic_hash": "43dbe65ce2d416f688875db80c0a88fe"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_screener_statements.py": {
+    "mtime": 1790923362.6745207,
+    "ast_hash": "e8567d4f9e65410e894ac1cafdc3815c",
+    "semantic_hash": "e8567d4f9e65410e894ac1cafdc3815c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_sector_router.py": {
+    "mtime": 1790923362.6748629,
+    "ast_hash": "23b3c7d1e9647ec968cfda4ff86831f0",
+    "semantic_hash": "23b3c7d1e9647ec968cfda4ff86831f0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_senses_tradingview_client.py": {
+    "mtime": 1790923362.6756153,
+    "ast_hash": "2c434ac927105429225b7f489cebfd9e",
+    "semantic_hash": "2c434ac927105429225b7f489cebfd9e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_adjudication.py": {
+    "mtime": 1790923362.6757703,
+    "ast_hash": "6764a70b149282d957ea721147e040cb",
+    "semantic_hash": "6764a70b149282d957ea721147e040cb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_chunk.py": {
+    "mtime": 1790923362.6759365,
+    "ast_hash": "0020e989a5fc6d698aba5e5654efd26e",
+    "semantic_hash": "0020e989a5fc6d698aba5e5654efd26e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_cli.py": {
+    "mtime": 1790923362.6765485,
+    "ast_hash": "b9c243f83a5c8b7a81ced1fe02c10cc0",
+    "semantic_hash": "b9c243f83a5c8b7a81ced1fe02c10cc0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_framework_evolution.py": {
+    "mtime": 1790923362.6767917,
+    "ast_hash": "09eceec576c78888a7987d61e4339fff",
+    "semantic_hash": "09eceec576c78888a7987d61e4339fff"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_gates.py": {
+    "mtime": 1790923362.6770022,
+    "ast_hash": "1367d78acc26ee536f5c1224f9d3703e",
+    "semantic_hash": "1367d78acc26ee536f5c1224f9d3703e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_keyword_index.py": {
+    "mtime": 1790923362.6777954,
+    "ast_hash": "0b0cb02b739fcb2aa2f9028ddc8a05b7",
+    "semantic_hash": "0b0cb02b739fcb2aa2f9028ddc8a05b7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_log.py": {
+    "mtime": 1790923362.677967,
+    "ast_hash": "c6ebb58c2ecbc06af388d4f42f5b63ea",
+    "semantic_hash": "c6ebb58c2ecbc06af388d4f42f5b63ea"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_notebooklm_sector_pipeline.py": {
+    "mtime": 1790923362.6782904,
+    "ast_hash": "0ceaa2ce67dc598d6597afa2303b2693",
+    "semantic_hash": "0ceaa2ce67dc598d6597afa2303b2693"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_oracle.py": {
+    "mtime": 1790923362.6785655,
+    "ast_hash": "d5528e98a17fd85cba25ae8205d1c1d2",
+    "semantic_hash": "d5528e98a17fd85cba25ae8205d1c1d2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_pipeline.py": {
+    "mtime": 1790923362.6788719,
+    "ast_hash": "8bd3df14f3a674590d91422102836c2c",
+    "semantic_hash": "8bd3df14f3a674590d91422102836c2c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_reduce.py": {
+    "mtime": 1790923362.638678,
+    "ast_hash": "d5e2a8cea59d55555467e0aae036847a",
+    "semantic_hash": "d5e2a8cea59d55555467e0aae036847a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_sector_gate.py": {
+    "mtime": 1790923362.6466393,
+    "ast_hash": "54fd5495347f853d973d55353a4aa9ac",
+    "semantic_hash": "54fd5495347f853d973d55353a4aa9ac"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_soic_wiki_vault_sync.py": {
+    "mtime": 1790923362.6484613,
+    "ast_hash": "ec0e871d6698a39cdb0040e984c38757",
+    "semantic_hash": "ec0e871d6698a39cdb0040e984c38757"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_storm_cli.py": {
+    "mtime": 1790923362.648981,
+    "ast_hash": "e50d55d36320225ef1e9e085f6f696a0",
+    "semantic_hash": "e50d55d36320225ef1e9e085f6f696a0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_storm_config.py": {
+    "mtime": 1790923362.6494474,
+    "ast_hash": "e28f3331cd292fcf1b8fb13cbb78a18e",
+    "semantic_hash": "e28f3331cd292fcf1b8fb13cbb78a18e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_storm_html.py": {
+    "mtime": 1790923362.650132,
+    "ast_hash": "3161d77ac44c4bff52e2820794901a55",
+    "semantic_hash": "3161d77ac44c4bff52e2820794901a55"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_storm_models.py": {
+    "mtime": 1790923362.6507013,
+    "ast_hash": "745a2c14a817a85f62c5a22cc8722170",
+    "semantic_hash": "745a2c14a817a85f62c5a22cc8722170"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_storm_report.py": {
+    "mtime": 1790923362.6513143,
+    "ast_hash": "daecebf49c96aafd97c5c105076ea657",
+    "semantic_hash": "daecebf49c96aafd97c5c105076ea657"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_storm_roster.py": {
+    "mtime": 1790923362.6516695,
+    "ast_hash": "84be28f3b2d5a59ef24f9dac5da56184",
+    "semantic_hash": "84be28f3b2d5a59ef24f9dac5da56184"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_auth.py": {
+    "mtime": 1790923362.6520388,
+    "ast_hash": "f5985a80cc7de94f0610db931eb4d4dd",
+    "semantic_hash": "f5985a80cc7de94f0610db931eb4d4dd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_crawl.py": {
+    "mtime": 1790923362.6524162,
+    "ast_hash": "ba968f8a0e976baec1f238d679f93a37",
+    "semantic_hash": "ba968f8a0e976baec1f238d679f93a37"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_e2e.py": {
+    "mtime": 1790923362.6526752,
+    "ast_hash": "54d02e6ddd7bc1d4b1222d19dab67cbd",
+    "semantic_hash": "54d02e6ddd7bc1d4b1222d19dab67cbd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_extract.py": {
+    "mtime": 1790923362.6528866,
+    "ast_hash": "5e776dd11d3ec9cd35e4fd721ec3a84e",
+    "semantic_hash": "5e776dd11d3ec9cd35e4fd721ec3a84e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_models.py": {
+    "mtime": 1790923362.6534119,
+    "ast_hash": "e099e9411a917603a29b2e4ccdcb9e74",
+    "semantic_hash": "e099e9411a917603a29b2e4ccdcb9e74"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_topics.py": {
+    "mtime": 1790923362.6542673,
+    "ast_hash": "7e451fa818a918651bf21499ad1c5ea5",
+    "semantic_hash": "7e451fa818a918651bf21499ad1c5ea5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_substack_vault.py": {
+    "mtime": 1790923362.654418,
+    "ast_hash": "f0dd842db4c6207a7efee0f17fb4d097",
+    "semantic_hash": "f0dd842db4c6207a7efee0f17fb4d097"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_unified_vault.py": {
+    "mtime": 1790923362.6546173,
+    "ast_hash": "113a59e57276d324e1e5f92eb7a63080",
+    "semantic_hash": "113a59e57276d324e1e5f92eb7a63080"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/test_vault.py": {
+    "mtime": 1790923362.6553855,
+    "ast_hash": "0d3a45db88e75f4782b544c69f914a1a",
+    "semantic_hash": "0d3a45db88e75f4782b544c69f914a1a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/database.py": {
+    "mtime": 1790923362.6555753,
+    "ast_hash": "14629e9aa7b1e6840fb2085292cfc8e9",
+    "semantic_hash": "14629e9aa7b1e6840fb2085292cfc8e9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/main.py": {
+    "mtime": 1790923362.6557605,
+    "ast_hash": "6f1ec45bba1421af7eba34f6b5fa8df4",
+    "semantic_hash": "6f1ec45bba1421af7eba34f6b5fa8df4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/models.py": {
+    "mtime": 1790923362.6565113,
+    "ast_hash": "cd55897b32a699908f72ec52faccd225",
+    "semantic_hash": "cd55897b32a699908f72ec52faccd225"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/pipeline/__init__.py": {
+    "mtime": 1790923362.6571014,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/routers/__init__.py": {
+    "mtime": 1790923362.657465,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/routers/pipeline.py": {
+    "mtime": 1790923362.6581006,
+    "ast_hash": "78d383ccc71c2c3390ec383ba91106d5",
+    "semantic_hash": "78d383ccc71c2c3390ec383ba91106d5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/routers/runs.py": {
+    "mtime": 1790923362.6582727,
+    "ast_hash": "7fd4c8d7e203a4153545456fe16cbf45",
+    "semantic_hash": "7fd4c8d7e203a4153545456fe16cbf45"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/routers/topics.py": {
+    "mtime": 1790923362.658434,
+    "ast_hash": "19ee225f3e4dab87d7c0b1e41424f1e4",
+    "semantic_hash": "19ee225f3e4dab87d7c0b1e41424f1e4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/schemas.py": {
+    "mtime": 1790923362.6592174,
+    "ast_hash": "38f476f790da4b4375c99e8d29e1eeb3",
+    "semantic_hash": "38f476f790da4b4375c99e8d29e1eeb3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/seed.py": {
+    "mtime": 1790923362.6597373,
+    "ast_hash": "f81966a3160b2ebedfe59aca1cb569dd",
+    "semantic_hash": "f81966a3160b2ebedfe59aca1cb569dd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/.eslintrc.json": {
+    "mtime": 1790923362.6598828,
+    "ast_hash": "5cc89077d438e3d0d0a8308ab7e06a5a",
+    "semantic_hash": "5cc89077d438e3d0d0a8308ab7e06a5a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/app/layout.tsx": {
+    "mtime": 1790923362.666058,
+    "ast_hash": "08876214b9abb53276045bdc2189133f",
+    "semantic_hash": "08876214b9abb53276045bdc2189133f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/app/page.tsx": {
+    "mtime": 1790923362.6661973,
+    "ast_hash": "824023cbbbd7cf8a8ad841d2d98df668",
+    "semantic_hash": "824023cbbbd7cf8a8ad841d2d98df668"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/app/runs/[id]/page.tsx": {
+    "mtime": 1790923362.6668806,
+    "ast_hash": "bc49245e4fee3f8127b6e1a2acf6b8da",
+    "semantic_hash": "bc49245e4fee3f8127b6e1a2acf6b8da"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/app/runs/new/page.tsx": {
+    "mtime": 1790923362.6677375,
+    "ast_hash": "90139ec5cc9772a5bec0f6f5b63686c6",
+    "semantic_hash": "90139ec5cc9772a5bec0f6f5b63686c6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/app/runs/page.tsx": {
+    "mtime": 1790923362.6683848,
+    "ast_hash": "5ffdb785685133a325fb7ff8bae1befa",
+    "semantic_hash": "5ffdb785685133a325fb7ff8bae1befa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/Topbar.tsx": {
+    "mtime": 1790923362.6688719,
+    "ast_hash": "38b608da8a1731aa5f00d258b9973ccb",
+    "semantic_hash": "38b608da8a1731aa5f00d258b9973ccb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/pack-builder/AttentionDigest.tsx": {
+    "mtime": 1790923362.6691694,
+    "ast_hash": "8ce28a15f93dc7e662980ac8c7a7bc01",
+    "semantic_hash": "8ce28a15f93dc7e662980ac8c7a7bc01"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/pack-builder/AuthorChips.tsx": {
+    "mtime": 1790923362.6698627,
+    "ast_hash": "49408644fbb5ad8d98a392955d45a7d2",
+    "semantic_hash": "49408644fbb5ad8d98a392955d45a7d2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/pack-builder/ChapterFields.tsx": {
+    "mtime": 1790923362.6701684,
+    "ast_hash": "063ca42420ceeba50cb960ed289571aa",
+    "semantic_hash": "063ca42420ceeba50cb960ed289571aa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/pack-builder/ExaminerGrid.tsx": {
+    "mtime": 1790923362.6705866,
+    "ast_hash": "ac6b29c19258f60316be95467ac92a1f",
+    "semantic_hash": "ac6b29c19258f60316be95467ac92a1f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/pack-builder/RunPreview.tsx": {
+    "mtime": 1790923362.6716301,
+    "ast_hash": "1f3e6563731170230a15311d831b8bfb",
+    "semantic_hash": "1f3e6563731170230a15311d831b8bfb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/pack-builder/TopicBrowser.tsx": {
+    "mtime": 1790923362.671822,
+    "ast_hash": "15fa0d307a725b0a54a1f161cfb78f02",
+    "semantic_hash": "15fa0d307a725b0a54a1f161cfb78f02"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/run-detail/AgentStrip.tsx": {
+    "mtime": 1790923362.6729038,
+    "ast_hash": "c5f4c82759882be414372f6ee3c66882",
+    "semantic_hash": "c5f4c82759882be414372f6ee3c66882"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/run-detail/GapsList.tsx": {
+    "mtime": 1790923362.6735945,
+    "ast_hash": "06b33fe56138666cacd73a6b4a751772",
+    "semantic_hash": "06b33fe56138666cacd73a6b4a751772"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/run-detail/LiveLog.tsx": {
+    "mtime": 1790923362.6748989,
+    "ast_hash": "cd2972867b5dba9e19d3326725ab80aa",
+    "semantic_hash": "cd2972867b5dba9e19d3326725ab80aa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/run-detail/ScoreGrid.tsx": {
+    "mtime": 1790923362.675307,
+    "ast_hash": "5de15fc4585983296ebfa11e3a15d64e",
+    "semantic_hash": "5de15fc4585983296ebfa11e3a15d64e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/run-detail/Sidebar.tsx": {
+    "mtime": 1790923362.6755173,
+    "ast_hash": "d35e77c14a3e04a271e650b52654775f",
+    "semantic_hash": "d35e77c14a3e04a271e650b52654775f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/runs/FilterPills.tsx": {
+    "mtime": 1790923362.6760654,
+    "ast_hash": "565f274282b04d125d842f835bdba47d",
+    "semantic_hash": "565f274282b04d125d842f835bdba47d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/runs/RunListTable.tsx": {
+    "mtime": 1790923362.6767848,
+    "ast_hash": "ec1e1a09e01523196721fd41b839c84f",
+    "semantic_hash": "ec1e1a09e01523196721fd41b839c84f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/runs/StatsRow.tsx": {
+    "mtime": 1790923362.678036,
+    "ast_hash": "fe631d2fc1c15d87baab39d6f7d1bdbc",
+    "semantic_hash": "fe631d2fc1c15d87baab39d6f7d1bdbc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/sign-off/DeliveryChecklist.tsx": {
+    "mtime": 1790923362.6785321,
+    "ast_hash": "8078df0518336c8f98f2f236214b69e4",
+    "semantic_hash": "8078df0518336c8f98f2f236214b69e4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/components/sign-off/SignOffCards.tsx": {
+    "mtime": 1790923362.6791143,
+    "ast_hash": "35d69a202d46867828a52a627a6b74f6",
+    "semantic_hash": "35d69a202d46867828a52a627a6b74f6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/lib/api.ts": {
+    "mtime": 1790923362.6798732,
+    "ast_hash": "df2f007fa64e37219353879867262cf0",
+    "semantic_hash": "df2f007fa64e37219353879867262cf0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/lib/colors.ts": {
+    "mtime": 1790923362.68035,
+    "ast_hash": "7a18400760ad4809c2f3d46e0e0acfb3",
+    "semantic_hash": "7a18400760ad4809c2f3d46e0e0acfb3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/lib/types.ts": {
+    "mtime": 1790923362.6806843,
+    "ast_hash": "fea123a2f7dd9325d6eb7e6acdfd8e43",
+    "semantic_hash": "fea123a2f7dd9325d6eb7e6acdfd8e43"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/next.config.mjs": {
+    "mtime": 1790923362.6811373,
+    "ast_hash": "21958f5752add43cc47ab0ff5172cd46",
+    "semantic_hash": "21958f5752add43cc47ab0ff5172cd46"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/package.json": {
+    "mtime": 1790923362.6821203,
+    "ast_hash": "fa4b18ebd53aad0d7bfd44738e3c9491",
+    "semantic_hash": "fa4b18ebd53aad0d7bfd44738e3c9491"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/postcss.config.mjs": {
+    "mtime": 1790923362.682323,
+    "ast_hash": "b7941c02b947e17ae32f67ae7e664ec8",
+    "semantic_hash": "b7941c02b947e17ae32f67ae7e664ec8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/tailwind.config.ts": {
+    "mtime": 1790923362.6832924,
+    "ast_hash": "0826c737afb29cb1a79f60969ed53a28",
+    "semantic_hash": "0826c737afb29cb1a79f60969ed53a28"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/tsconfig.json": {
+    "mtime": 1790923362.6836274,
+    "ast_hash": "570e85507d1fb0c609255b9a0aa95595",
+    "semantic_hash": "570e85507d1fb0c609255b9a0aa95595"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/start.sh": {
+    "mtime": 1790923362.6839962,
+    "ast_hash": "b1b70c82924319e485329373a37239e8",
+    "semantic_hash": "b1b70c82924319e485329373a37239e8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/alex.md": {
+    "mtime": 1790923362.475091,
+    "ast_hash": "d59be842d5c78b7c50f1c9277ba1ac6d",
+    "semantic_hash": "d59be842d5c78b7c50f1c9277ba1ac6d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/ben-dicken.md": {
+    "mtime": 1790923362.475256,
+    "ast_hash": "1889cbd92bca4826cd873cbee538a012",
+    "semantic_hash": "1889cbd92bca4826cd873cbee538a012"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/instagram-capturer.md": {
+    "mtime": 1790923362.4754858,
+    "ast_hash": "5e0b1d109278575716b7a38b73df3aef",
+    "semantic_hash": "5e0b1d109278575716b7a38b73df3aef"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/jack-roberts.md": {
+    "mtime": 1790923362.4761326,
+    "ast_hash": "727236c9a0f9f56068eddf5fd64a493e",
+    "semantic_hash": "727236c9a0f9f56068eddf5fd64a493e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/justin-sung.md": {
+    "mtime": 1790923362.4763799,
+    "ast_hash": "f0060f4657488bd651bb81fef31a317e",
+    "semantic_hash": "f0060f4657488bd651bb81fef31a317e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/lucsystemdesign.md": {
+    "mtime": 1790923362.4768164,
+    "ast_hash": "85540b399c2fefa60389b8611a618b91",
+    "semantic_hash": "85540b399c2fefa60389b8611a618b91"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/media-capturer.md": {
+    "mtime": 1790923362.4769318,
+    "ast_hash": "5100f6de4f59afd02deb3aa6addfff9e",
+    "semantic_hash": "5100f6de4f59afd02deb3aa6addfff9e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/nate-herk.md": {
+    "mtime": 1790923362.4776385,
+    "ast_hash": "938508ab56eb4f28f5332b07d8164864",
+    "semantic_hash": "938508ab56eb4f28f5332b07d8164864"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/sdcourse.md": {
+    "mtime": 1790923362.4782035,
+    "ast_hash": "2040fb7043cbac8b725bc9acec5f32b7",
+    "semantic_hash": "2040fb7043cbac8b725bc9acec5f32b7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/substack-capturer.md": {
+    "mtime": 1790923362.4783506,
+    "ast_hash": "0caf1dbc4c525316c3de4d9b8bea09aa",
+    "semantic_hash": "0caf1dbc4c525316c3de4d9b8bea09aa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/system-one-advisor.md": {
+    "mtime": 1790923362.4785883,
+    "ast_hash": "7370bc14571e9ced0d2c2132844c7962",
+    "semantic_hash": "7370bc14571e9ced0d2c2132844c7962"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/vutr.md": {
+    "mtime": 1790923362.4788897,
+    "ast_hash": "31374d92550fa69a727d0821bded9b16",
+    "semantic_hash": "31374d92550fa69a727d0821bded9b16"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/.claude/agents/youtube-capturer.md": {
+    "mtime": 1790923362.4791121,
+    "ast_hash": "b6725f5b9112a9daea48d5de498b98ff",
+    "semantic_hash": "b6725f5b9112a9daea48d5de498b98ff"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/CLAUDE.md": {
+    "mtime": 1790931895.7332942,
+    "ast_hash": "c7c678727efb15887e62dd95f0c7667e",
+    "semantic_hash": "c7c678727efb15887e62dd95f0c7667e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/README.md": {
+    "mtime": 1790923362.6284497,
+    "ast_hash": "4f47a8d25dd5b4f67fbd731f820c324f",
+    "semantic_hash": "4f47a8d25dd5b4f67fbd731f820c324f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/configs/course_eligibility.yaml": {
+    "mtime": 1790923362.6318505,
+    "ast_hash": "77a6c8b34fd04e7210490c6431e1e8ab",
+    "semantic_hash": "77a6c8b34fd04e7210490c6431e1e8ab"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/configs/g1_adjudications.yaml": {
+    "mtime": 1790923362.6334362,
+    "ast_hash": "d0242c48581f6d7b562db0cb5fc17dd9",
+    "semantic_hash": "d0242c48581f6d7b562db0cb5fc17dd9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/configs/notebooks.yaml": {
+    "mtime": 1790923362.6336598,
+    "ast_hash": "af0ee4b3bf2ce1dcb3a0120c37c5aa68",
+    "semantic_hash": "af0ee4b3bf2ce1dcb3a0120c37c5aa68"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/configs/resolutions.yaml": {
+    "mtime": 1790923362.6338084,
+    "ast_hash": "95d4679828f6c3c54a6ffe4e372ef34b",
+    "semantic_hash": "95d4679828f6c3c54a6ffe4e372ef34b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/configs/sector_notebooks.yaml": {
+    "mtime": 1790923362.634044,
+    "ast_hash": "1e730fb06f39e7286cc864dfdb6d2645",
+    "semantic_hash": "1e730fb06f39e7286cc864dfdb6d2645"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/CHECK-EXTRACTION-PILOT-2026-07-29.md": {
+    "mtime": 1790923362.6344564,
+    "ast_hash": "9afa801f7eb1f89c234e715d0e678c96",
+    "semantic_hash": "9afa801f7eb1f89c234e715d0e678c96"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/CLAUDE-CODE-OUTPUT-STYLES.md": {
+    "mtime": 1790923362.635147,
+    "ast_hash": "b2113d5b38a5fd1e82a1e7b3c05a1d95",
+    "semantic_hash": "b2113d5b38a5fd1e82a1e7b3c05a1d95"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/END_TO_END_PLAN.md": {
+    "mtime": 1790923362.6356134,
+    "ast_hash": "4dd6a457a3ba9411207750551d116914",
+    "semantic_hash": "4dd6a457a3ba9411207750551d116914"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/FULL_WORKFLOW_GUIDE.md": {
+    "mtime": 1790923362.636055,
+    "ast_hash": "9eb6c96cfad13fe67a3d8b7e8b3ff82d",
+    "semantic_hash": "9eb6c96cfad13fe67a3d8b7e8b3ff82d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/HANDOFF-PDF-OCR-2026-10-02.md": {
+    "mtime": 1790964684.2042015,
+    "ast_hash": "5e204595a49333e9dfa3c48752d51004",
+    "semantic_hash": "5e204595a49333e9dfa3c48752d51004"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/JEV-MCP-SETUP.md": {
+    "mtime": 1790923362.6362073,
+    "ast_hash": "10d6630f10e360045b7e6e6a1e7fa950",
+    "semantic_hash": "10d6630f10e360045b7e6e6a1e7fa950"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md": {
+    "mtime": 1790923362.6371288,
+    "ast_hash": "6b7d960c42109fab78a6c1fdd079ada0",
+    "semantic_hash": "6b7d960c42109fab78a6c1fdd079ada0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/PORTAL_NOTES.md": {
+    "mtime": 1790923362.6465015,
+    "ast_hash": "1ab9e56a9dfe39c829130cd1cc7d0b00",
+    "semantic_hash": "1ab9e56a9dfe39c829130cd1cc7d0b00"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/SYSTEM-ONE-SETUP.md": {
+    "mtime": 1790923362.647421,
+    "ast_hash": "6dff157412c85414be99c76a4e24e769",
+    "semantic_hash": "6dff157412c85414be99c76a4e24e769"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/SYSTEM-ONE-TRAINING.md": {
+    "mtime": 1790965169.085692,
+    "ast_hash": "a6f0f4a3d6f101b64a4bd2e1eb7942bc",
+    "semantic_hash": "a6f0f4a3d6f101b64a4bd2e1eb7942bc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/COVERAGE-GAP-CLOSEOUT.md": {
+    "mtime": 1790923362.649366,
+    "ast_hash": "c362d668c94ecfbf59135708ee7903fc",
+    "semantic_hash": "c362d668c94ecfbf59135708ee7903fc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/COVERAGE-GAP-GATHERING.md": {
+    "mtime": 1790923362.6501665,
+    "ast_hash": "a796d2d04f9435e28bf7ffe2b978c9bd",
+    "semantic_hash": "a796d2d04f9435e28bf7ffe2b978c9bd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/COVERAGE-GAP-JUDGMENT.md": {
+    "mtime": 1790923362.6508398,
+    "ast_hash": "ea6201a095a936d37f02e5827dedb4b6",
+    "semantic_hash": "ea6201a095a936d37f02e5827dedb4b6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/DECISION-REVIEW.md": {
+    "mtime": 1790923362.6518583,
+    "ast_hash": "98f2eb5837b8f45fe6c48f23bd483ba7",
+    "semantic_hash": "98f2eb5837b8f45fe6c48f23bd483ba7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ERRATA.md": {
+    "mtime": 1790923362.652741,
+    "ast_hash": "dde3079d487f860f6fa557ef0bb94826",
+    "semantic_hash": "dde3079d487f860f6fa557ef0bb94826"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/FABLE-REVIEW-CANSLIM.md": {
+    "mtime": 1790923362.653971,
+    "ast_hash": "f1cf10467c357c9957fe2dc742a7dde4",
+    "semantic_hash": "f1cf10467c357c9957fe2dc742a7dde4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/FABLE-REVIEW-CAPITAL-EFFICIENCY.md": {
+    "mtime": 1790923362.6548803,
+    "ast_hash": "2ceba958c4c91451ea740b208c46d479",
+    "semantic_hash": "2ceba958c4c91451ea740b208c46d479"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/FABLE-REVIEW-CLOSEOUT.md": {
+    "mtime": 1790923362.655338,
+    "ast_hash": "ee8ee28d71fa76338724b27bd0dfad8f",
+    "semantic_hash": "ee8ee28d71fa76338724b27bd0dfad8f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/FABLE-REVIEW-ENTRY-TECHNICALS.md": {
+    "mtime": 1790923362.6570625,
+    "ast_hash": "065eb113a429efd66b8318e48d2e82cd",
+    "semantic_hash": "065eb113a429efd66b8318e48d2e82cd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/FABLE-REVIEW-OBSERVATIONS.md": {
+    "mtime": 1790923362.658002,
+    "ast_hash": "2bf3c87d9642251a2af3ba6bb274d43d",
+    "semantic_hash": "2bf3c87d9642251a2af3ba6bb274d43d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LEVEL4-KNOWLEDGE-GRAPH.md": {
+    "mtime": 1790923362.658433,
+    "ast_hash": "7af072f0729ce24177b302ba097a01c0",
+    "semantic_hash": "7af072f0729ce24177b302ba097a01c0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LEVEL5-AGENT-MEMORY-DESIGN.md": {
+    "mtime": 1790923362.6589198,
+    "ast_hash": "f3404f7e19830462b85ee542028f7a24",
+    "semantic_hash": "f3404f7e19830462b85ee542028f7a24"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LEVEL5-BACKTEST-MEMORY-DESIGN.md": {
+    "mtime": 1790923362.6595154,
+    "ast_hash": "3d45933c917f8c1e3e0a4ae110d19f04",
+    "semantic_hash": "3d45933c917f8c1e3e0a4ae110d19f04"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-CANSLIM.md": {
+    "mtime": 1790923362.6601367,
+    "ast_hash": "abfa237d24b1e2d31d3a2177a5352b18",
+    "semantic_hash": "abfa237d24b1e2d31d3a2177a5352b18"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-CAPITAL-EFFICIENCY.md": {
+    "mtime": 1790923362.6606226,
+    "ast_hash": "eb4d7481341e2c21f4a73d4f578473dd",
+    "semantic_hash": "eb4d7481341e2c21f4a73d4f578473dd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-ENTRY-TECHNICALS.md": {
+    "mtime": 1790923362.661195,
+    "ast_hash": "5a6b6a6326a51946f4483e41fdbfde58",
+    "semantic_hash": "5a6b6a6326a51946f4483e41fdbfde58"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-GATE-CLOSEOUT.md": {
+    "mtime": 1790923362.6620185,
+    "ast_hash": "823b93eabddf8d99ff028c7e67578001",
+    "semantic_hash": "823b93eabddf8d99ff028c7e67578001"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-MARKETCAP-PB.md": {
+    "mtime": 1790923362.6623495,
+    "ast_hash": "6965e44c5c7c94a6902df4bd71140f86",
+    "semantic_hash": "6965e44c5c7c94a6902df4bd71140f86"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-OBSERVATION-CLOSEOUT.md": {
+    "mtime": 1790923362.6625087,
+    "ast_hash": "a2c60b3e23bfe35ba2976da2e1051be5",
+    "semantic_hash": "a2c60b3e23bfe35ba2976da2e1051be5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-PE-CONTEXT.md": {
+    "mtime": 1790923362.6627593,
+    "ast_hash": "e4f30d78eb7d8828bab72384815a7eec",
+    "semantic_hash": "e4f30d78eb7d8828bab72384815a7eec"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/LOST-CONDITIONS-PEG.md": {
+    "mtime": 1790923362.6629863,
+    "ast_hash": "e52b22eb9ede63fc7943b591faded65d",
+    "semantic_hash": "e52b22eb9ede63fc7943b591faded65d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/READER_BRIEF.md": {
+    "mtime": 1790923362.6631382,
+    "ast_hash": "94f410a8df02213d828d9e028b4bd8e1",
+    "semantic_hash": "94f410a8df02213d828d9e028b4bd8e1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/README.md": {
+    "mtime": 1790923362.6632795,
+    "ast_hash": "875333c0334727433d5128d66a16829e",
+    "semantic_hash": "875333c0334727433d5128d66a16829e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ROADMAP.md": {
+    "mtime": 1790923362.6634042,
+    "ast_hash": "70f4d061b2a6c36bdae64beba2523030",
+    "semantic_hash": "70f4d061b2a6c36bdae64beba2523030"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/STAGE3-CLAIM-EXTRACTION.md": {
+    "mtime": 1790923362.6635797,
+    "ast_hash": "9b57403d69d3063f6989dd12f534db10",
+    "semantic_hash": "9b57403d69d3063f6989dd12f534db10"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/BVB.md": {
+    "mtime": 1790923362.663879,
+    "ast_hash": "94ab3c5e5c0454d81688a49fa74af684",
+    "semantic_hash": "94ab3c5e5c0454d81688a49fa74af684"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/CFSHC.md": {
+    "mtime": 1790923362.664409,
+    "ast_hash": "911d9717ad897234ac2fea5d5fcafb07",
+    "semantic_hash": "911d9717ad897234ac2fea5d5fcafb07"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/DSFDO.md": {
+    "mtime": 1790923362.6646726,
+    "ast_hash": "b4f60668ff91b65ea1af2401d46a678c",
+    "semantic_hash": "b4f60668ff91b65ea1af2401d46a678c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/FESTF.md": {
+    "mtime": 1790923362.6656463,
+    "ast_hash": "9e03adefd5b98a229cdb22d1a52f15d4",
+    "semantic_hash": "9e03adefd5b98a229cdb22d1a52f15d4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/FMFDF.md": {
+    "mtime": 1790923362.6662083,
+    "ast_hash": "628ef871851cbe1f45e1ad5dd15618d7",
+    "semantic_hash": "628ef871851cbe1f45e1ad5dd15618d7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/FMNA2.md": {
+    "mtime": 1790923362.6666405,
+    "ast_hash": "c3c7b2cc66ea3ffa4d0b990eb5acaa6c",
+    "semantic_hash": "c3c7b2cc66ea3ffa4d0b990eb5acaa6c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/FMNAF.md": {
+    "mtime": 1790923362.6671326,
+    "ast_hash": "94b6140a95a9308007a11128859f4371",
+    "semantic_hash": "94b6140a95a9308007a11128859f4371"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/FSNAF.md": {
+    "mtime": 1790923362.6679852,
+    "ast_hash": "9586b55d7ac379c971fd951f916292eb",
+    "semantic_hash": "9586b55d7ac379c971fd951f916292eb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/JFSNJ.md": {
+    "mtime": 1790923362.6691713,
+    "ast_hash": "111db18fe4f5bea3cee0942566ca0920",
+    "semantic_hash": "111db18fe4f5bea3cee0942566ca0920"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/PIWEP.md": {
+    "mtime": 1790923362.670018,
+    "ast_hash": "1a3ec51f208b386726494df2b21f9740",
+    "semantic_hash": "1a3ec51f208b386726494df2b21f9740"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/RSSER.md": {
+    "mtime": 1790923362.6710074,
+    "ast_hash": "871dd18f04541bbfd43c9b15a170d744",
+    "semantic_hash": "871dd18f04541bbfd43c9b15a170d744"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SCSTS.md": {
+    "mtime": 1790923362.6714518,
+    "ast_hash": "4a56e7e948a9ca9dbca897273ac00a9c",
+    "semantic_hash": "4a56e7e948a9ca9dbca897273ac00a9c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SESCS.md": {
+    "mtime": 1790923362.6722257,
+    "ast_hash": "9ad6c124aafe0aee35012831f09d682e",
+    "semantic_hash": "9ad6c124aafe0aee35012831f09d682e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SGBT2.md": {
+    "mtime": 1790923362.673288,
+    "ast_hash": "ffb3bba976e641cf794976c38ae931bc",
+    "semantic_hash": "ffb3bba976e641cf794976c38ae931bc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SGBTS.md": {
+    "mtime": 1790923362.6737926,
+    "ast_hash": "f16bf633274b167b158cb47ed38c55a2",
+    "semantic_hash": "f16bf633274b167b158cb47ed38c55a2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SGSTS.md": {
+    "mtime": 1790923362.6740031,
+    "ast_hash": "10d71ad46875a310c62dd2dca4c1ddfe",
+    "semantic_hash": "10d71ad46875a310c62dd2dca4c1ddfe"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SMEC2.md": {
+    "mtime": 1790923362.6747606,
+    "ast_hash": "8c0bb45166362e9ca19feca8463bcb65",
+    "semantic_hash": "8c0bb45166362e9ca19feca8463bcb65"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SMECS.md": {
+    "mtime": 1790923362.6751878,
+    "ast_hash": "5b877ef4d64dd77f1b30cea465d5fa02",
+    "semantic_hash": "5b877ef4d64dd77f1b30cea465d5fa02"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SWCTS.md": {
+    "mtime": 1790923362.6753836,
+    "ast_hash": "7776ebc87f32e1c74da5ef1d720bc4e5",
+    "semantic_hash": "7776ebc87f32e1c74da5ef1d720bc4e5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/SYNTHESIS.md": {
+    "mtime": 1790923362.6759326,
+    "ast_hash": "99577f84404fb769a6421d873c8feff8",
+    "semantic_hash": "99577f84404fb769a6421d873c8feff8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/TFMLT.md": {
+    "mtime": 1790923362.676462,
+    "ast_hash": "50cdc6dcb839f54ae911f81644ec8277",
+    "semantic_hash": "50cdc6dcb839f54ae911f81644ec8277"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/TVGP2.md": {
+    "mtime": 1790923362.6766837,
+    "ast_hash": "41a11517cd4236f50b37f4b64da164f9",
+    "semantic_hash": "41a11517cd4236f50b37f4b64da164f9"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/TVGPT.md": {
+    "mtime": 1790923362.67775,
+    "ast_hash": "4e3aedbe030aa6093e52dcd8418b7c92",
+    "semantic_hash": "4e3aedbe030aa6093e52dcd8418b7c92"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/VALU2.md": {
+    "mtime": 1790923362.6789014,
+    "ast_hash": "5c6cae7c940f7aeb8089f11f3ad0198f",
+    "semantic_hash": "5c6cae7c940f7aeb8089f11f3ad0198f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/VALUV.md": {
+    "mtime": 1790923362.6793342,
+    "ast_hash": "6c4a2028a6e31a3e75258a692b490630",
+    "semantic_hash": "6c4a2028a6e31a3e75258a692b490630"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/VDVUV.md": {
+    "mtime": 1790923362.679834,
+    "ast_hash": "40fe71fda878b874c4babf2d20081268",
+    "semantic_hash": "40fe71fda878b874c4babf2d20081268"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/crash/gate_report.md": {
+    "mtime": 1790923362.6287801,
+    "ast_hash": "1e0db399dc70448470ff5dd80e652610",
+    "semantic_hash": "1e0db399dc70448470ff5dd80e652610"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/CSLRC.md": {
+    "mtime": 1790923362.6292887,
+    "ast_hash": "905cc7319c9e7bbf99a9232dd51cc245",
+    "semantic_hash": "905cc7319c9e7bbf99a9232dd51cc245"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/CWLCC.md": {
+    "mtime": 1790923362.6294546,
+    "ast_hash": "6b49d44b77f68e29af76980bb8265bb1",
+    "semantic_hash": "6b49d44b77f68e29af76980bb8265bb1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/DSEFD.md": {
+    "mtime": 1790923362.629595,
+    "ast_hash": "f62fc971bff328c9f998aa8cdf9d0a08",
+    "semantic_hash": "f62fc971bff328c9f998aa8cdf9d0a08"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/ESRLE.md": {
+    "mtime": 1790923362.629927,
+    "ast_hash": "432cfc07895907f00f0c5b8f399249da",
+    "semantic_hash": "432cfc07895907f00f0c5b8f399249da"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/FSSDF.md": {
+    "mtime": 1790923362.6301723,
+    "ast_hash": "3d8bfd2be8b84e44fd5c143af358b41e",
+    "semantic_hash": "3d8bfd2be8b84e44fd5c143af358b41e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/FSSMF.md": {
+    "mtime": 1790923362.6303294,
+    "ast_hash": "0e8db541ddf3d44b0200094e3c2f96c8",
+    "semantic_hash": "0e8db541ddf3d44b0200094e3c2f96c8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/HGBYH.md": {
+    "mtime": 1790923362.6308014,
+    "ast_hash": "b03ce34577df57732a48cb4c32ed0f32",
+    "semantic_hash": "b03ce34577df57732a48cb4c32ed0f32"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/MAAIM.md": {
+    "mtime": 1790923362.6323867,
+    "ast_hash": "07e00b46fdc87b75f6efc5cd9fb4ff7a",
+    "semantic_hash": "07e00b46fdc87b75f6efc5cd9fb4ff7a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/MAEIM.md": {
+    "mtime": 1790923362.6332235,
+    "ast_hash": "2f772cd5118d781c6fab601ffbe24980",
+    "semantic_hash": "2f772cd5118d781c6fab601ffbe24980"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/MSRTM.md": {
+    "mtime": 1790923362.6343048,
+    "ast_hash": "fb02bafeef2367548aaac88725e0eeac",
+    "semantic_hash": "fb02bafeef2367548aaac88725e0eeac"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/RSCAR.md": {
+    "mtime": 1790923362.6349156,
+    "ast_hash": "9f1cf2c21a156ce09b4d43b81375ae11",
+    "semantic_hash": "9f1cf2c21a156ce09b4d43b81375ae11"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/SBFTS.md": {
+    "mtime": 1790923362.6352375,
+    "ast_hash": "c42325543e761ba504d906f752eab8ad",
+    "semantic_hash": "c42325543e761ba504d906f752eab8ad"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/SYNTHESIS.md": {
+    "mtime": 1790923362.6363318,
+    "ast_hash": "5556f54a74f04584447bd15b06106ed7",
+    "semantic_hash": "5556f54a74f04584447bd15b06106ed7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/TVPD2.md": {
+    "mtime": 1790923362.636908,
+    "ast_hash": "48e8411813c76fe579d20af2ce2a3619",
+    "semantic_hash": "48e8411813c76fe579d20af2ce2a3619"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/TVPDT.md": {
+    "mtime": 1790923362.6466408,
+    "ast_hash": "07be671da14a5bf77073b709afcfd7c6",
+    "semantic_hash": "07be671da14a5bf77073b709afcfd7c6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/VPVUV.md": {
+    "mtime": 1790923362.6477854,
+    "ast_hash": "b82cdb379d889ac4bd58546398d7a453",
+    "semantic_hash": "b82cdb379d889ac4bd58546398d7a453"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/WBPNW.md": {
+    "mtime": 1790923362.6488981,
+    "ast_hash": "12b87d8c9a8d307c49b4247883f5b1c6",
+    "semantic_hash": "12b87d8c9a8d307c49b4247883f5b1c6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/WBSNW.md": {
+    "mtime": 1790923362.649635,
+    "ast_hash": "714a8ca5cec819232306b48b4857ed99",
+    "semantic_hash": "714a8ca5cec819232306b48b4857ed99"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/WESNW.md": {
+    "mtime": 1790923362.6505446,
+    "ast_hash": "cce90b4bd70a20736edae2c831eccbd3",
+    "semantic_hash": "cce90b4bd70a20736edae2c831eccbd3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/WWLTW.md": {
+    "mtime": 1790923362.651016,
+    "ast_hash": "d855241486606edb17aa3775f49db118",
+    "semantic_hash": "d855241486606edb17aa3775f49db118"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l4/gate_report.md": {
+    "mtime": 1790923362.6517038,
+    "ast_hash": "c84e925975b14aac361756bb46d151b1",
+    "semantic_hash": "c84e925975b14aac361756bb46d151b1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/LSARL.md": {
+    "mtime": 1790923362.6530232,
+    "ast_hash": "baa3f417aed667d7f4c1167e8a8f1981",
+    "semantic_hash": "baa3f417aed667d7f4c1167e8a8f1981"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/SDBES.md": {
+    "mtime": 1790923362.6537926,
+    "ast_hash": "f79eee1bbe663c3e40dc27f761034802",
+    "semantic_hash": "f79eee1bbe663c3e40dc27f761034802"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/SIBES.md": {
+    "mtime": 1790923362.6546953,
+    "ast_hash": "015c6e1854c874e6d5d264a739cfe25b",
+    "semantic_hash": "015c6e1854c874e6d5d264a739cfe25b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/SYNTHESIS.md": {
+    "mtime": 1790923362.655192,
+    "ast_hash": "4afe987f0f737c97782a94f19d4bf552",
+    "semantic_hash": "4afe987f0f737c97782a94f19d4bf552"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/TFELT.md": {
+    "mtime": 1790923362.6565602,
+    "ast_hash": "7c00d5700322e5c4ab3901527643ca60",
+    "semantic_hash": "7c00d5700322e5c4ab3901527643ca60"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/l5/gate_report.md": {
+    "mtime": 1790923362.6567397,
+    "ast_hash": "c60532032f86283185b3b62d0efddeae",
+    "semantic_hash": "c60532032f86283185b3b62d0efddeae"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ladder-context-2026-08-22.md": {
+    "mtime": 1790923362.657445,
+    "ast_hash": "af6c6772abef2ec94263e54dab0b2849",
+    "semantic_hash": "af6c6772abef2ec94263e54dab0b2849"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/ARTBV.md": {
+    "mtime": 1790923362.658238,
+    "ast_hash": "157c34f84f259fafc339650b0da9c9ec",
+    "semantic_hash": "157c34f84f259fafc339650b0da9c9ec"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/BUFF.md": {
+    "mtime": 1790923362.658615,
+    "ast_hash": "117d161d30409ca5de53563e10a37799",
+    "semantic_hash": "117d161d30409ca5de53563e10a37799"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/FMODA.md": {
+    "mtime": 1790923362.6592202,
+    "ast_hash": "7449b637a1bb973dfb486ee54a8ea9b0",
+    "semantic_hash": "7449b637a1bb973dfb486ee54a8ea9b0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/FMODB.md": {
+    "mtime": 1790923362.6603327,
+    "ast_hash": "c8bc59eab3373f4876153dbdf9bc56f4",
+    "semantic_hash": "c8bc59eab3373f4876153dbdf9bc56f4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/ODDM.md": {
+    "mtime": 1790923362.6609106,
+    "ast_hash": "53179bbb3be877f9d0ca142079a52ee5",
+    "semantic_hash": "53179bbb3be877f9d0ca142079a52ee5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/PALLOC.md": {
+    "mtime": 1790923362.6615927,
+    "ast_hash": "8d244aec50d36ba32627d95fff7da11e",
+    "semantic_hash": "8d244aec50d36ba32627d95fff7da11e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/SYNTHESIS.md": {
+    "mtime": 1790923362.662319,
+    "ast_hash": "72a7182e6975966c1bfefc7eb838e4b8",
+    "semantic_hash": "72a7182e6975966c1bfefc7eb838e4b8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/VACRA.md": {
+    "mtime": 1790923362.6637979,
+    "ast_hash": "90677cca0b0b559e8cd2e30b9d03041e",
+    "semantic_hash": "90677cca0b0b559e8cd2e30b9d03041e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/VACRB.md": {
+    "mtime": 1790923362.664304,
+    "ast_hash": "422de8d5c8fb1b65a48ab7b266432341",
+    "semantic_hash": "422de8d5c8fb1b65a48ab7b266432341"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/VCONC.md": {
+    "mtime": 1790923362.6648216,
+    "ast_hash": "40b293bd2d4eb2acf98c2757a01a5b6a",
+    "semantic_hash": "40b293bd2d4eb2acf98c2757a01a5b6a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/VINTRO.md": {
+    "mtime": 1790923362.6653805,
+    "ast_hash": "fe983c62ac6aadcb1934fad0921f37bd",
+    "semantic_hash": "fe983c62ac6aadcb1934fad0921f37bd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/gate_report.md": {
+    "mtime": 1790923362.666357,
+    "ast_hash": "4e2e78d27ef35b3b2a236d1d941dd049",
+    "semantic_hash": "4e2e78d27ef35b3b2a236d1d941dd049"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/level-3/the-backwards-filter.html": {
+    "mtime": 1790923362.666975,
+    "ast_hash": "760b9dd531916377871a8eff101f7065",
+    "semantic_hash": "760b9dd531916377871a8eff101f7065"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0103.md": {
+    "mtime": 1790923362.6674738,
+    "ast_hash": "5174787c851a01b1eaa84aaab14e3afa",
+    "semantic_hash": "5174787c851a01b1eaa84aaab14e3afa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0305A.md": {
+    "mtime": 1790923362.66847,
+    "ast_hash": "7e8220a311bbc1b9def90f9771fcbb07",
+    "semantic_hash": "7e8220a311bbc1b9def90f9771fcbb07"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0305B.md": {
+    "mtime": 1790923362.668985,
+    "ast_hash": "cc3330f7b0dded6b9cadc6e1ca1bc496",
+    "semantic_hash": "cc3330f7b0dded6b9cadc6e1ca1bc496"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0507.md": {
+    "mtime": 1790923362.6696546,
+    "ast_hash": "466fe5295f8fb4dec071503221f797ba",
+    "semantic_hash": "466fe5295f8fb4dec071503221f797ba"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0609.md": {
+    "mtime": 1790923362.6702733,
+    "ast_hash": "2767857f2d695fd24aaf6e7b25dbe15c",
+    "semantic_hash": "2767857f2d695fd24aaf6e7b25dbe15c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0706A.md": {
+    "mtime": 1790923362.6707854,
+    "ast_hash": "aecf5b7bbf00e1013724380f7e940004",
+    "semantic_hash": "aecf5b7bbf00e1013724380f7e940004"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0706B.md": {
+    "mtime": 1790923362.6712523,
+    "ast_hash": "b5ab14a4a2888d449aad02581a20e10b",
+    "semantic_hash": "b5ab14a4a2888d449aad02581a20e10b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0803A.md": {
+    "mtime": 1790923362.6728706,
+    "ast_hash": "0a6d7c8a5ad937b82b5bf9ea5a1d5a0b",
+    "semantic_hash": "0a6d7c8a5ad937b82b5bf9ea5a1d5a0b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS0803B.md": {
+    "mtime": 1790923362.6736398,
+    "ast_hash": "b98479e06ac8a0ad9297ffaa84357955",
+    "semantic_hash": "b98479e06ac8a0ad9297ffaa84357955"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1005A.md": {
+    "mtime": 1790923362.674709,
+    "ast_hash": "42122be0ef715865304a6c959637d65e",
+    "semantic_hash": "42122be0ef715865304a6c959637d65e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1005B.md": {
+    "mtime": 1790923362.6753209,
+    "ast_hash": "3cfb2e9a567abfa9db421db4d544557e",
+    "semantic_hash": "3cfb2e9a567abfa9db421db4d544557e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1005C.md": {
+    "mtime": 1790923362.6758084,
+    "ast_hash": "5adabbbd6c73582df67f4550bbd5a8c3",
+    "semantic_hash": "5adabbbd6c73582df67f4550bbd5a8c3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1204A.md": {
+    "mtime": 1790923362.676097,
+    "ast_hash": "ca139ee94f855166fcf5cef90c12e84a",
+    "semantic_hash": "ca139ee94f855166fcf5cef90c12e84a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1204B.md": {
+    "mtime": 1790923362.6771016,
+    "ast_hash": "ab9bff84bc22cfd3821112d26b4f9c26",
+    "semantic_hash": "ab9bff84bc22cfd3821112d26b4f9c26"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1207A.md": {
+    "mtime": 1790923362.6788278,
+    "ast_hash": "ff0fdea0187dac92311dd854bf77114a",
+    "semantic_hash": "ff0fdea0187dac92311dd854bf77114a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1207B.md": {
+    "mtime": 1790923362.6795175,
+    "ast_hash": "1106402285e3994e390e311c8eae7551",
+    "semantic_hash": "1106402285e3994e390e311c8eae7551"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1406A.md": {
+    "mtime": 1790923362.679771,
+    "ast_hash": "f238ad0420110ed580b86c4841cfc90a",
+    "semantic_hash": "f238ad0420110ed580b86c4841cfc90a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1406B.md": {
+    "mtime": 1790923362.6800137,
+    "ast_hash": "9d7a620522f1736c51c1ee8e1f057941",
+    "semantic_hash": "9d7a620522f1736c51c1ee8e1f057941"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1503A.md": {
+    "mtime": 1790923362.6803203,
+    "ast_hash": "f833bd46ae8a8bb9a927f1889e23fc93",
+    "semantic_hash": "f833bd46ae8a8bb9a927f1889e23fc93"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1503B.md": {
+    "mtime": 1790923362.6815598,
+    "ast_hash": "40f2bab9f88ba1134811c40cc9eb40f4",
+    "semantic_hash": "40f2bab9f88ba1134811c40cc9eb40f4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1705.md": {
+    "mtime": 1790923362.6821568,
+    "ast_hash": "949d6e8bc74b90827b84471dda87553f",
+    "semantic_hash": "949d6e8bc74b90827b84471dda87553f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1904.md": {
+    "mtime": 1790923362.6826832,
+    "ast_hash": "18e7db66c14c5eb22875e2462a3df0fa",
+    "semantic_hash": "18e7db66c14c5eb22875e2462a3df0fa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1907A.md": {
+    "mtime": 1790923362.6829593,
+    "ast_hash": "9b464120707387379aae11202f28317c",
+    "semantic_hash": "9b464120707387379aae11202f28317c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS1907B.md": {
+    "mtime": 1790923362.632731,
+    "ast_hash": "5a5d8f5f136b6d04492ee787b57d439f",
+    "semantic_hash": "5a5d8f5f136b6d04492ee787b57d439f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2106A.md": {
+    "mtime": 1790923362.6334386,
+    "ast_hash": "b76a4d94d91ad3752c7d940d0cc72332",
+    "semantic_hash": "b76a4d94d91ad3752c7d940d0cc72332"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2106B.md": {
+    "mtime": 1790923362.633675,
+    "ast_hash": "3317e392a14f995122f1eaee85c3a499",
+    "semantic_hash": "3317e392a14f995122f1eaee85c3a499"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2203.md": {
+    "mtime": 1790923362.6353986,
+    "ast_hash": "ceef962d12fbe1f13594eafaeb3a27e6",
+    "semantic_hash": "ceef962d12fbe1f13594eafaeb3a27e6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2402.md": {
+    "mtime": 1790923362.63583,
+    "ast_hash": "76a875480f7ef8198fc2492ef3ca76cc",
+    "semantic_hash": "76a875480f7ef8198fc2492ef3ca76cc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2405A.md": {
+    "mtime": 1790923362.6365407,
+    "ast_hash": "816b960903c25af474b6d37250bca13d",
+    "semantic_hash": "816b960903c25af474b6d37250bca13d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2405B.md": {
+    "mtime": 1790923362.6367571,
+    "ast_hash": "44fd03bdec5a89e9a3a6ad69784d73ef",
+    "semantic_hash": "44fd03bdec5a89e9a3a6ad69784d73ef"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2604A.md": {
+    "mtime": 1790923362.643422,
+    "ast_hash": "a3e142e21654fde2d9e78ad7149500dd",
+    "semantic_hash": "a3e142e21654fde2d9e78ad7149500dd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2604B.md": {
+    "mtime": 1790923362.6476545,
+    "ast_hash": "89419936d1d18c305dd3c67247aba870",
+    "semantic_hash": "89419936d1d18c305dd3c67247aba870"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2607A.md": {
+    "mtime": 1790923362.6489198,
+    "ast_hash": "d57f71ce55b555f171be2ff25f270d32",
+    "semantic_hash": "d57f71ce55b555f171be2ff25f270d32"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2607B.md": {
+    "mtime": 1790923362.6491532,
+    "ast_hash": "e7d8a5e45fe72ece5083de6c4f879d73",
+    "semantic_hash": "e7d8a5e45fe72ece5083de6c4f879d73"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2806A.md": {
+    "mtime": 1790923362.650154,
+    "ast_hash": "ef57c40810f9edfb2712116d9dfbe3e1",
+    "semantic_hash": "ef57c40810f9edfb2712116d9dfbe3e1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS2806B.md": {
+    "mtime": 1790923362.6507816,
+    "ast_hash": "9bbff316b09b66cec1849f8df09d544f",
+    "semantic_hash": "9bbff316b09b66cec1849f8df09d544f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS3008A.md": {
+    "mtime": 1790923362.6518245,
+    "ast_hash": "61f129d8bbfbb987eca29384a726c34a",
+    "semantic_hash": "61f129d8bbfbb987eca29384a726c34a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS3008B.md": {
+    "mtime": 1790923362.6525056,
+    "ast_hash": "525bfeb3e5ca8ca0f096824afe87b693",
+    "semantic_hash": "525bfeb3e5ca8ca0f096824afe87b693"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/MS3105.md": {
+    "mtime": 1790923362.653144,
+    "ast_hash": "d7e2ff81c88a6f4285ebb11c003064ea",
+    "semantic_hash": "d7e2ff81c88a6f4285ebb11c003064ea"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/SYNTHESIS.md": {
+    "mtime": 1790923362.6537924,
+    "ast_hash": "37e218d92a53eefe7df93e0c5a098def",
+    "semantic_hash": "37e218d92a53eefe7df93e0c5a098def"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reassessment/ms/gate_report.md": {
+    "mtime": 1790923362.6543825,
+    "ast_hash": "93cddb7ce5110e4793972b3588a10c9c",
+    "semantic_hash": "93cddb7ce5110e4793972b3588a10c9c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/reviews/soic-method-pilot-report.md": {
+    "mtime": 1790923362.6564398,
+    "ast_hash": "6dc6d616079061cf7cf389318a18c463",
+    "semantic_hash": "6dc6d616079061cf7cf389318a18c463"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-06-21-substack-toolkit.md": {
+    "mtime": 1790923362.65804,
+    "ast_hash": "7b7f301a86928cff4c1aa6d8c50f9ac4",
+    "semantic_hash": "7b7f301a86928cff4c1aa6d8c50f9ac4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-06-23-youtube-subproject-unified-vault.md": {
+    "mtime": 1790923362.6585023,
+    "ast_hash": "0f283659c8afed80306ec3d0bd48de4c",
+    "semantic_hash": "0f283659c8afed80306ec3d0bd48de4c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-06-29-knowledge-toolkit-ui.md": {
+    "mtime": 1790923362.6597645,
+    "ast_hash": "035d3e577c9e3d62f6f08bd83155ca91",
+    "semantic_hash": "035d3e577c9e3d62f6f08bd83155ca91"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-05-nate-herk-jack-roberts-personas.md": {
+    "mtime": 1790923362.660493,
+    "ast_hash": "3d72d6a11ba763b423fd3fc940b9975e",
+    "semantic_hash": "3d72d6a11ba763b423fd3fc940b9975e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-06-storm-business-research-mvp.md": {
+    "mtime": 1790923362.6618497,
+    "ast_hash": "5b6e55929564144c5e7895acefecfa67",
+    "semantic_hash": "5b6e55929564144c5e7895acefecfa67"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-07-sdcourse-luc-dual-lens-pack.md": {
+    "mtime": 1790923362.663514,
+    "ast_hash": "ffed11c2bbfef5182fb62776a6355371",
+    "semantic_hash": "ffed11c2bbfef5182fb62776a6355371"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-08-persona-wiki-poc.md": {
+    "mtime": 1790923362.6641562,
+    "ast_hash": "d3b570c450b8e3b903c7831a1f6f5c11",
+    "semantic_hash": "d3b570c450b8e3b903c7831a1f6f5c11"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-09-alex-learner-persona.md": {
+    "mtime": 1790923362.665379,
+    "ast_hash": "fb2719f2b0a2013e1ec2b7f212204b7c",
+    "semantic_hash": "fb2719f2b0a2013e1ec2b7f212204b7c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-10-learn-topic-pipeline.md": {
+    "mtime": 1790923362.6661003,
+    "ast_hash": "31ced18defa8715c79d41eff8bc167d4",
+    "semantic_hash": "31ced18defa8715c79d41eff8bc167d4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-20-soic-method-extraction.md": {
+    "mtime": 1790923362.6680603,
+    "ast_hash": "20e71edf55341b249a7c6c24daf265ec",
+    "semantic_hash": "20e71edf55341b249a7c6c24daf265ec"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-27-soic-decision-engine-machine-actionable-plan.md": {
+    "mtime": 1790923362.668967,
+    "ast_hash": "6a76f9a8e729f2b35f01d7343a02547a",
+    "semantic_hash": "6a76f9a8e729f2b35f01d7343a02547a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-27-soic-decision-engine-phase-a.md": {
+    "mtime": 1790923362.6711526,
+    "ast_hash": "9aded3cb4769df530151129ccd55ef37",
+    "semantic_hash": "9aded3cb4769df530151129ccd55ef37"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-07-27-soic-framework-f21-f24-draft.md": {
+    "mtime": 1790923362.6722584,
+    "ast_hash": "81b4f95a9a80dfee5e9335822c97d3b0",
+    "semantic_hash": "81b4f95a9a80dfee5e9335822c97d3b0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-22-udemy-toolkit.md": {
+    "mtime": 1790923362.6736946,
+    "ast_hash": "5b6f1f5e4b139a41fa5e3ce71a0afde1",
+    "semantic_hash": "5b6f1f5e4b139a41fa5e3ce71a0afde1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-23-sj-udemy-persona.md": {
+    "mtime": 1790923362.675621,
+    "ast_hash": "b34c7ab5fa33989f1e1bbe80f83093b3",
+    "semantic_hash": "b34c7ab5fa33989f1e1bbe80f83093b3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-24-provenance-and-diff-foundation.md": {
+    "mtime": 1790923362.6777663,
+    "ast_hash": "a98a9110fc569ed7174030825237bdf2",
+    "semantic_hash": "a98a9110fc569ed7174030825237bdf2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-24-soic-ladder-public-split.md": {
+    "mtime": 1790923362.6784625,
+    "ast_hash": "9ed7d48779e2e0216fc2f9ad1841367f",
+    "semantic_hash": "9ed7d48779e2e0216fc2f9ad1841367f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-24-stage1-explain-one-company.md": {
+    "mtime": 1790923362.6789956,
+    "ast_hash": "557b63e9acf23978c9fcf4b94482c50b",
+    "semantic_hash": "557b63e9acf23978c9fcf4b94482c50b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-24-stage2-weekly-shortlist.md": {
+    "mtime": 1790923362.6793356,
+    "ast_hash": "3a0e20c2c45f69aa21c15f122ad79e20",
+    "semantic_hash": "3a0e20c2c45f69aa21c15f122ad79e20"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-08-24-stage3-lost-condition-detector.md": {
+    "mtime": 1790923362.6801155,
+    "ast_hash": "955e8a473446fe4cd93db7f01824f3fe",
+    "semantic_hash": "955e8a473446fe4cd93db7f01824f3fe"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/plans/2026-09-23-learn-by-doing.md": {
+    "mtime": 1790923362.6808927,
+    "ast_hash": "833abcd0332d1f991a05fbe6d533b60a",
+    "semantic_hash": "833abcd0332d1f991a05fbe6d533b60a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-06-21-substack-toolkit-design.md": {
+    "mtime": 1790923362.6812825,
+    "ast_hash": "e8f6d50ff282b5ea1851fdca5ebb2e3b",
+    "semantic_hash": "e8f6d50ff282b5ea1851fdca5ebb2e3b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-06-23-youtube-subproject-unified-vault-design.md": {
+    "mtime": 1790923362.681928,
+    "ast_hash": "a1d93a637a9b3af157eb57944847baa4",
+    "semantic_hash": "a1d93a637a9b3af157eb57944847baa4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-06-29-figma-prompt.md": {
+    "mtime": 1790923362.6824217,
+    "ast_hash": "49df656fe3290c6fdaffbb7b8139e2b6",
+    "semantic_hash": "49df656fe3290c6fdaffbb7b8139e2b6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-06-29-knowledge-toolkit-ui-design.md": {
+    "mtime": 1790923362.6827147,
+    "ast_hash": "9f58327b4478f7f9b8b49314d40146ba",
+    "semantic_hash": "9f58327b4478f7f9b8b49314d40146ba"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-04-instagram-toolkit-design.md": {
+    "mtime": 1790923362.6830728,
+    "ast_hash": "c7a4e20e14c04a4bfec37381637af8cc",
+    "semantic_hash": "c7a4e20e14c04a4bfec37381637af8cc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-05-nate-herk-jack-roberts-persona-design.md": {
+    "mtime": 1790923362.683467,
+    "ast_hash": "a6db770d38400f32afab64b63e739c1b",
+    "semantic_hash": "a6db770d38400f32afab64b63e739c1b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-06-storm-business-research-design.md": {
+    "mtime": 1790923362.6837149,
+    "ast_hash": "cc610795640116e1c8d3d7bb0a094ffd",
+    "semantic_hash": "cc610795640116e1c8d3d7bb0a094ffd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-07-sdcourse-luc-dual-lens-pack-design.md": {
+    "mtime": 1790923362.6839733,
+    "ast_hash": "a19cf047318c38852adfed470f2f4bdb",
+    "semantic_hash": "a19cf047318c38852adfed470f2f4bdb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-08-persona-wiki-poc-design.md": {
+    "mtime": 1790923362.6841543,
+    "ast_hash": "15adf5d74cdd1e7c853e80def730fab2",
+    "semantic_hash": "15adf5d74cdd1e7c853e80def730fab2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-09-alex-learner-persona-design.md": {
+    "mtime": 1790923362.6845942,
+    "ast_hash": "750de29581977fbaa825776bbaaae5a6",
+    "semantic_hash": "750de29581977fbaa825776bbaaae5a6"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-10-learn-topic-pipeline-design.md": {
+    "mtime": 1790923362.684989,
+    "ast_hash": "0e9cb38dda52a5fe72fe7fc8bc58f5da",
+    "semantic_hash": "0e9cb38dda52a5fe72fe7fc8bc58f5da"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-12-learn-topic-pipeline-spark-validation.md": {
+    "mtime": 1790923362.685256,
+    "ast_hash": "7df255f2bd56ba4720a5035d4cd7e8e4",
+    "semantic_hash": "7df255f2bd56ba4720a5035d4cd7e8e4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-07-20-soic-method-spec-design.md": {
+    "mtime": 1790923362.6854782,
+    "ast_hash": "1a8135493a6718d4084c9c631ee8911c",
+    "semantic_hash": "1a8135493a6718d4084c9c631ee8911c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-08-22-udemy-toolkit-design.md": {
+    "mtime": 1790923362.685691,
+    "ast_hash": "1d94861f09d584337cb4553eca06d47f",
+    "semantic_hash": "1d94861f09d584337cb4553eca06d47f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-08-23-sj-udemy-persona-design.md": {
+    "mtime": 1790923362.6858518,
+    "ast_hash": "00ad0e316f27c0b4449853b7eea5295e",
+    "semantic_hash": "00ad0e316f27c0b4449853b7eea5295e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-08-23-soic-l3-l5-crux-reassessment-design.md": {
+    "mtime": 1790923362.686169,
+    "ast_hash": "8708183ac556b436377cc79722816071",
+    "semantic_hash": "8708183ac556b436377cc79722816071"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-08-24-d14-weekly-loop-design.md": {
+    "mtime": 1790923362.6863592,
+    "ast_hash": "b200ac28288630c6ba635b78a2b966d1",
+    "semantic_hash": "b200ac28288630c6ba635b78a2b966d1"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/docs/superpowers/specs/2026-09-23-learn-by-doing-design.md": {
+    "mtime": 1790923362.6867454,
+    "ast_hash": "6a4e1c0389f0aba02cc5a45d0dae40c7",
+    "semantic_hash": "6a4e1c0389f0aba02cc5a45d0dae40c7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/ai-primer-calibrated-decisions.md": {
+    "mtime": 1790923362.689547,
+    "ast_hash": "34aa1ecef20c77efce0e1786096191e5",
+    "semantic_hash": "34aa1ecef20c77efce0e1786096191e5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/jev-1-13-jaggedness.md": {
+    "mtime": 1790923362.6899638,
+    "ast_hash": "aa10cb4f10b56c76aed9482f87500607",
+    "semantic_hash": "aa10cb4f10b56c76aed9482f87500607"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/jev-introduction.md": {
+    "mtime": 1790923362.6903877,
+    "ast_hash": "157de1153ca4de327947e1208d94c1d4",
+    "semantic_hash": "157de1153ca4de327947e1208d94c1d4"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/jev-with-coding-agents.md": {
+    "mtime": 1790923362.690702,
+    "ast_hash": "08c91b39cde10abd0f7f2467c2fe30a7",
+    "semantic_hash": "08c91b39cde10abd0f7f2467c2fe30a7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/models-and-versions.md": {
+    "mtime": 1790923362.6910875,
+    "ast_hash": "bf21d43a970259a0bc1f0f7baaa0a00b",
+    "semantic_hash": "bf21d43a970259a0bc1f0f7baaa0a00b"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/quickstart.md": {
+    "mtime": 1790923362.6324246,
+    "ast_hash": "e660e2b4f296840d5f9de9ae7c96c9fb",
+    "semantic_hash": "e660e2b4f296840d5f9de9ae7c96c9fb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/00-orientation/system-one-model-category.md": {
+    "mtime": 1790923362.6325924,
+    "ast_hash": "7b97c267c5b5754ce20d1a4299f00c1d",
+    "semantic_hash": "7b97c267c5b5754ce20d1a4299f00c1d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/advanced-structure.md": {
+    "mtime": 1790923362.6333334,
+    "ast_hash": "d0cbb5737d95df6176e0509e10d2ecec",
+    "semantic_hash": "d0cbb5737d95df6176e0509e10d2ecec"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/choice.md": {
+    "mtime": 1790923362.6341944,
+    "ast_hash": "d787e52507745208b8f93231ce0c582f",
+    "semantic_hash": "d787e52507745208b8f93231ce0c582f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/confidence.md": {
+    "mtime": 1790923362.6343877,
+    "ast_hash": "949bd7b05c381460b527d0e6e29eb9d3",
+    "semantic_hash": "949bd7b05c381460b527d0e6e29eb9d3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/how-to-build-with-system-one.md": {
+    "mtime": 1790923362.6345854,
+    "ast_hash": "b83c907b0b7a4ca125f4ba3f7890446c",
+    "semantic_hash": "b83c907b0b7a4ca125f4ba3f7890446c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/noul.md": {
+    "mtime": 1790923362.6347914,
+    "ast_hash": "726c6fb05597c5a2e8c0ec6caf01a606",
+    "semantic_hash": "726c6fb05597c5a2e8c0ec6caf01a606"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/primitives-overview.md": {
+    "mtime": 1790923362.6351297,
+    "ast_hash": "0f9bdaac008af242207291f09770dacd",
+    "semantic_hash": "0f9bdaac008af242207291f09770dacd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/score.md": {
+    "mtime": 1790923362.635364,
+    "ast_hash": "7a3493943f86024105fbd15705dcd1ae",
+    "semantic_hash": "7a3493943f86024105fbd15705dcd1ae"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/01-concepts/state.md": {
+    "mtime": 1790923362.635872,
+    "ast_hash": "d0a109abf6b5c49cbecf893616b6ac9a",
+    "semantic_hash": "d0a109abf6b5c49cbecf893616b6ac9a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/02-patterns/composite-scoring.md": {
+    "mtime": 1790923362.6371286,
+    "ast_hash": "bb18fb3e72c88a98a1a7a8583de17e66",
+    "semantic_hash": "bb18fb3e72c88a98a1a7a8583de17e66"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/02-patterns/confidence-gated-routing.md": {
+    "mtime": 1790923362.6374567,
+    "ast_hash": "bc20a9b1baf46970e5e6bcab31a3b692",
+    "semantic_hash": "bc20a9b1baf46970e5e6bcab31a3b692"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/02-patterns/intent-routing.md": {
+    "mtime": 1790923362.6464927,
+    "ast_hash": "5924e40bbe7fb3f8371a720d2978eee2",
+    "semantic_hash": "5924e40bbe7fb3f8371a720d2978eee2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/02-patterns/patterns-overview.md": {
+    "mtime": 1790923362.6475062,
+    "ast_hash": "9a799bd04f77ace7dbeb060d990fd895",
+    "semantic_hash": "9a799bd04f77ace7dbeb060d990fd895"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/02-patterns/speculative-fan-out.md": {
+    "mtime": 1790923362.6481178,
+    "ast_hash": "a6681e0052da0eeebfab353efb327eca",
+    "semantic_hash": "a6681e0052da0eeebfab353efb327eca"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-autoresearch-feature-discovery.md": {
+    "mtime": 1790923362.648885,
+    "ast_hash": "62853f076c015f598b92d04d976a5b36",
+    "semantic_hash": "62853f076c015f598b92d04d976a5b36"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-citation-check.md": {
+    "mtime": 1790923362.6495647,
+    "ast_hash": "5134cac31c1f555e4ed7d114353e45bc",
+    "semantic_hash": "5134cac31c1f555e4ed7d114353e45bc"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-classification-using-confidence.md": {
+    "mtime": 1790923362.6499221,
+    "ast_hash": "1f91ce990083075612af5d61e5e48a34",
+    "semantic_hash": "1f91ce990083075612af5d61e5e48a34"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-classifying-rag-passages.md": {
+    "mtime": 1790923362.6505537,
+    "ast_hash": "b5a3b042fe802a3eec1a1072830e2464",
+    "semantic_hash": "b5a3b042fe802a3eec1a1072830e2464"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-consistency-choices.md": {
+    "mtime": 1790923362.6509788,
+    "ast_hash": "0b8a02f0f88df978222b8dd07ccf0089",
+    "semantic_hash": "0b8a02f0f88df978222b8dd07ccf0089"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-consistency-nouls.md": {
+    "mtime": 1790923362.6512668,
+    "ast_hash": "97ec86862fce6f286f109bf169b2bbaa",
+    "semantic_hash": "97ec86862fce6f286f109bf169b2bbaa"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-date-extraction.md": {
+    "mtime": 1790923362.6521292,
+    "ast_hash": "89a59fcc8ee09804359cfec7573b5076",
+    "semantic_hash": "89a59fcc8ee09804359cfec7573b5076"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-entity-alignment.md": {
+    "mtime": 1790923362.652723,
+    "ast_hash": "209c0071c57197261cd898b86921c802",
+    "semantic_hash": "209c0071c57197261cd898b86921c802"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-function-calling.md": {
+    "mtime": 1790923362.653295,
+    "ast_hash": "de6d9c990a75952f8c7c820fa4fe176a",
+    "semantic_hash": "de6d9c990a75952f8c7c820fa4fe176a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-hierarchical-classification.md": {
+    "mtime": 1790923362.6535442,
+    "ast_hash": "6e59bff73155187c8229df79e8e8b2c8",
+    "semantic_hash": "6e59bff73155187c8229df79e8e8b2c8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-line-by-line-search.md": {
+    "mtime": 1790923362.6541505,
+    "ast_hash": "82ab47af7e65f038e2df88f5d9c68167",
+    "semantic_hash": "82ab47af7e65f038e2df88f5d9c68167"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-llm-guardrails.md": {
+    "mtime": 1790923362.6550684,
+    "ast_hash": "532014628467668667d8d5dad611f20d",
+    "semantic_hash": "532014628467668667d8d5dad611f20d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-parallel-questions.md": {
+    "mtime": 1790923362.6554952,
+    "ast_hash": "cb34f890ec788e5e4550fcb550f38ad5",
+    "semantic_hash": "cb34f890ec788e5e4550fcb550f38ad5"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-pre-parsed-value-extraction.md": {
+    "mtime": 1790923362.6556642,
+    "ast_hash": "44c7977b1d5834bce2de6cbcf3b02d51",
+    "semantic_hash": "44c7977b1d5834bce2de6cbcf3b02d51"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-reranking.md": {
+    "mtime": 1790923362.6565115,
+    "ast_hash": "49036ca63dc14b7432eca4717c68ef0a",
+    "semantic_hash": "49036ca63dc14b7432eca4717c68ef0a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-sde-cascade.md": {
+    "mtime": 1790923362.6567137,
+    "ast_hash": "21d66c60c156b64dcac0a02740bdf6bb",
+    "semantic_hash": "21d66c60c156b64dcac0a02740bdf6bb"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-skill-suggestion.md": {
+    "mtime": 1790923362.657379,
+    "ast_hash": "bbd38b268880e669f6c3ce2ba069da7e",
+    "semantic_hash": "bbd38b268880e669f6c3ce2ba069da7e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cb-structure-recovery.md": {
+    "mtime": 1790923362.658103,
+    "ast_hash": "16cc67f4d0e7e48a2bc4122289e22a8e",
+    "semantic_hash": "16cc67f4d0e7e48a2bc4122289e22a8e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/03-cookbooks/cookbooks-overview.md": {
+    "mtime": 1790923362.6585073,
+    "ast_hash": "61a177dc362bd761dee6f9926c40c005",
+    "semantic_hash": "61a177dc362bd761dee6f9926c40c005"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/04-use-cases/demo-smart-home.md": {
+    "mtime": 1790923362.6592238,
+    "ast_hash": "7118aabf69a5381a4851b2a9257f92f2",
+    "semantic_hash": "7118aabf69a5381a4851b2a9257f92f2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/04-use-cases/use-case-map.md": {
+    "mtime": 1790923362.6595664,
+    "ast_hash": "a2e55cae6f927bd5fdd4df38324e7afe",
+    "semantic_hash": "a2e55cae6f927bd5fdd4df38324e7afe"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/http-api-reference.md": {
+    "mtime": 1790923362.6602354,
+    "ast_hash": "d16f49d1c3468d75851a868727ab52f0",
+    "semantic_hash": "d16f49d1c3468d75851a868727ab52f0"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-changelogs.md": {
+    "mtime": 1790923362.660579,
+    "ast_hash": "2a173d97eafd844ef61f2c7f4d16bad8",
+    "semantic_hash": "2a173d97eafd844ef61f2c7f4d16bad8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-javascript-api.md": {
+    "mtime": 1790923362.6611333,
+    "ast_hash": "35ffd130a8d45336deafb8c508e0ad19",
+    "semantic_hash": "35ffd130a8d45336deafb8c508e0ad19"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-javascript.md": {
+    "mtime": 1790923362.6615927,
+    "ast_hash": "f57cd0abd8baf1e11374a76b88cc0aea",
+    "semantic_hash": "f57cd0abd8baf1e11374a76b88cc0aea"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-overview.md": {
+    "mtime": 1790923362.661833,
+    "ast_hash": "33d3d35543c62e910cc0ac2a99528e6d",
+    "semantic_hash": "33d3d35543c62e910cc0ac2a99528e6d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-python-clients.md": {
+    "mtime": 1790923362.662381,
+    "ast_hash": "69388391f9456a0a8cf63eba2baabf85",
+    "semantic_hash": "69388391f9456a0a8cf63eba2baabf85"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-python-retries-and-exceptions.md": {
+    "mtime": 1790923362.662753,
+    "ast_hash": "c610f454da66869d35db8d37b390201f",
+    "semantic_hash": "c610f454da66869d35db8d37b390201f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-python-types.md": {
+    "mtime": 1790923362.6629775,
+    "ast_hash": "d1f97b34ecf207080e76f030f81c93ac",
+    "semantic_hash": "d1f97b34ecf207080e76f030f81c93ac"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-python-usage.md": {
+    "mtime": 1790923362.6631234,
+    "ast_hash": "7a0d1509de05d0778044f44d4b6c4a33",
+    "semantic_hash": "7a0d1509de05d0778044f44d4b6c4a33"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/05-api-sdk/sdk-python.md": {
+    "mtime": 1790923362.6632462,
+    "ast_hash": "b1014b89c68d29312ec08e5fa35cec01",
+    "semantic_hash": "b1014b89c68d29312ec08e5fa35cec01"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/06-agent-tooling/awesome-typesafe-jev.md": {
+    "mtime": 1790923362.6635408,
+    "ast_hash": "763a4814e664703ba0fb239d05ce2332",
+    "semantic_hash": "763a4814e664703ba0fb239d05ce2332"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/06-agent-tooling/community-guide-devto.md": {
+    "mtime": 1790923362.6640608,
+    "ast_hash": "20db0cd6152d238afd36ab0794465ca3",
+    "semantic_hash": "20db0cd6152d238afd36ab0794465ca3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/06-agent-tooling/community-guide-marktechpost.md": {
+    "mtime": 1790923362.6643543,
+    "ast_hash": "5319832e157b80de15512b078f0bdb72",
+    "semantic_hash": "5319832e157b80de15512b078f0bdb72"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/06-agent-tooling/jev-mcp-server.md": {
+    "mtime": 1790923362.6652024,
+    "ast_hash": "4850abb642e257be550b6dc6a43d1984",
+    "semantic_hash": "4850abb642e257be550b6dc6a43d1984"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/06-agent-tooling/openrouter-jev-guide.md": {
+    "mtime": 1790923362.665466,
+    "ast_hash": "dbdc7cd2a26d294fc9d8270314af1ddd",
+    "semantic_hash": "dbdc7cd2a26d294fc9d8270314af1ddd"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/06-agent-tooling/typesafe-agent-skill.md": {
+    "mtime": 1790923362.665713,
+    "ast_hash": "c62bd0874a5d0941048f374c98a2f78f",
+    "semantic_hash": "c62bd0874a5d0941048f374c98a2f78f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/benchmarks-and-comparisons.md": {
+    "mtime": 1790923362.6662927,
+    "ast_hash": "927161858170693e2161fcdd975dd109",
+    "semantic_hash": "927161858170693e2161fcdd975dd109"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/jev-vs-laya.md": {
+    "mtime": 1790923362.6664891,
+    "ast_hash": "89b24942e04edbb3d3ef554303a5e31c",
+    "semantic_hash": "89b24942e04edbb3d3ef554303a5e31c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/kev.md": {
+    "mtime": 1790923362.6666527,
+    "ast_hash": "507b2eadd8d1b4b3707676777667593e",
+    "semantic_hash": "507b2eadd8d1b4b3707676777667593e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/laya.md": {
+    "mtime": 1790923362.6674094,
+    "ast_hash": "49cf945a2997e8ef37cc2aa379636518",
+    "semantic_hash": "49cf945a2997e8ef37cc2aa379636518"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/minilm-embeddings.md": {
+    "mtime": 1790923362.668012,
+    "ast_hash": "da51276f1fe5d4932fe08facc6ef6a25",
+    "semantic_hash": "da51276f1fe5d4932fe08facc6ef6a25"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/openjev-and-nanojev.md": {
+    "mtime": 1790923362.6682498,
+    "ast_hash": "63179479ebab3e5d92d03c979c77cc92",
+    "semantic_hash": "63179479ebab3e5d92d03c979c77cc92"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/07-alternatives/system-one-alternatives-overview.md": {
+    "mtime": 1790923362.6688116,
+    "ast_hash": "69788116361803654060d811ce03baf3",
+    "semantic_hash": "69788116361803654060d811ce03baf3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/agent-operating-protocol.md": {
+    "mtime": 1790923362.6692233,
+    "ast_hash": "f2ba95b52932b9d75a0b6d6b62af4431",
+    "semantic_hash": "f2ba95b52932b9d75a0b6d6b62af4431"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/anti-patterns.md": {
+    "mtime": 1790923362.670065,
+    "ast_hash": "4b528197d2f9ed3e5c5f7d8303440274",
+    "semantic_hash": "4b528197d2f9ed3e5c5f7d8303440274"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/cheat-sheet.md": {
+    "mtime": 1790923362.6704128,
+    "ast_hash": "5510c28b00c13a6cfce531e6afa45d77",
+    "semantic_hash": "5510c28b00c13a6cfce531e6afa45d77"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/model-tiering-sonnet-opus.md": {
+    "mtime": 1790923362.6710832,
+    "ast_hash": "fa4eb8cb8d6ddda1cab86e3cf1918155",
+    "semantic_hash": "fa4eb8cb8d6ddda1cab86e3cf1918155"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/privacy-and-cost-gates.md": {
+    "mtime": 1790923362.6717548,
+    "ast_hash": "bb11c8cf22af77bb7070d1c57376b53e",
+    "semantic_hash": "bb11c8cf22af77bb7070d1c57376b53e"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/question-design-checklist.md": {
+    "mtime": 1790923362.6719844,
+    "ast_hash": "fb59a218cd2a586c38dbba5e6b0c24ab",
+    "semantic_hash": "fb59a218cd2a586c38dbba5e6b0c24ab"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/retrieval-protocol-opus.md": {
+    "mtime": 1790923362.6723363,
+    "ast_hash": "76ea397bd1ea8ad0837369fd91e36c27",
+    "semantic_hash": "76ea397bd1ea8ad0837369fd91e36c27"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/08-playbook/when-to-use-which-model.md": {
+    "mtime": 1790923362.67284,
+    "ast_hash": "5de2b811dd9d242dfa4ecb6061573b6d",
+    "semantic_hash": "5de2b811dd9d242dfa4ecb6061573b6d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/Home.md": {
+    "mtime": 1790923362.67385,
+    "ast_hash": "a084c4938cd71a97a893c96147634484",
+    "semantic_hash": "a084c4938cd71a97a893c96147634484"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/Log.md": {
+    "mtime": 1790923362.6747212,
+    "ast_hash": "1d11a1aa5c5291ff3ab14bef8547cd44",
+    "semantic_hash": "1d11a1aa5c5291ff3ab14bef8547cd44"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-agent-integration.md": {
+    "mtime": 1790923362.633436,
+    "ast_hash": "b7da9984565f5f419d6b4462473cb69f",
+    "semantic_hash": "b7da9984565f5f419d6b4462473cb69f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-calibration.md": {
+    "mtime": 1790923362.63366,
+    "ast_hash": "370198c13aa2ec58a0c525462b84ad2a",
+    "semantic_hash": "370198c13aa2ec58a0c525462b84ad2a"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-classification.md": {
+    "mtime": 1790923362.633808,
+    "ast_hash": "cfbef7f63b049019423cd002f27545e3",
+    "semantic_hash": "cfbef7f63b049019423cd002f27545e3"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-cost-latency.md": {
+    "mtime": 1790923362.6340346,
+    "ast_hash": "806e5e52c983aecb3433484ab9f07ec8",
+    "semantic_hash": "806e5e52c983aecb3433484ab9f07ec8"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-extraction.md": {
+    "mtime": 1790923362.6345856,
+    "ast_hash": "3f98215c53e285eb74d9e670dfcccf90",
+    "semantic_hash": "3f98215c53e285eb74d9e670dfcccf90"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-guardrails.md": {
+    "mtime": 1790923362.6347733,
+    "ast_hash": "b6f9c5d00559e3a641c3ffef27fb5e42",
+    "semantic_hash": "b6f9c5d00559e3a641c3ffef27fb5e42"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-model-selection.md": {
+    "mtime": 1790923362.6357865,
+    "ast_hash": "cea6de677b5f220719c321eb183f2725",
+    "semantic_hash": "cea6de677b5f220719c321eb183f2725"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-retrieval-rerank.md": {
+    "mtime": 1790923362.6362138,
+    "ast_hash": "39fa65f5f322441c5b160162e354aedf",
+    "semantic_hash": "39fa65f5f322441c5b160162e354aedf"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-routing.md": {
+    "mtime": 1790923362.6370506,
+    "ast_hash": "e386af1cd3c418c385dcc7ff2ba8409c",
+    "semantic_hash": "e386af1cd3c418c385dcc7ff2ba8409c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/knowledge/system-one/topics/topic-state-design.md": {
+    "mtime": 1790923362.637254,
+    "ast_hash": "3b3d35facbbc60facf4706aa364b483c",
+    "semantic_hash": "3b3d35facbbc60facf4706aa364b483c"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/agents/system-one-advisor.md": {
+    "mtime": 1790923362.6473677,
+    "ast_hash": "7370bc14571e9ced0d2c2132844c7962",
+    "semantic_hash": "7370bc14571e9ced0d2c2132844c7962"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/SKILL.md": {
+    "mtime": 1790923362.6484559,
+    "ast_hash": "c86a092bbdb9c70f8d3acc9fa7f40b58",
+    "semantic_hash": "c86a092bbdb9c70f8d3acc9fa7f40b58"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/anti-patterns.md": {
+    "mtime": 1790923362.64912,
+    "ast_hash": "a4c0ee05202e28428e51aea6e585af7d",
+    "semantic_hash": "a4c0ee05202e28428e51aea6e585af7d"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/decision-matrix.md": {
+    "mtime": 1790923362.649433,
+    "ast_hash": "8cbbb54d591c885ee6094af4d4f98376",
+    "semantic_hash": "8cbbb54d591c885ee6094af4d4f98376"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/jev-mcp-tools.md": {
+    "mtime": 1790923362.6497269,
+    "ast_hash": "f31c78d814c9484f3a86dfe2d6a44fd7",
+    "semantic_hash": "f31c78d814c9484f3a86dfe2d6a44fd7"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/model-landscape.md": {
+    "mtime": 1790923362.650446,
+    "ast_hash": "1eebe01710d2e71d26e9e2852f040a34",
+    "semantic_hash": "1eebe01710d2e71d26e9e2852f040a34"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/protocol-and-tiering.md": {
+    "mtime": 1790923362.6511798,
+    "ast_hash": "ccd55d9f949332044d9249c0f8b71922",
+    "semantic_hash": "ccd55d9f949332044d9249c0f8b71922"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/question-design.md": {
+    "mtime": 1790923362.6520243,
+    "ast_hash": "96588066cb872029b8b02b26145dcbed",
+    "semantic_hash": "96588066cb872029b8b02b26145dcbed"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/plugins/system-one/skills/system-one/references/vault-map.md": {
+    "mtime": 1790923362.6525002,
+    "ast_hash": "dbf55902aa194c95d4e9d5383d531606",
+    "semantic_hash": "dbf55902aa194c95d4e9d5383d531606"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/decision_rules_sample.yaml": {
+    "mtime": 1790923362.6512234,
+    "ast_hash": "494d4f4c16a89ece2b155ec105d4ca15",
+    "semantic_hash": "494d4f4c16a89ece2b155ec105d4ca15"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/frameworks_sample.md": {
+    "mtime": 1790923362.652379,
+    "ast_hash": "aed76491a7ef32f8ca7a31bc3a4b3fca",
+    "semantic_hash": "aed76491a7ef32f8ca7a31bc3a4b3fca"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/metric_registry_sample.yaml": {
+    "mtime": 1790923362.653504,
+    "ast_hash": "8ee0501fe3b208b968d7ba17478fb99f",
+    "semantic_hash": "8ee0501fe3b208b968d7ba17478fb99f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/notebooks_sample.yaml": {
+    "mtime": 1790923362.653678,
+    "ast_hash": "47f0dd36643f89d789f31e4238a47655",
+    "semantic_hash": "47f0dd36643f89d789f31e4238a47655"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/sample_lesson.html": {
+    "mtime": 1790923362.655119,
+    "ast_hash": "267ebb181b9cb66d93045c8b96a9c698",
+    "semantic_hash": "267ebb181b9cb66d93045c8b96a9c698"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/screener_tcs.html": {
+    "mtime": 1790923362.6569064,
+    "ast_hash": "320b18013573abdbd6bb3e6245d178a2",
+    "semantic_hash": "320b18013573abdbd6bb3e6245d178a2"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/tests/fixtures/sector_notebooks_sample.yaml": {
+    "mtime": 1790923362.6575387,
+    "ast_hash": "b290ce572529495235187f7f3af2159f",
+    "semantic_hash": "b290ce572529495235187f7f3af2159f"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/backend/requirements.txt": {
+    "mtime": 1790923362.6574097,
+    "ast_hash": "4bb09b97960a5d147163285acd83a194",
+    "semantic_hash": "4bb09b97960a5d147163285acd83a194"
+  },
+  "/Users/syedamberiqbal/Documents/workspace/Claude_Code/SOIC_Scraper/.claude/worktrees/llama-index-document-extraction-fc8963/webapp/frontend/README.md": {
+    "mtime": 1790923362.6609223,
+    "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
+    "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
   }
 }

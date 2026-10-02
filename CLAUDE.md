@@ -6,8 +6,8 @@ overview see [`README.md`](README.md); for deep dives see [`docs/`](docs/).
 ## START HERE — read the knowledge graph first
 
 **Before exploring the codebase or planning any change, read the graphify
-knowledge graph.** It is a pre-computed map of this repo — 1119 nodes / 1893
-edges across 84 clustered communities — so you can orient in one read instead of
+knowledge graph.** It is a pre-computed map of this repo — 6161 nodes / 9611
+edges across 402 clustered communities (369 shown; refreshed 2026-10-03) — so you can orient in one read instead of
 grepping around blind.
 
 1. Read [`graphify-out/GRAPH_REPORT.md`](graphify-out/GRAPH_REPORT.md) — the
@@ -31,14 +31,12 @@ its community labels. To refresh properly, run `/graphify .` (re-extracts code
 **and** docs, re-clusters, re-labels). Keep it current — it is the first thing
 every session reads.
 
-**⚠️ Verified 2026-09-27: the committed graph is dated 2026-07-05 and has
-zero mentions of `soic_wiki`, persona-wiki, `docs/reassessment/` or any
-vendored skill** — i.e. it does not cover this file's own two largest
-bodies of content (the SOIC persona-wiki pipeline section and the closing
-Pointers list). Treat "read the graph first" as covering the six capture
-toolkits only until `/graphify .` is re-run; for the persona-wiki and
-reassessment threads, this file's own sections and the docs they point to
-are still the primary source.
+**Refreshed 2026-10-03** (562 files, ~928k words; AST for code + semantic pass over docs). It now covers
+`soic_wiki`, the persona-wiki pipeline, `docs/reassessment/`, `knowledge/system-one/`, and
+`media_core/pdf_text.py`. It deliberately **excludes `.claude/skills/`** (vendored third-party
+skills, ~900k words) - graphify has no ignore file, so when refreshing, run detection, drop every
+path under `.claude/skills/` from the file list, then continue; the AST step must run from a
+script file (it uses multiprocessing). Ask for a skill's behaviour in its own `SKILL.md`, not the graph.
 
 ## SESSION DEFAULTS — precedence order
 
