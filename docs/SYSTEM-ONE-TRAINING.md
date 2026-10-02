@@ -90,3 +90,18 @@ from held-out modules, test passages used for diagnostics only). Same 114 test n
 - How Jev was run without the key leaving GitHub: workflow `jev-label-spoken-passages` on a throwaway branch of the private `soic-ladder` repo,
   on its VPS runner (user `syamiq`), reading data staged in /var/tmp/jev-label (deleted after). The log shows the key masked and counts only.
   Per the owner the branch is kept. Raw Jev outputs (ids, tags, probabilities; no passage text): VPS `/root/system-one-train/results/jev_labels.jsonl`.
+
+## Making Jev score better on spoken passages: Fable's ideas 2, 5, 6, 7 (2026-10-03, owner chose option A)
+Fable (independent review, files read only) said the target itself is noisy: "better" = agrees more with note-level tags copied onto fragments, and a perfect
+reader can't reach AUC 1.0. Run #2 sent ALL 905 spoken test passages (109 notes) to Jev, same 12 noul questions + one 13-way choice question (12 tags + "none") in
+the same call (`jev_label2.py`, `jev_analysis.py`; via the soic-ladder VPS-runner workflow, data staged then deleted; raw numbers in VPS `results/jev_labels2.jsonl`).
+Error bars: paired bootstrap over NOTES (1,000 resamples). Still agreement with inherited labels, not truth.
+| Idea | Result | Verdict |
+|---|---|---|
+| baseline, passage level | 12 noul: top-1 0.598, AUC 0.733 (150-sample run said 0.627 / 0.723) | consistent |
+| 5: add choice+"none" | top-1 0.650 (+0.052, CI +0.022..+0.085) but AUC 0.710 (-0.024, CI -0.044..-0.003) | real but small; below Fable's +0.08 bar; better at picking, worse at per-tag ranking; "none" argmax 11.8% |
+| 6: rank-average with TF-IDF(+MiniLM) | AUC 0.765 / 0.776 (+0.025 / +0.036 over best single, both CIs exclude 0) | real; 3-way meets Fable's +0.03 bar; rank-normalising makes its top-1 meaningless (0.54-0.56) |
+| 2: aggregate to note level (mean) | Jev noul mean: top-1 0.706, AUC 0.860. Jev choice mean: top-1 0.798, AUC 0.883. Reference TF-IDF trained on written notes, same 109 notes: 0.789 / 0.875 | meets Fable's AUC >= 0.80 bar; zero-shot Jev on spoken passages, averaged per note, is on par with a trained model on written notes (n=109, +-0.04, no CI computed). `mean` beat `max` and noisy-OR |
+| 7 (measurement only) | note-level micro-F1 @0.5 = 0.164 vs per-tag thresholds tuned on the other half = 0.545 | never use 0.5 with Jev; AUC unchanged by definition |
+Not run: 1 (Jev on written chunks, needs sending note text: not approved), 3 (question rewrites), 4 (neighbour context), 8 (ASR cleanup).
+Hand-checked labels remain the only way to separate "noisy labels" from "hard fragments".
