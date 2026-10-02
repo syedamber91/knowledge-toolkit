@@ -24,11 +24,17 @@ dependencies = [
     "instaloader>=4.14",
     "pyyaml>=6.0",
     "tradingview-ta>=3.3",
+    "pypdf>=4.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=7.4",
+]
+# OCR for scanned / image-only PDF pages (media_core.pdf_text). LiteParse needs Python >= 3.10; without it a scanned page
+# makes the reader raise instead of silently returning nothing.
+ocr = [
+    "liteparse>=2.15; python_version >= '3.10'",
 ]
 
 [project.scripts]
