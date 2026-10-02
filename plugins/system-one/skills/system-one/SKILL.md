@@ -16,6 +16,7 @@ description: Pick the right decision tier - deterministic code, MiniLM-style emb
 ```
 1 code / regex            exact rules, arithmetic, counting, dates, lookups, candidate spans
 2 embedding shortlist     many options / big corpus -> top ~20-30 (MiniLM, BM25); or train MiniLM+LR if labels exist
+                          (NOT page-finding in long financial PDFs: it lowered accuracy, see references/anti-patterns.md G)
 3 System One model        bounded judgment over messy text: Choice | Score | Noul
                           Jev hosted (~0.1-0.5 s, $0.042/M input) | Laya/Kev local (private, 23-43 ms Laya)
 4 Sonnet                  generation, bulk reading, condensation, LLM-written extraction

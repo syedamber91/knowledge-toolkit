@@ -98,3 +98,14 @@ Layer3Labs (consultancy) are commercial; laya-ai.com's publisher is unnamed;
 Laya's Jev numbers are third-party; SOTAAZ is the only independent measurement and
 had no Jev access; the dev.to guide is published by a search vendor; awesome
 directory numbers are author-reported.
+
+## G. Page-finder in front of the reader on long PDFs (owner-measured)
+**Owner-measured warning (2026-10-02, llama-index extraction spike, PR #29 in this repo).** On 6 real public PDFs
+(58 facts + 12 "not in the doc" traps, answer key read off page images; small sample, one run per cell, one extractor
+model) a page-finder in front of Claude made results WORSE: MiniLM top-4 pages -> Claude 36/58, versus 40/58 for plain
+pypdf text and 53/58 for OCR on every page; MiniLM recall@4 was only 0.40-0.55 on the long reports; MiniLM + zero-shot
+Laya -> Claude 10/37 on the small docs (Laya's page recall below MiniLM on all 4; zero-shot only, so NOT evidence about a
+fine-tuned Laya). Claude + grep over per-page text files scored 21/21 on two long born-digital annual reports. So for
+page-finding in long financial PDFs: read every page through `media_core.pdf_text` (pypdf, OCR only on empty pages), grep the
+page files, and do NOT put an embedding or zero-shot System One shortlist in front of the reader. The shortlist advice above
+comes from short-candidate benchmarks (BM25 top-30 rerank, MiniLM on BANKING77/TREC), not from long-document page recall.

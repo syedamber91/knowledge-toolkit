@@ -17,6 +17,8 @@ topics: [topic-model-selection, topic-routing, topic-cost-latency, topic-calibra
 4 Sonnet                          generation, reading/condensing, extraction an LLM must write
 5 Opus                            synthesis, multi-hop reasoning, routing over sources, contradiction resolution, final answer
 ```
+> **Caution on rung 2:** not for page-finding in long financial PDFs - owner-measured, it lowered answer accuracy (36/58 vs 40/58 plain text; recall@4 0.40-0.55). Read all pages via `media_core.pdf_text` and grep. See [[anti-patterns]] section G.
+
 Basis: code first ([[how-to-build-with-system-one]] step 1; [[awesome-typesafe-jev]] "Choose the right tool": code -> Jev -> text LLM); shortlist before judging ([[cb-reranking]] BM25 top-30; [[minilm-embeddings]] Laya top-20; [[cb-classifying-rag-passages]] cosine top-12); Jev for bounded judgments ([[jev-introduction]]); LLM for generation ([[jev-1-13-jaggedness]] #9); expensive reasoning model only for flagged items ([[cb-sde-cascade]]). Sonnet-vs-Opus split = owner rule, see [[model-tiering-sonnet-opus]].
 
 ## 1. Classify the task shape first

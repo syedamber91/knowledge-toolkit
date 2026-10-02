@@ -78,7 +78,7 @@ Say it in one line, name the closest note, and stop. Known gaps (verified absent
 | Many options, small decision model | embedding shortlist to ~20 first (Laya 37.0% -> 59.1%) | [[minilm-embeddings]], [[laya]] |
 | Large roster (skills/tools) | wide Choice over all + gate Nouls, then rerank top-3 with full text | [[cb-skill-suggestion]] |
 | Deep taxonomy | one Choice per level, beam K=3 | [[cb-hierarchical-classification]] |
-Cautions: reranking cannot add what the shortlist missed ([[cb-reranking]]); Choice always returns a winner — pair with `exists` ([[cb-line-by-line-search]]); similarity ranked the injection passage FIRST ([[cb-classifying-rag-passages]]); probability ties at two decimals break `LIMIT k` (jev-orderby-bench, [[awesome-typesafe-jev]]); this vault (72 notes) is small enough to grep — use Jev tools only where grep cannot express meaning [inference].
+Cautions: an embedding or zero-shot-Laya page-finder in front of a reader LOWERED accuracy on long financial PDFs (owner spike 2026-10-02; recall@4 0.40-0.55) - see [[anti-patterns]] section G; reranking cannot add what the shortlist missed ([[cb-reranking]]); Choice always returns a winner — pair with `exists` ([[cb-line-by-line-search]]); similarity ranked the injection passage FIRST ([[cb-classifying-rag-passages]]); probability ties at two decimals break `LIMIT k` (jev-orderby-bench, [[awesome-typesafe-jev]]); this vault (72 notes) is small enough to grep — use Jev tools only where grep cannot express meaning [inference].
 
 ## Related
 [[model-tiering-sonnet-opus]] · [[when-to-use-which-model]] · [[cheat-sheet]] · [[topic-retrieval-rerank]] · [[topic-agent-integration]]

@@ -7,6 +7,7 @@ Citations are vault note names. `[inference]` = synthesis, not stated in a sourc
 ```
 1 deterministic code / regex
 2 embedding shortlist (MiniLM / BM25) — or trained MiniLM + logistic regression when labels exist
+  (NOT for page-finding in long financial PDFs: owner-measured 36/58 vs 40/58 plain text; read all pages + grep — references/anti-patterns.md G)
 3 System One decision model — Jev hosted | Laya / Kev local
 4 Sonnet — generation, reading, condensation
 5 Opus — synthesis, retrieval/routing, contradiction resolution, final answers
