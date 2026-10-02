@@ -10,19 +10,11 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, roc_auc_score
 from sklearn.model_selection import GroupKFold
 
-MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # 256-token max seq -> chunk long notes
-CHUNK_WORDS, MAX_CHUNKS = 180, 10
+from minilm_core import MODEL, embed_text
 
 
 def embed(notes, model):
-    out = []
-    for n in notes:
-        w = (n["title"] + ". " + n["text"]).split()
-        chunks = [" ".join(w[i:i + CHUNK_WORDS]) for i in range(0, len(w), CHUNK_WORDS)][:MAX_CHUNKS]
-        e = model.encode(chunks, normalize_embeddings=True, show_progress_bar=False)
-        v = e.mean(0)
-        out.append(v / np.linalg.norm(v))
-    return np.array(out)
+    return np.array([embed_text(model, n["title"], n["text"]) for n in notes])
 
 
 def ovr_fit(X, Y, C):
@@ -107,7 +99,17 @@ def main():
     res.append(metrics(Pe_te, Yte, thr_e, "MiniLM-L6 + LR"))
     res.append(metrics((Pt_te + Pe_te) / 2, Yte, (thr_t + thr_e) / 2, "avg(TF-IDF, MiniLM)"))
     (OUT / "minilm_results.json").write_text(json.dumps(dict(test_notes=len(test), train_notes=len(train), results=res), indent=1))
-    import joblib; joblib.dump(dict(models=me, C=Ce, thr=thr_e, tags=TAGS), OUT / "minilm_tagger.joblib")
+    import joblib
+    # Deployable model = average of TF-IDF+LR and MiniLM+LR (best top-1 above). Refit on ALL notes
+    # (train+test) with the C/thresholds chosen on the train split; the held-out numbers above stay
+    # the honest estimate - the final fit has no held-out set left.
+    Eall, Yall = np.vstack([Etr, Ete]), np.vstack([Ytr, Yte])
+    Tall = Ttr + Tte
+    me_all = ovr_fit(Eall, Yall, Ce)
+    v_all = TfidfVectorizer(sublinear_tf=True, min_df=2, ngram_range=(1, 2), max_features=40000)
+    mt_all = ovr_fit(v_all.fit_transform(Tall), Yall, Ct)
+    joblib.dump(dict(tags=TAGS, minilm_models=me_all, thr_minilm=thr_e, tfidf=v_all, tfidf_models=mt_all,
+                     thr_tfidf=thr_t, trained_on=len(Tall), model_name=MODEL), OUT / "tagger_final.joblib")
     print(f"\n{'model':38s} microF1 macroF1 AUC   top1")
     for r in res: print(f"{r['model']:38s} {r['micro_f1']:.3f}   {r['macro_f1']:.3f}   {r['mean_auc']:.3f} {r['top1_hit']:.3f}")
 
