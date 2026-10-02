@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hand-check sheet</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#ffffff; --ink:#1b1b1b; --mute:#5f6368; --line:#dcdcd6; --accent:#2457d6; --accent-ink:#ffffff; --done:#1e7a46; --warn:#b3261e; --quote:#f1f1ec; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#16171a; --card:#1f2024; --ink:#ececec; --mute:#a0a4ab; --line:#33353b; --accent:#7ba3ff; --accent-ink:#0d1117; --done:#5fd08a; --warn:#ff8a80; --quote:#26282d; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.55 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width:760px; margin:0 auto; padding:0 16px 120px; }
+  header.top { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--line); padding:10px 16px; }
+  .bar { max-width:760px; margin:0 auto; display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+  .bar .count { font-weight:600; }
+  .bar .status { color:var(--mute); font-size:14px; }
+  .meter { flex:1 1 140px; height:8px; background:var(--line); border-radius:99px; overflow:hidden; }
+  .meter i { display:block; height:100%; width:0; background:var(--done); transition:width .2s; }
+  button { font:inherit; border:1px solid var(--line); background:var(--card); color:var(--ink); padding:8px 14px; border-radius:10px; cursor:pointer; }
+  button.primary { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  h1 { font-size:24px; margin:22px 0 6px; } h2 { font-size:20px; margin:34px 0 8px; }
+  .intro { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px 18px; }
+  .intro ul { margin:6px 0 0 18px; padding:0; } .intro li { margin:4px 0; }
+  details.legend { margin:12px 0 0; } details.legend summary { cursor:pointer; color:var(--accent); }
+  details.legend dl { margin:8px 0 0; display:grid; grid-template-columns:max-content 1fr; gap:4px 14px; font-size:15px; }
+  details.legend dt { font-weight:600; } details.legend dd { margin:0; color:var(--mute); }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px 18px; margin:14px 0; }
+  .card.done { border-left:5px solid var(--done); }
+  .card h3 { margin:0 0 8px; font-size:15px; color:var(--mute); font-weight:600; letter-spacing:.02em; }
+  .quote { background:var(--quote); border-radius:10px; padding:12px 14px; white-space:pre-wrap; word-wrap:break-word; }
+  .note-text { max-height:46vh; overflow:auto; }
+  .q { margin:14px 0 6px; font-weight:600; }
+  .pills { display:flex; flex-wrap:wrap; gap:8px; }
+  .pills label { border:1px solid var(--line); border-radius:99px; padding:6px 13px; cursor:pointer; font-size:15px; user-select:none; }
+  .pills input { position:absolute; opacity:0; pointer-events:none; }
+  .pills label:has(input:checked) { background:var(--accent); color:var(--accent-ink); border-color:var(--accent); font-weight:600; }
+  .pills label:has(input:focus-visible) { outline:2px solid var(--accent); outline-offset:2px; }
+  .pills label.cant:has(input:checked) { background:var(--mute); border-color:var(--mute); }
+  select { font:inherit; padding:7px 10px; border-radius:10px; border:1px solid var(--line); background:var(--card); color:var(--ink); }
+  .warn { color:var(--warn); font-size:14px; margin-top:6px; min-height:1em; }
+  footer { margin-top:30px; color:var(--mute); font-size:14px; }
+</style>
+</head>
+<body>
+<header class="top"><div class="bar">
+  <span class="count" id="count">0 / 100 done</span>
+  <div class="meter"><i id="meter"></i></div>
+  <span class="status" id="status"></span>
+  <button class="primary" id="export">Export answers</button>
+</div></header>
+<main>
+  <h1>Hand-check sheet</h1>
+  <div class="intro">
+    <b>What this is.</b> 80 short lecture passages (part 1) and 20 notes (part 2). You pick the topic(s) <i>you</i> think each one is about. Your answers become the first human-checked answer key, so we can tell which AI labels are right.
+    <ul>
+      <li><b>You see no AI tags</b> and no AI answers. Judge only from the text.</li>
+      <li>Passages are speech-to-text: ignore typos and broken sentences.</li>
+      <li><b>"Can't tell" is a good answer.</b> It tells us the fragment is just too short. Do not guess to be polite.</li>
+      <li>Use your own judgment. The one-line tag descriptions below are shorthand, not rules.</li>
+      <li>About 1 minute per passage and 2 minutes per note: roughly 2 hours. Your answers autosave in this browser. You can stop and come back. Press <b>Export answers</b> when done (or any time) and send me the downloaded file.</li>
+    </ul>
+    <details class="legend"><summary>The 12 topics (one line each)</summary><dl id="legend"></dl></details>
+  </div>
+  <h2>Part 1: 80 lecture passages</h2>
+  <div id="passages"></div>
+  <h2>Part 2: 20 notes (pick 1 to 3 topics each)</h2>
+  <div id="notes"></div>
+  <footer>Private: contains paid-course text. Keep this file on your own machine; do not upload or share it.</footer>
+</main>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function () {
+  var D = JSON.parse(document.getElementById('data').textContent);
+  var KEY = 'handcheck_v1', answers = {}, canSave = true;
+  try { answers = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch (e) { canSave = false; }
+  var total = D.passages.length + D.notes.length;
+
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+  function save() {
+    if (canSave) { try { localStorage.setItem(KEY, JSON.stringify(answers)); } catch (e) { canSave = false; } }
+    document.getElementById('status').textContent = canSave ? 'autosaved' : 'autosave unavailable: export before closing';
+  }
+  function isDone(id) { var a = answers[id]; if (!a) return false; return id[0] === 'P' ? !!a.primary : (a.tags && a.tags.length >= 1 && a.tags.length <= 3); }
+  function refresh() {
+    var n = 0;
+    D.passages.concat(D.notes).forEach(function (it) {
+      var d = isDone(it.id); if (d) n++;
+      var c = document.getElementById('card-' + it.id); if (c) c.classList.toggle('done', d);
+    });
+    document.getElementById('count').textContent = n + ' / ' + total + ' done';
+    document.getElementById('meter').style.width = (100 * n / total) + '%';
+  }
+  var legend = document.getElementById('legend');
+  D.tags.forEach(function (t) { legend.appendChild(el('dt', null, t.tag)); legend.appendChild(el('dd', null, t.desc)); });
+
+  function pill(name, value, label, type, checked, cls, onchange) {
+    var l = el('label', cls || ''); var i = el('input'); i.type = type; i.name = name; i.value = value; i.checked = checked;
+    i.addEventListener('change', onchange); l.appendChild(i); l.appendChild(document.createTextNode(label)); return l;
+  }
+  D.passages.forEach(function (p, k) {
+    var c = el('div', 'card'); c.id = 'card-' + p.id;
+    c.appendChild(el('h3', null, 'Passage ' + (k + 1) + ' of ' + D.passages.length + '  ·  ' + p.id));
+    c.appendChild(el('div', 'quote', p.text));
+    c.appendChild(el('div', 'q', 'What is this passage mostly about?'));
+    var a = answers[p.id] || {}, row = el('div', 'pills');
+    D.tags.forEach(function (t) {
+      row.appendChild(pill('m-' + p.id, t.tag, t.tag, 'radio', a.primary === t.tag, '', function (ev) {
+        answers[p.id] = answers[p.id] || {}; answers[p.id].primary = ev.target.value;
+        if (answers[p.id].second === ev.target.value) { answers[p.id].second = ''; sel.value = ''; }
+        save(); refresh();
+      }));
+    });
+    row.appendChild(pill('m-' + p.id, 'cant_tell', "Can't tell", 'radio', a.primary === 'cant_tell', 'cant', function (ev) {
+      answers[p.id] = answers[p.id] || {}; answers[p.id].primary = 'cant_tell'; answers[p.id].second = ''; sel.value = ''; save(); refresh();
+    }));
+    c.appendChild(row);
+    c.appendChild(el('div', 'q', 'Second topic (optional)'));
+    var sel = el('select'); var o0 = el('option', null, 'none'); o0.value = ''; sel.appendChild(o0);
+    D.tags.forEach(function (t) { var o = el('option', null, t.tag); o.value = t.tag; sel.appendChild(o); });
+    sel.value = a.second || '';
+    sel.addEventListener('change', function () {
+      answers[p.id] = answers[p.id] || {};
+      if (sel.value && sel.value === answers[p.id].primary) { sel.value = ''; return; }
+      answers[p.id].second = sel.value; save();
+    });
+    c.appendChild(sel); document.getElementById('passages').appendChild(c);
+  });
+  D.notes.forEach(function (nt, k) {
+    var c = el('div', 'card'); c.id = 'card-' + nt.id;
+    c.appendChild(el('h3', null, 'Note ' + (k + 1) + ' of ' + D.notes.length + '  ·  ' + nt.id));
+    c.appendChild(el('div', 'q', nt.title));
+    c.appendChild(el('div', 'quote note-text', nt.text));
+    c.appendChild(el('div', 'q', 'Which topics is this note about? (pick 1 to 3)'));
+    var a = answers[nt.id] || {tags: []}, row = el('div', 'pills'), warn = el('div', 'warn');
+    D.tags.forEach(function (t) {
+      row.appendChild(pill('n-' + nt.id, t.tag, t.tag, 'checkbox', (a.tags || []).indexOf(t.tag) >= 0, '', function (ev) {
+        var cur = (answers[nt.id] && answers[nt.id].tags) || [];
+        if (ev.target.checked) { if (cur.length >= 3) { ev.target.checked = false; warn.textContent = 'Max 3 topics. Untick one first.'; return; } cur.push(ev.target.value); }
+        else cur = cur.filter(function (x) { return x !== ev.target.value; });
+        warn.textContent = ''; answers[nt.id] = {tags: cur}; save(); refresh();
+      }));
+    });
+    c.appendChild(row); c.appendChild(warn); document.getElementById('notes').appendChild(c);
+  });
+  function exportNow() {
+    var out = {version: 1, exported_at: new Date().toISOString(), counts: {passages_done: D.passages.filter(function (p) { return isDone(p.id); }).length, notes_done: D.notes.filter(function (n) { return isDone(n.id); }).length}, answers: answers};
+    var blob = new Blob([JSON.stringify(out, null, 1)], {type: 'application/json'}), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'handcheck_results.json'; document.body.appendChild(a); a.click(); a.remove();
+  }
+  document.getElementById('export').addEventListener('click', exportNow);
+  save(); refresh();
+})();
+</script>
+</body>
+</html>
