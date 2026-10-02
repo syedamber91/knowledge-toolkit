@@ -27,7 +27,11 @@ def main():
     args = sys.argv[1:]
     jl = Path(args[args.index("--train-jsonl") + 1]); del args[args.index("--train-jsonl"):args.index("--train-jsonl") + 2]
     mod = load_upstream()
-    import datasets, torch
+    import torch, types
+    try:
+        import datasets
+    except ImportError:  # CPU VPS: avoid pulling pyarrow/pandas just to be patched out
+        datasets = sys.modules["datasets"] = types.ModuleType("datasets")
     datasets.load_dataset = lambda *a, **k: [json.loads(l) for l in open(jl) if l.strip()]
     mod.DATASET_ID = f"local:{jl.name}"
     orig = mod.choose_device
