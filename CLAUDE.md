@@ -114,7 +114,7 @@ pytest                      # run the test suite
 
 ```
 src/
-  media_core/        # shared models, catalog store, topic vocab, unified vault builder
+  media_core/        # shared models, catalog store, topic vocab, unified vault builder, pdf_text.py (THE PDF reader)
   soic_toolkit/      # SOIC/Learnyst portal capture
   substack_toolkit/  # Substack publication capture
   youtube_toolkit/   # YouTube transcript capture
@@ -213,6 +213,34 @@ instagram-toolkit build
   cross-links) is only half of that idea — the other half is that a costlier
   model should do the final answer synthesis once routing narrows the field.
   The `vault-ask` skill (see `.claude/` assets below) implements that half.
+- **PDFs are read ONLY through `media_core.pdf_text` — annual reports, filings,
+  investor decks, concall transcripts, scans, anything.** Native text first
+  (pypdf), OCR (LiteParse, local, `pip install -e '.[ocr]'`, Python >= 3.10) only
+  on pages with no usable text layer. Why it is a rule: a plain PDF-to-text call
+  silently returns an empty string for a scanned or image-only page, so the
+  extraction "succeeds" with nothing in it (measured 2026-10-02 on 6 real
+  filings: 18 of 58 facts lost, zero errors; LiteParse on every page fixed that
+  but took 907 s on one annual report vs 15 s hybrid). `pdf_text` raises
+  `OcrUnavailable` instead, and `PdfTextError` if nothing at all is recovered.
+  - Code: `from media_core.pdf_text import extract_pdf_text` (`.pages[i].source`
+    is `native` / `ocr` / `empty`; check `.ocr_pages` / `.empty_pages`).
+  - Agents / skills / ad-hoc: `python -m media_core.pdf_text doc.pdf --out DIR`
+    writes `DIR/p001.txt, p002.txt, ...` (the layout agents grep; 527-page report
+    read in ~11 s). Then grep those files. **Do not** run `pdftotext`, `pypdf`,
+    `pdfplumber`, `fitz`, `tesseract`, LlamaParse etc. directly, and do not feed
+    a PDF to a model unread.
+  - Enforced by `tests/test_pdf_ingest_guard.py`: pytest fails if any file under
+    `src/`, `scripts/`, `mcp_servers/`, `webapp/backend/` or `.claude/` imports a
+    PDF/OCR library (or shells out to `pdftotext` etc.) outside
+    `src/media_core/pdf_text.py`. To change the reader, change that one file.
+    One reasoned exemption (`EXEMPT` in that test): the vendored third-party
+    `last30days` skill shells out to `pdftotext` for its optional corpus
+    feature; never point it at a financial filing.
+  - Known limit: OCR does not recover numbers drawn inside chart images (4 of 58
+    facts in the spike). Treat chart slides as "needs a human or a vision pass".
+  - Local only: documents never leave the machine. Sending a filing to a cloud
+    parser (LlamaParse/LlamaExtract) is a separate, explicit decision, public
+    documents only.
 - **Gitignored outputs — never commit.** Per `.gitignore`: `.env`, `.auth/`,
   `data/`, `output/`, `vault/`. These hold sessions and captured content.
 
