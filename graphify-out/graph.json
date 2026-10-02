@@ -172096,6 +172096,1216 @@
       "source": "g1adj_cfg",
       "target": "g1adj_tail",
       "confidence_score": 1.0
+    },
+    {
+      "source": "scripts_check_chapter_overlap_rationale_1",
+      "target": "scripts_generate_sdcourse_luc",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/check_chapter_overlap.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "src_soic_wiki_adjudication_rationale_1",
+      "target": "src_soic_wiki_gates",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "src/soic_wiki/adjudication.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "src_soic_wiki_sector_gate_rationale_1",
+      "target": "scripts_sector_report",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/soic_wiki/sector_gate.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "src_soic_wiki_sector_gate_rationale_148",
+      "target": "scripts_sector_report",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/soic_wiki/sector_gate.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_check_extraction_attribute_gate_rationale_1",
+      "target": "scripts_check_extraction_route_company",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_check_extraction_attribute_gate.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_learn_by_doing_rationale_1",
+      "target": "scripts_learn_by_doing",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "tests/test_learn_by_doing.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_ref_crosswalk_rationale_249",
+      "target": "scripts_audit_rulebook",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_ref_crosswalk.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_soic_senses_decision_engine_rationale_476",
+      "target": "src_soic_senses_decision_engine_build_briefing",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_soic_senses_decision_engine.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_soic_senses_screener_statements_rationale_257",
+      "target": "src_soic_senses_screener_client_fetch_screener_statements",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_soic_senses_screener_statements.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_soic_wiki_chunk_rationale_40",
+      "target": "src_soic_method_corpus_resolve_timestamp",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/test_soic_wiki_chunk.py",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "f21_f24_fe",
+      "target": "src_soic_wiki_framework_evolution",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-framework-f21-f24-draft.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ig_spec_unified_vault",
+      "target": "src_media_core_unified_vault",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-07-04-instagram-toolkit-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ig_spec_substack_auth",
+      "target": "src_substack_toolkit_auth",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-07-04-instagram-toolkit-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stage3_assemble",
+      "target": "scripts_assemble_claims",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/reassessment/STAGE3-CLAIM-EXTRACTION.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stage3_claims_py",
+      "target": "src_soic_wiki_claims",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/STAGE3-CLAIM-EXTRACTION.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "stage3_lost_py",
+      "target": "src_soic_wiki_lost_conditions",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/STAGE3-CLAIM-EXTRACTION.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "udemy_topics",
+      "target": "src_media_core_topics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-08-22-udemy-toolkit-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "gate_verify_py",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/crash/gate_report.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_level5_backtest_memory_design_store",
+      "target": "src_media_core_store",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/reassessment/LEVEL5-BACKTEST-MEMORY-DESIGN.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_claims",
+      "target": "src_soic_wiki_claims",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-08-24-stage3-lost-condition-detector.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_lost",
+      "target": "src_soic_wiki_lost_conditions",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-08-24-stage3-lost-condition-detector.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_cli",
+      "target": "scripts_detect_lost_conditions",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-08-24-stage3-lost-condition-detector.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "crux_design_gate",
+      "target": "src_soic_wiki_gates_verify_cited_quotes",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-08-23-soic-l3-l5-crux-reassessment-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_verify_briefs",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_sector_gate",
+      "target": "src_soic_wiki_sector_gate",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_framework_evolution",
+      "target": "src_soic_wiki_framework_evolution",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_decision_engine",
+      "target": "src_soic_senses_decision_engine_build_briefing",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_sector_router",
+      "target": "src_soic_senses_sector_router",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_notebook_preflight",
+      "target": "src_soic_senses_notebook_preflight",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "claude_gdrive_upload",
+      "target": "scripts_gdrive_upload",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "CLAUDE.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_ref_crosswalk",
+      "target": "src_soic_wiki_ref_crosswalk",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-08-24-provenance-and-diff-foundation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_ref_crosswalk",
+      "target": "src_soic_wiki_ref_crosswalk_load_crosswalk",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-08-24-provenance-and-diff-foundation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_citation_audit",
+      "target": "src_soic_wiki_citation_audit",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-08-24-provenance-and-diff-foundation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_audit_script",
+      "target": "scripts_audit_rulebook",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-08-24-provenance-and-diff-foundation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_corpus",
+      "target": "src_soic_method_corpus_load_corpus",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-08-24-provenance-and-diff-foundation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "storm_wf",
+      "target": "claude_workflows_storm",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-06-storm-business-research-mvp.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lcet_finalv",
+      "target": "src_storm_core_report",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/reassessment/LOST-CONDITIONS-ENTRY-TECHNICALS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aop_g2",
+      "target": "src_soic_wiki_sector_gate",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "knowledge/system-one/08-playbook/agent-operating-protocol.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "aop_vb",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "knowledge/system-one/08-playbook/agent-operating-protocol.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "s1skill_g2",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "plugins/system-one/skills/system-one/SKILL.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "adv_g2",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": ".claude/agents/system-one-advisor.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "fe_page",
+      "target": "webapp_frontend_app_page",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "webapp/frontend/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_models",
+      "target": "src_soic_method_models",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_corpus",
+      "target": "src_soic_method_corpus",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_corpus",
+      "target": "src_soic_method_corpus_normalize_slice",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_corpus",
+      "target": "src_soic_method_corpus_resolve_timestamp",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_eligibility",
+      "target": "src_soic_method_eligibility",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_router",
+      "target": "src_soic_method_router",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_verify",
+      "target": "src_soic_method_verify",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_corroborate",
+      "target": "src_soic_method_corroborate",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_extract",
+      "target": "src_soic_method_extract",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_refute",
+      "target": "src_soic_method_refute",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_reconcile",
+      "target": "src_soic_method_reconcile",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "soicmethodplan_publish",
+      "target": "src_soic_method_publish",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-20-soic-method-extraction.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_config",
+      "target": "src_substack_toolkit_config",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_models",
+      "target": "src_substack_toolkit_models",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_topics",
+      "target": "src_substack_toolkit_topics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_extract",
+      "target": "src_substack_toolkit_extract",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_auth",
+      "target": "src_substack_toolkit_auth",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_crawler",
+      "target": "src_substack_toolkit_crawler",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_vault",
+      "target": "src_substack_toolkit_vault",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "substackplan_cli",
+      "target": "src_substack_toolkit_cli",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-21-substack-toolkit.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "youtubespec_unified",
+      "target": "src_media_core_unified_vault",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-06-23-youtube-subproject-unified-vault-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "youtubecapturer_topics",
+      "target": "src_media_core_topics",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": ".claude/agents/youtube-capturer.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "systemonesetup_sync",
+      "target": "scripts_sync_system_one",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/SYSTEM-ONE-SETUP.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "systemonesetup_sync",
+      "target": "scripts_check_system_one_vault",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/SYSTEM-ONE-SETUP.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_pydantic_schemas",
+      "target": "webapp_backend_schemas",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-06-29-knowledge-toolkit-ui.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_seed_data",
+      "target": "webapp_backend_seed",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-06-29-knowledge-toolkit-ui.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "plan_start_script",
+      "target": "webapp_start",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-29-knowledge-toolkit-ui.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "spec_router",
+      "target": "src_soic_method_router",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-20-soic-method-spec-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "spec_verify",
+      "target": "src_soic_method_verify",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-20-soic-method-spec-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "spec_refute",
+      "target": "src_soic_method_refute",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-20-soic-method-spec-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "spec_reconcile",
+      "target": "src_soic_method_reconcile",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-20-soic-method-spec-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "spec_publish",
+      "target": "src_soic_method_publish",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-20-soic-method-spec-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_readme_verify_briefs",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_learning_pack_verification_workflow_generator",
+      "target": "scripts_generate_learning_pack",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/LEARNING_PACK_VERIFICATION_WORKFLOW.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "configs_sector_notebooks_sector_router",
+      "target": "src_soic_senses_sector_router",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "configs/sector_notebooks.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "configs_sector_notebooks_ensure",
+      "target": "src_soic_wiki_notebooklm_sector_pipeline_ensure_sector_notebook",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "configs/sector_notebooks.yaml",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_specs_2026_07_12_learn_topic_pipeline_spark_validation_grounding",
+      "target": "scripts_learning_pack_wiki_grounding_check",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-12-learn-topic-pipeline-spark-validation.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_ms_gate_report_verify",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/reassessment/ms/gate_report.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_23_learn_by_doing_script",
+      "target": "scripts_learn_by_doing",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-09-23-learn-by-doing.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_09_23_learn_by_doing_tests",
+      "target": "tests_test_learn_by_doing",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-09-23-learn-by-doing.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_07_27_soic_decision_engine_machine_actionable_plan_build_briefing",
+      "target": "src_soic_senses_decision_engine_build_briefing",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-machine-actionable-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_superpowers_plans_2026_07_27_soic_decision_engine_machine_actionable_plan_fw_evolution",
+      "target": "src_soic_wiki_framework_evolution",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-machine-actionable-plan.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "knowledge_system_one_08_playbook_privacy_and_cost_gates_gate_rule",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "knowledge/system-one/08-playbook/privacy-and-cost-gates.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "decisionenginephasea_rules",
+      "target": "src_soic_senses_decision_rules",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-phase-a.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "decisionenginephasea_engine",
+      "target": "src_soic_senses_decision_engine",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-phase-a.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "decisionenginephasea_build_briefing",
+      "target": "src_soic_senses_decision_engine_build_briefing",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-phase-a.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "decisionenginephasea_checkrule",
+      "target": "src_soic_senses_decision_rules_check_rule",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-phase-a.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "decisionenginephasea_router",
+      "target": "src_soic_senses_framework_router",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-27-soic-decision-engine-phase-a.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sdcoursespec_gen",
+      "target": "scripts_generate_sdcourse_luc",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-07-sdcourse-luc-dual-lens-pack-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sdcoursespec_verify",
+      "target": "claude_workflows_verify_sdcourse_luc",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-07-sdcourse-luc-dual-lens-pack-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sdcoursespec_gdrive",
+      "target": "scripts_gdrive_upload",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-07-sdcourse-luc-dual-lens-pack-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "sdcoursespec_spark",
+      "target": "scripts_generate_vutr_spark",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-07-sdcourse-luc-dual-lens-pack-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "learntopic_gen",
+      "target": "scripts_generate_vutr_spark",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/specs/2026-07-10-learn-topic-pipeline-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_errata_refx",
+      "target": "src_soic_wiki_ref_crosswalk",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/reassessment/ERRATA.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_errata_audit",
+      "target": "scripts_audit_rulebook",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/ERRATA.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "pwpoc_storage",
+      "target": "src_soic_wiki_pipeline_write_note",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-08-persona-wiki-poc.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "pwpoc_log",
+      "target": "src_soic_wiki_log",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-08-persona-wiki-poc.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "learntopic_lpw",
+      "target": "scripts_learning_pack_wiki",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-10-learn-topic-pipeline.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "ytvault_unified",
+      "target": "src_media_core_unified_vault",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-06-23-youtube-subproject-unified-vault.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "pilot_pilotrun",
+      "target": "scripts_pilot_run",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reviews/soic-method-pilot-report.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "readme_mindmap",
+      "target": "src_soic_toolkit_mindmap",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "README.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "proto_g2",
+      "target": "src_soic_wiki_sector_gate",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "plugins/system-one/skills/system-one/references/protocol-and-tiering.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "proto_verify",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "plugins/system-one/skills/system-one/references/protocol-and-tiering.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "dualpack_gen",
+      "target": "scripts_generate_sdcourse_luc",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/plans/2026-07-07-sdcourse-luc-dual-lens-pack.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "dualpack_wf",
+      "target": "claude_workflows_verify_sdcourse_luc",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-07-sdcourse-luc-dual-lens-pack.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "dualpack_overlap",
+      "target": "scripts_check_chapter_overlap",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-07-sdcourse-luc-dual-lens-pack.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "dualpack_vutr",
+      "target": "scripts_generate_vutr_spark",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/superpowers/plans/2026-07-07-sdcourse-luc-dual-lens-pack.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "mssyn_verify",
+      "target": "scripts_verify_briefs",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/ms/SYNTHESIS.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "chkpilot_verify",
+      "target": "scripts_check_extraction_verify_claims",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/CHECK-EXTRACTION-PILOT-2026-07-29.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "lbd_script",
+      "target": "scripts_learn_by_doing",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/superpowers/specs/2026-09-23-learn-by-doing-design.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hpdf_pdftext",
+      "target": "src_media_core_pdf_text",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/HANDOFF-PDF-OCR-2026-10-02.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hpdf_guard",
+      "target": "tests_test_pdf_ingest_guard",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/HANDOFF-PDF-OCR-2026-10-02.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "hpdf_tests",
+      "target": "tests_test_pdf_text",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/HANDOFF-PDF-OCR-2026-10-02.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "s1train_kaggle",
+      "target": "scripts_system_one_train_kaggle_build_kernel",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/SYSTEM-ONE-TRAINING.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "s1train_vaultfinder",
+      "target": "scripts_system_one_train_vault_finder",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/SYSTEM-ONE-TRAINING.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "s1train_bundle",
+      "target": "scripts_system_one_train_deploy_make_bundle",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "docs/SYSTEM-ONE-TRAINING.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_roadmap_audit",
+      "target": "scripts_audit_rulebook",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/ROADMAP.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "docs_reassessment_roadmap_xwalk",
+      "target": "src_soic_wiki_ref_crosswalk",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "docs/reassessment/ROADMAP.md",
+      "source_location": null,
+      "weight": 1.0
+    },
+    {
+      "source": "g1adj_gates",
+      "target": "src_soic_wiki_gates",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "configs/g1_adjudications.yaml",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
