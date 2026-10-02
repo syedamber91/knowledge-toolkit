@@ -16,10 +16,13 @@ Split by module (`topics`), 345 train / 114 test, so near-duplicate notes never 
 | MiniLM-L6 + LR | 0.58 | 0.52 | 0.86 | 0.78 |
 | **avg(TF-IDF, MiniLM)** (deployed) | 0.62 | 0.56 | 0.87 | **0.83** |
 | Laya zero-shot | 0.32 | 0.30 | 0.69 | 0.47 |
-| Laya fine-tuned | **not run yet** (needs a GPU) | | | |
+| Laya fine-tuned (3 epochs, Kaggle T4, 2 h 13 min) | 0.60 | 0.42 | 0.80 | 0.67 |
 
 Reading it: MiniLM alone did not beat plain keywords; the average is best but the test set is small. Laya zero-shot is
-weak, as its own docs say. Fine-tuning is the open question.
+weak, as its own docs say. Fine-tuning lifted it a lot (top-1 0.47 -> 0.67, AUC 0.69 -> 0.80) but it still trails the
+MiniLM+TF-IDF average (0.83 / 0.87) on this task. Its noul probabilities are compressed by the fitted temperature (8.5), so use
+its ranking or a tuned threshold, never 0.5. Weakest tags: leverage-risk F1 0.00, capital-allocation 0.22, forensic 0.33. It was
+installed anyway on the owner's instruction; the tagger endpoint still returns the MiniLM+TF-IDF answer first and Laya's as `laya_noul`.
 Vault finder (`vault_finder.py eval`, 18 probes I wrote myself, so optimistic): MiniLM hit@3 1.00 / MRR 0.92 vs TF-IDF 0.94 / 0.78.
 
 ## Pipeline
@@ -61,3 +64,12 @@ Adding the fine-tuned Laya later (no Mac needed): `scp -r laya_soic you@vps:~/sy
   an older VPS Python may refuse them. The installer demands Python >= 3.10 and pip will say so if the pins need newer.
   A scikit-learn mismatch would break the `.joblib`; if so, rerun `train_minilm.py` on the VPS with the same pins.
 - Nothing is sent anywhere by me; I have no VPS access.
+
+## Done on 2026-10-02 (what is actually running)
+- VPS (root account, ssh alias `hostinger_root`): `/root/system-one-vps`, systemd service `system-one`, 127.0.0.1:8765, `laya: true`.
+- Laya lives in exactly one place: weights `/root/system-one-vps/models/laya`, package in `/root/system-one-vps/venv` only (no HF cache copy).
+  Older Laya copies under `/home/syamiq` (soic-ladder runs, kaggle-* kits, HF cache) were left alone: other projects.
+- Training ran through the VPS's existing Kaggle setup: `scripts/system_one_train/kaggle/build_kernel.py smoke|full` builds a
+  self-contained private script-kernel (code + data embedded), pushed with the kaggle CLI from the VPS. A 12-note smoke run
+  (4 min) proved the path before the full run. Data sits in PRIVATE Kaggle kernels `soic-tags-laya-smoke` / `-full`; delete them
+  on kaggle.com if you want the notes off Kaggle. Modal was tried earlier and needs a payment method, so it was not used.
