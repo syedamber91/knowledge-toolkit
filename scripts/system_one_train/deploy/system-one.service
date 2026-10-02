@@ -1,0 +1,14 @@
+[Unit]
+Description=System One tagger + vault finder
+After=network.target
+
+[Service]
+User=__USER__
+WorkingDirectory=__DIR__
+ExecStart=__DIR__/venv/bin/python __DIR__/serve.py
+Restart=on-failure
+# Local only by default. To expose: set SYSTEM_ONE_HOST=0.0.0.0 and SYSTEM_ONE_TOKEN=<secret> (put in an EnvironmentFile, not here).
+Environment=SYSTEM_ONE_HOST=127.0.0.1
+
+[Install]
+WantedBy=multi-user.target
