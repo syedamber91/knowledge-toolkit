@@ -73,3 +73,20 @@ Adding the fine-tuned Laya later (no Mac needed): `scp -r laya_soic you@vps:~/sy
   self-contained private script-kernel (code + data embedded), pushed with the kaggle CLI from the VPS. A 12-note smoke run
   (4 min) proved the path before the full run. Data sits in PRIVATE Kaggle kernels `soic-tags-laya-smoke` / `-full`; delete them
   on kaggle.com if you want the notes off Kaggle. Modal was tried earlier and needs a payment method, so it was not used.
+
+## Do transcript passages help? (2026-10-03, run on the VPS CPU)
+Weak labels: each passage cited by a concept note inherits that note's tags (`build_passages.py`; 2,979 train passages, 905 test passages
+from held-out modules, test passages used for diagnostics only). Same 114 test notes. Fixed hyper-parameters, one run, so gaps under ~5 points are noise.
+- Training on spoken passages did NOT help (MiniLM+TF-IDF avg top-1 0.82 notes-only -> 0.69 passages-only, 0.72 notes+passages).
+- Diagnostics (`diagnose.py`): written notes cut into passage-sized chunks with the same inherited labels do as well as full notes
+  (AUC 0.87 both) -> inherited labels alone are not the problem. Spoken-trained models score 6-10 points lower top-1 on written notes than
+  written-chunk-trained ones -> spoken-vs-written shift is real. 5x more data did not help -> label quality, not quantity, is the limit.
+  Dropping "suspect" passages (agreement with a notes-trained model) gave mixed results: inconclusive.
+- Independent reader check (Option B via Jev): Jev `jev-1.13.0`, 12 yes/no questions per passage, 150 stratified spoken test passages, zero-shot,
+  vs the inherited labels: top-1 0.63, mean AUC 0.72 (per-tag AUC 0.61-0.92). Our models on all 905 spoken test passages: AUC 0.72-0.74, top-1 0.52-0.57.
+  So an independent strong reader agrees with the inherited passage labels no better than our trained models do: the ceiling on spoken passages is low.
+  That fits "loose inherited labels / hard short fragments" but cannot separate the two. Different samples (150 stratified vs 905 random), my own tag
+  definitions in the questions, Jev is an AI opinion not ground truth. Hand-checked labels remain the only real answer.
+- How Jev was run without the key leaving GitHub: workflow `jev-label-spoken-passages` on a throwaway branch of the private `soic-ladder` repo,
+  on its VPS runner (user `syamiq`), reading data staged in /var/tmp/jev-label (deleted after). The log shows the key masked and counts only.
+  Per the owner the branch is kept. Raw Jev outputs (ids, tags, probabilities; no passage text): VPS `/root/system-one-train/results/jev_labels.jsonl`.
