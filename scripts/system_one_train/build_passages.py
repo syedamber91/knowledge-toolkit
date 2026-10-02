@@ -44,7 +44,8 @@ def passage(body, markers, t1, t2):
 
 
 def main():
-    L = lessons(); train, test = split(load_notes()); keep = {n["slug"]: n for n in train}
+    which = sys.argv[1] if len(sys.argv) > 1 else "train"   # "test" = diagnostics only, NEVER for training
+    L = lessons(); train, test = split(load_notes()); keep = {n["slug"]: n for n in (test if which == "test" else train)}
     rng = random.Random(SEED); rows, miss = [], Counter()
     idx = {}
     for lid, body in L.items():
@@ -68,10 +69,10 @@ def main():
         for k, p in enumerate(cands[:MAX_PER_NOTE]):
             rows.append({"id": f"{slug}#{k}", "note": slug, "topic": n["topic"], "tags": n["tags"], "text": p})
     OUT.mkdir(parents=True, exist_ok=True)
-    with open(OUT / "train_passages.jsonl", "w") as f:
+    with open(OUT / f"{which}_passages.jsonl", "w") as f:
         for r in rows: f.write(json.dumps(r) + "\n")
     tc = Counter(t for r in rows for t in r["tags"])
-    print(f"train notes={len(keep)} passages={len(rows)} notes_with_passages={len({r['note'] for r in rows})} skipped={dict(miss)}")
+    print(f"{which} notes={len(keep)} passages={len(rows)} notes_with_passages={len({r['note'] for r in rows})} skipped={dict(miss)}")
     print("avg words", round(sum(len(r['text'].split()) for r in rows) / max(len(rows), 1)), "tag counts", dict(tc))
 
 
