@@ -37,6 +37,11 @@ every session reads.
 skills, ~900k words) - graphify has no ignore file, so when refreshing, run detection, drop every
 path under `.claude/skills/` from the file list, then continue; the AST step must run from a
 script file (it uses multiprocessing). Ask for a skill's behaviour in its own `SKILL.md`, not the graph.
+After every refresh run `python scripts/graphify_link_docs_to_code.py` - graphify keeps docs and code as two
+islands (2 edges crossed), and this adds `doc -> code` edges where a doc node names a code file or function
+(121 added on 2026-10-03; deterministic, skips ambiguous names, does not re-cluster so community labels
+stay valid; `GRAPH_REPORT.md` counts predate it). Without it `/graphify path`/`explain` between a note and its
+code comes back empty.
 
 ## SESSION DEFAULTS — precedence order
 
