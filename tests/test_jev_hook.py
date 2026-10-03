@@ -5,10 +5,12 @@ No test here touches the network or starts npx: every test hands the hook a fake
 advisory, fails open, and never blocks or fakes a verdict.
 """
 import importlib.util
+import io
 import json
 import os
 import pathlib
 import subprocess
+import sys
 import time
 
 import pytest
@@ -230,6 +232,80 @@ def test_the_reproduced_bug_a_non_repo_cwd_no_longer_hides_the_commit(tmp_path):
     event = bash_event(not_a_repo, f"cd {repo} && git commit -m x")
     _, message, note = reviewed_repo(event, tmp_path)
     assert message is not None and not note.startswith("skipped")
+
+
+# ---- the deadline is REAL, the installed binary is preferred, and a killed run still leaves a trace
+
+FAKE_SERVER_ANSWERS = """
+import json, sys
+for line in sys.stdin:
+    msg = json.loads(line)
+    if msg.get("method") == "initialize":
+        print(json.dumps({"jsonrpc": "2.0", "id": msg["id"], "result": {}}), flush=True)
+    elif msg.get("method") == "tools/call":
+        body = json.dumps({"action": "auto", "echo": msg["params"]["name"]})
+        print(json.dumps({"jsonrpc": "2.0", "id": msg["id"],
+                          "result": {"content": [{"type": "text", "text": body}]}}), flush=True)
+        break
+"""
+
+
+def test_a_silent_server_is_given_up_on_at_the_deadline(monkeypatch):
+    """The live failure: a server that prints nothing must not block past our own budget."""
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.setattr(jev_hook, "CALL_TIMEOUT_SECONDS", 1)
+    monkeypatch.setattr(jev_hook, "server_command",
+                        lambda: [sys.executable, "-c", "import time; time.sleep(30)"])
+    started = time.time()
+    result, error = jev_hook.call_jev("jev_review", {})
+    assert result is None and "did not start within 1s" in error
+    assert time.time() - started < 5
+
+
+def test_a_server_that_answers_gives_back_its_result(monkeypatch):
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.setattr(jev_hook, "server_command",
+                        lambda: [sys.executable, "-c", FAKE_SERVER_ANSWERS])
+    result, error = jev_hook.call_jev("jev_review", {"request": "x"})
+    assert error is None and result == {"action": "auto", "echo": "jev_review"}
+
+
+def test_a_server_that_exits_at_once_is_an_error_not_a_hang(monkeypatch):
+    monkeypatch.setenv("TYPESAFE_API_KEY", "test-key")
+    monkeypatch.setattr(jev_hook, "server_command", lambda: [sys.executable, "-c", "pass"])
+    started = time.time()
+    result, error = jev_hook.call_jev("jev_review", {})
+    assert result is None and error and time.time() - started < 5
+
+
+def test_the_installed_binary_is_preferred_over_npx(monkeypatch):
+    monkeypatch.setattr(jev_hook.shutil, "which", lambda name: "/opt/bin/jev-mcp")
+    assert jev_hook.server_command() == ["/opt/bin/jev-mcp"]
+
+
+def test_without_an_installed_binary_npx_is_the_fallback(monkeypatch):
+    monkeypatch.setattr(jev_hook.shutil, "which", lambda name: None)
+    command = jev_hook.server_command()
+    assert command[:2] == ["npx", "-y"] and command[2].startswith("@jkudish/jev-mcp@")
+
+
+def test_the_invoked_line_is_written_before_the_slow_part(monkeypatch, tmp_path):
+    """So a run killed by the harness is still visible in the log."""
+    log_path = tmp_path / "hook.log"
+    monkeypatch.setattr(jev_hook, "LOG_PATH", str(log_path))
+    seen_while_running = {}
+
+    def slow_check(event):
+        seen_while_running["log"] = log_path.read_text()
+        return None, "skipped: for the test"
+
+    monkeypatch.setattr(jev_hook, "screen_fetched_page", slow_check)
+    event = {"hook_event_name": "PostToolUse", "tool_name": "WebFetch"}
+    monkeypatch.setattr(sys, "stdin", io.StringIO(json.dumps(event)))
+    jev_hook.main()
+    assert '"invoked"' in seen_while_running["log"]
+    lines = log_path.read_text().splitlines()
+    assert [json.loads(line)["result"] for line in lines] == ["invoked", "skipped: for the test"]
 
 
 # ---- the screen check
