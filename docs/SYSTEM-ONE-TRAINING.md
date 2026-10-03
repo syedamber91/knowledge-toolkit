@@ -66,7 +66,7 @@ Adding the fine-tuned Laya later (no Mac needed): `scp -r laya_soic you@vps:~/sy
 - Nothing is sent anywhere by me; I have no VPS access.
 
 ## Done on 2026-10-02 (what is actually running)
-- VPS (root account, ssh alias `hostinger_root`): `/root/system-one-vps`, systemd service `system-one`, 127.0.0.1:8765, `laya: true`.
+- VPS (root account): `/root/system-one-vps`, systemd service `system-one`, 127.0.0.1:8765, `laya: true`.
 - Laya lives in exactly one place: weights `/root/system-one-vps/models/laya`, package in `/root/system-one-vps/venv` only (no HF cache copy).
   Older Laya copies in the soic-ladder user's home (workflow outputs, kaggle-* kits) are another project's artifacts: audited, one exact duplicate hardlinked, the rest left alone (see SYSTEM-ONE-ARTIFACTS.md).
 - Training ran through the VPS's existing Kaggle setup: `scripts/system_one_train/kaggle/build_kernel.py smoke|full` builds a
