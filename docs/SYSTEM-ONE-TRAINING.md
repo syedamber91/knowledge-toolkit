@@ -68,7 +68,7 @@ Adding the fine-tuned Laya later (no Mac needed): `scp -r laya_soic you@vps:~/sy
 ## Done on 2026-10-02 (what is actually running)
 - VPS (root account, ssh alias `hostinger_root`): `/root/system-one-vps`, systemd service `system-one`, 127.0.0.1:8765, `laya: true`.
 - Laya lives in exactly one place: weights `/root/system-one-vps/models/laya`, package in `/root/system-one-vps/venv` only (no HF cache copy).
-  Older Laya copies under `/home/syamiq` (soic-ladder runs, kaggle-* kits, HF cache) were left alone: other projects.
+  Older Laya copies in the soic-ladder user's home (workflow outputs, kaggle-* kits) are another project's artifacts: audited, one exact duplicate hardlinked, the rest left alone (see SYSTEM-ONE-ARTIFACTS.md).
 - Training ran through the VPS's existing Kaggle setup: `scripts/system_one_train/kaggle/build_kernel.py smoke|full` builds a
   self-contained private script-kernel (code + data embedded), pushed with the kaggle CLI from the VPS. A 12-note smoke run
   (4 min) proved the path before the full run. Data sits in PRIVATE Kaggle kernels `soic-tags-laya-smoke` / `-full`; delete them
@@ -88,7 +88,7 @@ from held-out modules, test passages used for diagnostics only). Same 114 test n
   That fits "loose inherited labels / hard short fragments" but cannot separate the two. Different samples (150 stratified vs 905 random), my own tag
   definitions in the questions, Jev is an AI opinion not ground truth. Hand-checked labels remain the only real answer.
 - How Jev was run without the key leaving GitHub: workflow `jev-label-spoken-passages` on a throwaway branch of the private `soic-ladder` repo,
-  on its VPS runner (user `syamiq`), reading data staged in /var/tmp/jev-label (deleted after). The log shows the key masked and counts only.
+  on its VPS runner (the runner's own OS user), reading data staged in /var/tmp/jev-label (deleted after). The log shows the key masked and counts only.
   Per the owner the branch is kept. Raw Jev outputs (ids, tags, probabilities; no passage text): VPS `/root/system-one-train/results/jev_labels.jsonl`.
 
 ## Making Jev score better on spoken passages: Fable's ideas 2, 5, 6, 7 (2026-10-03, owner chose option A)
@@ -119,3 +119,22 @@ Hand-checked labels remain the only way to separate "noisy labels" from "hard fr
   Transcripts leave the VPS for TypeSafe: re-approve for full transcripts. Expect < 0.80 on un-curated windows [inference].
 - Human-labelling plan (<= 2 h): 80 spoken passages (<=2 per note: 30 where Jev agrees with inherited, 30 confident disagreements, 20 none/low), read BLIND (no inherited tags, no Jev),
   primary tag + optional second + "can't tell"; plus 20 test notes confirmed. Score: inherited-vs-human = label noise, Jev-vs-human, "can't tell" rate = hard-fragment rate. n=80 gives +-0.11.
+
+## Final scoreboard vs the owner's hand-checked labels (2026-10-03; 66 tellable passages, population-weighted, 95% bootstrap CI)
+Top-1 equals the owner's primary topic. Sample was built from Jev disagreements/uncertainty, so use it to RANK models, not to read accuracy; CIs are about +-0.13.
+| Model | top-1 |
+|---|---|
+| Jev, 13-way topic question | **0.64** [0.53-0.76] |
+| Jev, 12 yes/no | 0.52 [0.39-0.64] |
+| MiniLM (written notes / spoken) | 0.41 / 0.37 |
+| Laya VPS-trained yes/no; Laya untrained yes/no; Laya Kaggle-trained yes/no | 0.39; 0.39; 0.37 |
+| BGE-reranker-v2-m3 zero-shot (best local on "either of the owner's two topics": 0.60) | 0.39 [0.26-0.52] |
+| Laya trained, topic question (both trained Layas) / untrained | 0.34 / 0.23 |
+| mxbai-rerank-base-v2 / ms-marco MiniLM reranker | 0.28 / 0.21 |
+| TF-IDF (spoken / written) | 0.18 / 0.16 |
+Chance references: random 12 tags 0.08; always "sector-macro" 0.14; random tag from the AI tags 0.30; the AI tag SET contains the owner's primary 0.78.
+Whole notes (20): top-1 in the owner's tags: Jev topic 17/20, TF-IDF 15-17, MiniLM 12-16, BGE reranker 13, Laya 7-13: not separable at n=20.
+Laya on 114 held-out notes vs AI tags (choice protocol, chunk-mean): VPS-trained AUC 0.860 / top-1 0.702; Kaggle-trained 0.783 / 0.667; untrained 0.756 / 0.412.
+Qwen3-Reranker-0.6B: first run was OOM-killed at a 5 GB cap (full-vocabulary logits at every position); fixed with `logits_to_keep=1` and rerun; its result is in the private results pack once finished.
+The VPS-trained Laya replaced the Kaggle-trained one on the notes test (both top-1 and AUC); against the owner's labels the two tie, so that swap is not evidence of a better model.
+Artifacts and how to pick them up: `docs/SYSTEM-ONE-ARTIFACTS.md`.
