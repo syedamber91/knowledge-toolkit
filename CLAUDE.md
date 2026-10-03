@@ -923,6 +923,21 @@ only and ranks below everything else in this file:** it never stands in for the 
 a Jev tool. This governs behaviour, not chat style: any chat-style rule above
 still applies to how the result is reported.
 
+**Two of those checkpoints no longer depend on the session remembering
+(added 2026-10-03).** `.claude/hooks/jev_hook.py`, wired in
+`.claude/settings.json` as a `PostToolUse` hook on `Bash|WebFetch`, makes the
+Jev call itself: `jev_review` on the commit just made after any successful
+`git commit` (checkpoint 3), and `jev_screen` on the page after any
+`WebFetch` (checkpoint 4). It starts its own `@jkudish/jev-mcp` process, so it
+works even when the `mcp__jev__*` tools did not load. It is advisory by
+construction: it exits 0 on every path, never blocks or denies a tool, and
+when Jev is unreachable it says so in one line instead of inventing a verdict.
+Every run appends a line to `/tmp/jev-hook.log`, so "did it fire" is a count,
+not an impression. Checkpoints 1 and 2 (a close design choice, a claim headed
+into a report) still rely on the session, because a hook cannot know the
+options or the claim. It never stands in for the G2 cited-quote gate or `verify_briefs.py`, and never edits a quote or REF code because Jev disagreed. This is a verbatim copy of the hook in
+`syedamber91/soic-ladder` (source of truth there); change it there and re-copy.
+
 ---
 
 ## System One vault, skill and agent — added 2026-10-02

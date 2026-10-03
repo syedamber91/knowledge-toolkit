@@ -9,5 +9,19 @@
   },
   "enabledPlugins": {
     "ponytail@ponytail": true
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/jev_hook.py\"",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
   }
 }
