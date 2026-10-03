@@ -56,7 +56,7 @@ curl -s localhost:8765/health
 curl -s -X POST localhost:8765/tag  -d '{"title":"...","text":"..."}'
 curl -s -X POST localhost:8765/find -d '{"query":"which model for 77 classes","k":5}'
 ```
-Adding the fine-tuned Laya later (no Mac needed): `scp -r laya_soic you@vps:~/system-one-vps/models/laya`, then
+Adding the fine-tuned Laya later (no Mac needed): copy the folder next to the other Laya checkpoints (see SYSTEM-ONE-ARTIFACTS.md), point `LAYA_DIR` in the service unit at it, then
 `./venv/bin/pip install laya && sudo systemctl restart system-one`; `/tag` with `"laya": true` then returns per-tag probabilities.
 - Local-only by default (127.0.0.1). To expose it: `SYSTEM_ONE_HOST=0.0.0.0` + `SYSTEM_ONE_TOKEN` (the server refuses without a token).
 - Verified here: bundle unpacks, checksums match, installer + smoke test pass on Python 3.14/arm64, `/health`, `/find`, `/tag` answer.
@@ -67,8 +67,7 @@ Adding the fine-tuned Laya later (no Mac needed): `scp -r laya_soic you@vps:~/sy
 
 ## Done on 2026-10-02 (what is actually running)
 - VPS (root account): `/root/system-one-vps`, systemd service `system-one`, 127.0.0.1:8765, `laya: true`.
-- Laya lives in exactly one place: weights `/root/system-one-vps/models/laya`, package in `/root/system-one-vps/venv` only (no HF cache copy).
-  Older Laya copies in the soic-ladder user's home (workflow outputs, kaggle-* kits) are another project's artifacts: audited, one exact duplicate hardlinked, the rest left alone (see SYSTEM-ONE-ARTIFACTS.md).
+- Laya lives in exactly one place (consolidated 2026-10-03): the weights are in the soic-ladder checkout's `runs/valuation/laya-finetune-soic-tags-vps-2026-10-03`, next to the other Laya checkpoints; the `laya` package is in the service venv only (no HF cache copy). The service reads the weights via `LAYA_DIR`. All Laya artifacts are indexed in that folder's `LAYA-INDEX.md`; see `docs/SYSTEM-ONE-ARTIFACTS.md`.
 - Training ran through the VPS's existing Kaggle setup: `scripts/system_one_train/kaggle/build_kernel.py smoke|full` builds a
   self-contained private script-kernel (code + data embedded), pushed with the kaggle CLI from the VPS. A 12-note smoke run
   (4 min) proved the path before the full run. Data sits in PRIVATE Kaggle kernels `soic-tags-laya-smoke` / `-full`; delete them

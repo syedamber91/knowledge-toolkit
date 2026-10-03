@@ -4,7 +4,7 @@
   POST /find  {"query": "...", "k": 5}                         -> top System One vault notes
 Binds 127.0.0.1 by default. To expose, set SYSTEM_ONE_HOST and SYSTEM_ONE_TOKEN (Bearer auth required).
 Layout (relative to this file's dir): models/minilm (sentence-transformers dir), models/tagger_final.joblib,
-models/vault_index.npz + vault_index.json, optional models/laya/ (fine-tuned checkpoint)."""
+models/vault_index.npz + vault_index.json, optional Laya checkpoint: $LAYA_DIR, else models/laya/."""
 import json, os, sys
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -28,10 +28,11 @@ TAG = joblib.load(M / "tagger_final.joblib")
 VEC = np.load(M / "vault_index.npz")["vecs"]
 SLUGS = json.loads((M / "vault_index.json").read_text())
 LAYA = None
-if (M / "laya").exists():
+LAYA_PATH = Path(os.environ.get("LAYA_DIR", M / "laya"))   # set LAYA_DIR to load the checkpoint from anywhere (one copy only)
+if LAYA_PATH.exists():
     from laya import Agent  # noqa: E402
     from laya_choice_data import QID, QUESTION  # noqa: E402
-    LAYA = Agent(str(M / "laya"), device="cpu")
+    LAYA = Agent(str(LAYA_PATH), device="cpu")
 
 
 def tag(title, text, use_laya):
