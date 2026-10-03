@@ -30,7 +30,7 @@ SLUGS = json.loads((M / "vault_index.json").read_text())
 LAYA = None
 if (M / "laya").exists():
     from laya import Agent  # noqa: E402
-    from laya_data import question  # noqa: E402
+    from laya_choice_data import QID, QUESTION  # noqa: E402
     LAYA = Agent(str(M / "laya"), device="cpu")
 
 
@@ -43,12 +43,12 @@ def tag(title, text, use_laya):
     out = {"model": "avg(TF-IDF+LR, MiniLM-L6+LR)", "trained_on_notes": TAG["trained_on"],
            "tags": sorted(({"tag": t, "p": round(float(p[i]), 3), "pass": bool(p[i] >= thr[i])} for i, t in enumerate(TAG["tags"])),
                           key=lambda r: -r["p"])}
-    if use_laya and LAYA:
-        qs = {t: question(t) for t in TAG["tags"]}
-        ans = LAYA.predict({"title": title, "note": text[:3200]}, qs)["answers"]
-        out["laya_noul"] = {t: ans[t]["noul"] for t in TAG["tags"]}
+    if use_laya and LAYA:   # the VPS-trained Laya was fine-tuned on the 12-way "which topic" choice question (150-word chunks, mean per tag)
+        ws = text.split(); chunks = [" ".join(ws[k:k + 150]) for k in range(0, len(ws), 150)][:6] or ["empty"]
+        ps = [LAYA.predict({"passage": c}, {QID: QUESTION})["answers"][QID]["probabilities"] for c in chunks]
+        out["laya_topic"] = {t: round(float(np.mean([p[t] for p in ps])), 4) for t in TAG["tags"]}
     elif use_laya:
-        out["laya_noul"] = None  # no models/laya checkpoint installed
+        out["laya_topic"] = None  # no models/laya checkpoint installed
     return out
 
 

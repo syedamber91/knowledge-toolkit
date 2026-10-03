@@ -30,10 +30,10 @@ if key == "qwen3":
     suf = "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n"
     def score(pairs):                       # pairs: [(query, doc)] -> P(yes)
         out = []
-        for i in range(0, len(pairs), 6):
-            txt = [f"{pre}<Instruct>: {INSTR}\n<Query>: {q}\n<Document>: {d}{suf}" for q, d in pairs[i:i + 6]]
+        for i in range(0, len(pairs), 4):
+            txt = [f"{pre}<Instruct>: {INSTR}\n<Query>: {q}\n<Document>: {d}{suf}" for q, d in pairs[i:i + 4]]
             enc = tok(txt, return_tensors="pt", padding=True, truncation=True, max_length=1024)
-            with torch.no_grad(): lg = lm(**enc).logits[:, -1, :]
+            with torch.no_grad(): lg = lm(**enc, logits_to_keep=1).logits[:, -1, :]   # only the last position: full-vocab logits for every token OOM-killed run 1
             out += torch.log_softmax(torch.stack([lg[:, no], lg[:, yes]], 1), 1)[:, 1].exp().tolist()
         return np.array(out)
 else:
