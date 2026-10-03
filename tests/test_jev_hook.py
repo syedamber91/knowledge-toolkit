@@ -6,8 +6,12 @@ advisory, fails open, and never blocks or fakes a verdict.
 """
 import importlib.util
 import json
+import os
 import pathlib
 import subprocess
+import time
+
+import pytest
 
 HOOK_PATH = pathlib.Path(__file__).resolve().parent.parent / ".claude" / "hooks" / "jev_hook.py"
 SETTINGS_PATH = HOOK_PATH.parent.parent / "settings.json"
@@ -15,6 +19,12 @@ SETTINGS_PATH = HOOK_PATH.parent.parent / "settings.json"
 spec = importlib.util.spec_from_file_location("jev_hook", HOOK_PATH)
 jev_hook = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(jev_hook)
+
+
+@pytest.fixture(autouse=True)
+def no_real_clones(monkeypatch, tmp_path):
+    """The clone-scan fallback must never see this machine's real repos."""
+    monkeypatch.setattr(jev_hook, "CLONE_ROOT", str(tmp_path / "no-clones-here"))
 
 
 REVIEW_RESULT = {
@@ -29,6 +39,7 @@ SCREEN_RESULT = {
 
 def make_repo(tmp_path):
     """A real throwaway git repo with one commit, so run_git has something to show."""
+    tmp_path.mkdir(parents=True, exist_ok=True)
     def git(*args):
         subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
     git("init", "-q")
@@ -105,7 +116,7 @@ def test_review_with_no_commit_is_skipped_without_calling_jev(tmp_path):
         raise AssertionError("Jev must not be called with nothing to review")
 
     message, note = jev_hook.review_last_commit({"cwd": str(tmp_path)}, call=must_not_run)
-    assert message is None and note.startswith("skipped")
+    assert message is None and note == "skipped: no git repo found for this commit"
 
 
 def test_review_failure_says_so_and_invents_no_verdict(tmp_path):
@@ -132,6 +143,93 @@ def test_a_huge_diff_is_cut_and_the_message_says_so(tmp_path):
     message, _ = jev_hook.review_last_commit({"cwd": str(repo)}, call=fake_call)
     assert sent["size"] == jev_hook.MAX_DIFF_CHARS
     assert "cut to fit" in message
+
+
+# ---- finding the repo when the event's cwd is NOT the repo (multi-repo cloud sessions)
+
+def reviewed_repo(event, tmp_path):
+    """Run the review with a fake Jev and report which repo's patch it sent."""
+    seen = {}
+
+    def fake_call(tool, arguments):
+        seen["subject"] = arguments["request"]
+        return REVIEW_RESULT, None
+
+    message, note = jev_hook.review_last_commit(event, call=fake_call)
+    return seen.get("subject"), message, note
+
+
+def bash_event(cwd, command):
+    return {"cwd": str(cwd), "tool_input": {"command": command}}
+
+
+def test_cd_into_the_repo_then_commit_is_found_from_a_non_repo_cwd(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    event = bash_event(tmp_path, f"cd {repo} && git commit -m x")
+    subject, message, _ = reviewed_repo(event, tmp_path)
+    assert subject == "Add the add function" and "JEV AUTO-REVIEW" in message
+
+
+def test_git_dash_C_names_the_repo(tmp_path):
+    repo = make_repo(tmp_path / "repo")
+    event = bash_event(tmp_path, f"git -C {repo} commit -m x")
+    assert reviewed_repo(event, tmp_path)[0] == "Add the add function"
+
+
+def test_a_quoted_path_with_spaces_is_understood(tmp_path):
+    repo = make_repo(tmp_path / "my repo")
+    event = bash_event(tmp_path, f'cd "{repo}" && git commit -m x')
+    assert reviewed_repo(event, tmp_path)[0] == "Add the add function"
+
+
+def test_a_relative_cd_is_resolved_against_the_event_cwd(tmp_path):
+    make_repo(tmp_path / "repo")
+    event = bash_event(tmp_path, "cd repo && git commit -m x")
+    assert reviewed_repo(event, tmp_path)[0] == "Add the add function"
+
+
+def test_the_repo_named_in_the_command_beats_the_cwd_repo(tmp_path):
+    other = make_repo(tmp_path / "other")
+    (other / "b.py").write_text("x = 1\n")
+    subprocess.run(["git", "add", "b.py"], cwd=other, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "Second repo commit"], cwd=other, check=True)
+    here = make_repo(tmp_path / "here")
+    event = bash_event(here, f"cd {other} && git commit -m x")
+    assert reviewed_repo(event, tmp_path)[0] == "Second repo commit"
+
+
+def test_with_no_hint_and_no_repo_cwd_the_freshest_clone_is_used(tmp_path, monkeypatch):
+    root = tmp_path / "clones"
+    make_repo(root / "alpha")
+    monkeypatch.setattr(jev_hook, "CLONE_ROOT", str(root))
+    event = bash_event(tmp_path, "git commit -m x")
+    assert reviewed_repo(event, tmp_path)[0] == "Add the add function"
+
+
+def test_a_stale_clone_is_not_guessed_at(tmp_path, monkeypatch):
+    root = tmp_path / "clones"
+    repo = root / "alpha"
+    repo.mkdir(parents=True)
+    env = {**os.environ, "GIT_COMMITTER_DATE": "2020-01-01T00:00:00", "GIT_AUTHOR_DATE": "2020-01-01T00:00:00"}
+    for args in (["init", "-q"], ["config", "user.email", "t@e.com"], ["config", "user.name", "t"]):
+        subprocess.run(["git", *args], cwd=repo, check=True, capture_output=True)
+    (repo / "a.py").write_text("x = 1\n")
+    subprocess.run(["git", "add", "a.py"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "old"], cwd=repo, check=True, env=env)
+    monkeypatch.setattr(jev_hook, "CLONE_ROOT", str(root))
+    subject, message, note = reviewed_repo(bash_event(tmp_path, "git commit -m x"), tmp_path)
+    assert subject is None and message is None
+    assert note == "skipped: no git repo found for this commit"
+
+
+def test_the_reproduced_bug_a_non_repo_cwd_no_longer_hides_the_commit(tmp_path):
+    """The live failure: cwd=/home/user-like (not a repo), `cd <repo> && git commit`."""
+    repo = make_repo(tmp_path / "t3")
+    not_a_repo = tmp_path / "home"
+    not_a_repo.mkdir()
+    event = bash_event(not_a_repo, f"cd {repo} && git commit -m x")
+    _, message, note = reviewed_repo(event, tmp_path)
+    assert message is not None and not note.startswith("skipped")
 
 
 # ---- the screen check
