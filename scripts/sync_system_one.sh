@@ -11,6 +11,16 @@ for base in "$R/.claude" "$HOME/.claude"; do
   rsync -a --delete "$P/skills/system-one/" "$base/skills/system-one/"
   cp "$P/agents/system-one-advisor.md" "$base/agents/system-one-advisor.md"
 done
+# checking-scope has no plugins/ source of its own -- it is vendored directly at
+# .claude/skills/checking-scope/ (byte-identical copies across soic-ladder, provenance,
+# claude-memory, learning-vault-invest; canonical source + provenance: soic-ladder PR #528).
+# Mirror the repo's own copy to the local global skills dir so it rides along with every
+# System One sync instead of needing its own one-off vendoring step per machine.
+if [ -d "$R/.claude/skills/checking-scope" ]; then
+  mkdir -p "$HOME/.claude/skills"
+  rsync -a --delete "$R/.claude/skills/checking-scope/" "$HOME/.claude/skills/checking-scope/"
+  echo "checking-scope -> $HOME/.claude/skills/checking-scope"
+fi
 ICLOUD="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/System One"
 if [ -d "$(dirname "$ICLOUD")" ]; then
   mkdir -p "$ICLOUD"
