@@ -13,7 +13,7 @@ from sentence_transformers import SentenceTransformer
 SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2").save("$B/models/minilm")
 PYE
 cp "$O/tagger_final.joblib" "$O/vault_index.npz" "$O/vault_index.json" "$B/models/"
-cp "$S/serve.py" "$S/minilm_core.py" "$S/laya_data.py" "$S/common.py" "$S/deploy/install_vps.sh" "$S/deploy/system-one.service" "$B/"
+cp "$S/serve.py" "$S/minilm_core.py" "$S/laya_data.py" "$S/laya_choice_data.py" "$S/common.py" "$S/deploy/install_vps.sh" "$S/deploy/system-one.service" "$B/"
 [ -n "$LAYA" ] && cp -R "$LAYA" "$B/models/laya"
 "$PY" -m pip freeze | grep -i -E '^(sentence-transformers|scikit-learn|numpy|joblib|transformers|scipy|tokenizers|huggingface-hub|safetensors)==' > "$B/requirements.lock"
 printf "built %s\nsklearn/numpy pinned in requirements.lock (joblib pickles need matching sklearn)\nlaya: %s\n" "$(date -u +%FT%TZ)" "${LAYA:-none}" > "$B/BUILD_INFO.txt"

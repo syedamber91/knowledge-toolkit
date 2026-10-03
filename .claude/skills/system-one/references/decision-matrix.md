@@ -3,10 +3,14 @@
 Condensed from vault note `when-to-use-which-model` (and the notes it cites).
 Citations are vault note names. `[inference]` = synthesis, not stated in a source.
 
+## Owner-measured (spoken passages, hand labels)
+**Owner-measured (2026-10-03) vs hand-checked labels, 66 spoken passages:** Jev topic question 0.64 top-1; Jev yes/no 0.52; MiniLM 0.37-0.41; Laya 0.23-0.39; BGE-reranker-v2-m3 zero-shot 0.39 (best local on the lenient measure); mxbai 0.28; TF-IDF 0.16-0.18. CI about +-0.13, sample built from Jev disagreements: rank, don't read accuracy. For whole notes all but TF-IDF-on-passages are indistinguishable at n=20. Details: docs/SYSTEM-ONE-TRAINING.md.
+
 ## Ladder
 ```
 1 deterministic code / regex
 2 embedding shortlist (MiniLM / BM25) — or trained MiniLM + logistic regression when labels exist
+  (NOT for page-finding in long financial PDFs: owner-measured 36/58 vs 40/58 plain text; read all pages + grep — references/anti-patterns.md G)
 3 System One decision model — Jev hosted | Laya / Kev local
 4 Sonnet — generation, reading, condensation
 5 Opus — synthesis, retrieval/routing, contradiction resolution, final answers

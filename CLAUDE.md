@@ -934,7 +934,7 @@ task and how to design the question; it extends `jev-checkpoint` and carries sel
 `references/`. The `system-one-advisor` agent is Opus: Sonnet reads/condenses, Opus synthesizes
 and does retrieval. Same advisory-only rule as Jev: it never replaces the G2 gate or
 `verify_briefs.py`. Edit `plugins/system-one/` or the vault, then run
-`scripts/sync_system_one.sh`. Details: `docs/SYSTEM-ONE-SETUP.md`.
+`scripts/sync_system_one.sh`. Details: `docs/SYSTEM-ONE-SETUP.md`. Training results, the trained Laya (private release in `soic-ladder`), the VPS service and how other jobs pick it up: `docs/SYSTEM-ONE-TRAINING.md`, `docs/SYSTEM-ONE-ARTIFACTS.md`.
 
 ---
 

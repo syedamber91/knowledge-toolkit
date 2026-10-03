@@ -17,6 +17,10 @@ topics: [topic-model-selection, topic-routing, topic-cost-latency, topic-calibra
 4 Sonnet                          generation, reading/condensing, extraction an LLM must write
 5 Opus                            synthesis, multi-hop reasoning, routing over sources, contradiction resolution, final answer
 ```
+> **Caution on rung 2:** not for page-finding in long financial PDFs - owner-measured, it lowered answer accuracy (36/58 vs 40/58 plain text; recall@4 0.40-0.55). Read all pages via `media_core.pdf_text` and grep. See [[anti-patterns]] section G.
+
+> **Owner-measured (2026-10-03) vs hand-checked labels, 66 spoken passages:** Jev topic question 0.64 top-1; Jev yes/no 0.52; MiniLM 0.37-0.41; Laya 0.23-0.39; BGE-reranker-v2-m3 zero-shot 0.39 (best local on the lenient measure); mxbai 0.28; TF-IDF 0.16-0.18. CI about +-0.13, sample built from Jev disagreements: rank, don't read accuracy. For whole notes all but TF-IDF-on-passages are indistinguishable at n=20. Details: docs/SYSTEM-ONE-TRAINING.md.
+
 Basis: code first ([[how-to-build-with-system-one]] step 1; [[awesome-typesafe-jev]] "Choose the right tool": code -> Jev -> text LLM); shortlist before judging ([[cb-reranking]] BM25 top-30; [[minilm-embeddings]] Laya top-20; [[cb-classifying-rag-passages]] cosine top-12); Jev for bounded judgments ([[jev-introduction]]); LLM for generation ([[jev-1-13-jaggedness]] #9); expensive reasoning model only for flagged items ([[cb-sde-cascade]]). Sonnet-vs-Opus split = owner rule, see [[model-tiering-sonnet-opus]].
 
 ## 1. Classify the task shape first
