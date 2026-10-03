@@ -8,6 +8,8 @@
 | **Fine-tuned Laya** (SOIC topic tags, 808 MB) | **private release** `laya-soic-tags-2026-10-03` in `syedamber91/soic-ladder` (asset `laya-soic-tags-vps-2026-10-03.tar`, sha256 `05fc68fb...42c28`) | **private**: trained on paid-course notes |
 | Same model, running | VPS, in the soic-ladder checkout next to the other Laya checkpoints: `runs/valuation/laya-finetune-soic-tags-vps-2026-10-03` (the only installed copy; the service reads it via `LAYA_DIR`) | private |
 | Backup of the four older Laya fine-tunes (4 x ~807 MB) | **private release** `laya-checkpoints-2026-08-30` in `syedamber91/soic-ladder` | **private** |
+| Service files pack (tagger_final.joblib trained on private notes, vault index, the service unit as deployed, serve code; no MiniLM/Laya weights) | **private release** `laya-soic-tags-2026-10-03`, asset `system-one-service-2026-10-03.tar.gz` | **private** |
+| Copies of the Laya index and the consolidation rollback log | same private release `laya-checkpoints-2026-08-30` (assets `LAYA-INDEX.md`, `LAYA-MOVES-2026-10-03.txt`) | **private** |
 | Index of ALL Laya artifacts (checkpoints, kits, rules, anomalies) | VPS: `runs/valuation/LAYA-INDEX.md`; rollback log of the consolidation moves: `runs/valuation/LAYA-MOVES-2026-10-03.txt` | private |
 | Results pack (ids, tags, probabilities, hand-check labels, scoreboards; no text) | same private release, asset `system-one-results-2026-10-03.tar.gz` | private |
 | Tagger + vault-finder service | VPS: systemd `system-one`, 127.0.0.1:8765 (`/health`, `/tag`, `/find`) | local only |
