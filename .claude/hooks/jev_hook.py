@@ -36,6 +36,13 @@ MAX_SCREEN_CHARS = 20_000
 # `git commit`, `git -C x commit`, `git commit -am ...` -- but not `git commit --dry-run`
 GIT_COMMIT_RE = re.compile(r"\bgit\s+(?:-\S+\s+(?:\S+\s+)?)*commit\b")
 
+# Where the commit happened is NOT always the event's cwd: in a multi-repo cloud session the
+# session starts in /home/user (not a repo) and a command can `cd <repo> && git commit`.
+# So the repo is looked for in directories the command names, then the cwd, then the clones.
+DIR_HINT_RE = re.compile(r"""(?:\bcd\s+|\bgit\s+(?:\S+\s+)*?-C\s+)("[^"]+"|'[^']+'|[^\s;&|]+)""")
+CLONE_ROOT = "/home/user"
+RECENT_COMMIT_SECONDS = 300    # fallback only trusts a repo whose HEAD commit is this fresh
+
 
 # ---------------------------------------------------------------- reading the event
 
@@ -130,13 +137,61 @@ def call_jev(tool, arguments):
 
 # ---------------------------------------------------------------- the two checks
 
+def repo_root(path):
+    """The git repo containing `path`, or "" if there is none."""
+    if not path or not os.path.isdir(path):
+        return ""
+    return run_git(["rev-parse", "--show-toplevel"], path).strip()
+
+
+def dirs_named_in(command, cwd):
+    """Directories the command `cd`s into or passes to `git -C`, in the order written."""
+    found = []
+    for match in DIR_HINT_RE.finditer(command):
+        raw = match.group(1).strip("\"'")
+        path = os.path.expanduser(raw)
+        found.append(path if os.path.isabs(path) else os.path.join(cwd, path))
+    return found
+
+
+def newest_recent_clone():
+    """Last resort: the clone under CLONE_ROOT whose HEAD commit is newest AND fresh."""
+    best, best_time = "", time.time() - RECENT_COMMIT_SECONDS
+    try:
+        names = sorted(os.listdir(CLONE_ROOT))
+    except OSError:
+        return ""
+    for name in names:
+        path = os.path.join(CLONE_ROOT, name)
+        if not os.path.isdir(os.path.join(path, ".git")):
+            continue
+        stamp = run_git(["log", "-1", "--format=%ct"], path).strip()
+        if stamp.isdigit() and int(stamp) > best_time:
+            best, best_time = path, int(stamp)
+    return best
+
+
+def find_commit_repo(event):
+    """Which repo did this commit land in? "" if we cannot tell."""
+    cwd = event.get("cwd") or os.getcwd()
+    command = (event.get("tool_input") or {}).get("command", "")
+    hints = dirs_named_in(command, cwd)
+    for path in reversed(hints):          # the last `cd` before the commit wins
+        root = repo_root(path)
+        if root:
+            return root
+    return repo_root(cwd) or newest_recent_clone()
+
+
 def review_last_commit(event, call=call_jev):
     """jev_review on the commit that just landed. Returns (message, log_note)."""
-    cwd = event.get("cwd") or os.getcwd()
+    cwd = find_commit_repo(event)
+    if not cwd:
+        return None, "skipped: no git repo found for this commit"
     subject = run_git(["log", "-1", "--format=%s"], cwd).strip()
     parents = run_git(["log", "-1", "--format=%p"], cwd)
     if not subject or len(parents.split()) > 1:   # no commit, or a merge commit
-        return None, "skipped: no ordinary commit to review"
+        return None, "skipped: merge commit or no commit to review"
     patch = run_git(["show", "--format=", "HEAD"], cwd)
     if not patch.strip():
         return None, "skipped: empty diff"
