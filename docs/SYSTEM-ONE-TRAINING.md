@@ -129,11 +129,11 @@ Top-1 equals the owner's primary topic. Sample was built from Jev disagreements/
 | Laya VPS-trained yes/no; Laya untrained yes/no; Laya Kaggle-trained yes/no | 0.39; 0.39; 0.37 |
 | BGE-reranker-v2-m3 zero-shot (best local on "either of the owner's two topics": 0.60) | 0.39 [0.26-0.52] |
 | Laya trained, topic question (both trained Layas) / untrained | 0.34 / 0.23 |
-| mxbai-rerank-base-v2 / ms-marco MiniLM reranker | 0.28 / 0.21 |
+| Qwen3-Reranker-0.6B / mxbai-rerank-base-v2 / ms-marco MiniLM reranker | 0.31 / 0.28 / 0.21 |
 | TF-IDF (spoken / written) | 0.18 / 0.16 |
 Chance references: random 12 tags 0.08; always "sector-macro" 0.14; random tag from the AI tags 0.30; the AI tag SET contains the owner's primary 0.78.
 Whole notes (20): top-1 in the owner's tags: Jev topic 17/20, TF-IDF 15-17, MiniLM 12-16, BGE reranker 13, Laya 7-13: not separable at n=20.
 Laya on 114 held-out notes vs AI tags (choice protocol, chunk-mean): VPS-trained AUC 0.860 / top-1 0.702; Kaggle-trained 0.783 / 0.667; untrained 0.756 / 0.412.
-Qwen3-Reranker-0.6B: first run was OOM-killed at a 5 GB cap (full-vocabulary logits at every position); fixed with `logits_to_keep=1` and rerun; its result is in the private results pack once finished.
+Qwen3-Reranker-0.6B (zero-shot, the model card's own yes/no prompt, topic description as the query): first run was OOM-killed at a 5 GB cap (full-vocabulary logits at every position); fixed with `logits_to_keep=1` and rerun (about 1 hour on 3 CPUs): top-1 0.31 [0.18-0.42], 0.44 on the lenient "either of the owner's two topics" measure, 11/20 notes. Below BGE-reranker-v2-m3 (0.39), so BGE stays the best local reranker and Qwen3-0.6B is not worth keeping. Downloaded reranker models were deleted after the pilot.
 The VPS-trained Laya replaced the Kaggle-trained one on the notes test (both top-1 and AUC); against the owner's labels the two tie, so that swap is not evidence of a better model.
 Artifacts and how to pick them up: `docs/SYSTEM-ONE-ARTIFACTS.md`.
