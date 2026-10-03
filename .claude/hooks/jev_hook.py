@@ -23,6 +23,9 @@ Reads one JSON event on stdin, prints at most one JSON object on stdout.
 import json
 import os
 import re
+import select
+import shutil
+import signal
 import subprocess
 import sys
 import time
@@ -79,11 +82,42 @@ def commit_failed(event):
 
 # ---------------------------------------------------------------- talking to Jev
 
+def server_command():
+    """Prefer the pre-installed binary (starts instantly); npx may spend a minute downloading."""
+    installed = shutil.which("jev-mcp")
+    return [installed] if installed else ["npx", "-y", JEV_PACKAGE]
+
+
+class LineReader:
+    """Read newline-terminated lines from a pipe, but never block past a deadline."""
+
+    def __init__(self, stream):
+        self.fd = stream.fileno()
+        self.buffer = b""
+
+    def next_line(self, deadline):
+        while b"\n" not in self.buffer:
+            wait = deadline - time.time()
+            if wait <= 0:
+                return None
+            ready, _, _ = select.select([self.fd], [], [], wait)
+            if not ready:
+                return None
+            chunk = os.read(self.fd, 65536)
+            if not chunk:          # the server exited
+                return None
+            self.buffer += chunk
+        line, _, self.buffer = self.buffer.partition(b"\n")
+        return line.decode("utf-8", "replace")
+
+
 def call_jev(tool, arguments):
     """Run ONE tool on a throwaway jev-mcp server. Returns (result_dict, error).
 
     Exactly one of the two is None. This is the only function that touches the
-    network, so tests replace it.
+    network, so tests replace it. The deadline is REAL: a server that prints
+    nothing (a cold download, a hang) is killed at CALL_TIMEOUT_SECONDS instead
+    of blocking until the harness kills the whole hook with no log line.
     """
     if not os.environ.get("TYPESAFE_API_KEY"):
         return None, "TYPESAFE_API_KEY is not set"
@@ -91,35 +125,39 @@ def call_jev(tool, arguments):
     env = dict(os.environ, NODE_USE_ENV_PROXY="1")
     try:
         server = subprocess.Popen(
-            ["npx", "-y", JEV_PACKAGE],
+            server_command(),
             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-            stderr=subprocess.DEVNULL, text=True, env=env,
+            stderr=subprocess.DEVNULL, env=env,
+            start_new_session=True,   # own process group, so the kill below reaches npx's children too
         )
     except OSError as error:
-        return None, f"could not start npx ({error})"
+        return None, f"could not start the Jev server ({error})"
 
     deadline = time.time() + CALL_TIMEOUT_SECONDS
+    reader = LineReader(server.stdout)
 
     def send(message):
-        server.stdin.write(json.dumps(message) + "\n")
+        server.stdin.write((json.dumps(message) + "\n").encode())
         server.stdin.flush()
 
     def wait_for_reply(message_id):
-        while time.time() < deadline:
-            line = server.stdout.readline()
-            if not line:
+        while True:
+            line = reader.next_line(deadline)
+            if line is None:
                 return None
-            reply = json.loads(line)
+            try:
+                reply = json.loads(line)
+            except ValueError:
+                continue                       # not a JSON-RPC line; keep waiting
             if reply.get("id") == message_id:
                 return reply
-        return None
 
     try:
         send({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
             "protocolVersion": "2024-11-05", "capabilities": {},
             "clientInfo": {"name": "jev-hook", "version": "1"}}})
         if wait_for_reply(1) is None:
-            return None, "jev-mcp did not start in time"
+            return None, f"jev-mcp did not start within {CALL_TIMEOUT_SECONDS}s"
         send({"jsonrpc": "2.0", "method": "notifications/initialized"})
         send({"jsonrpc": "2.0", "id": 2, "method": "tools/call",
               "params": {"name": tool, "arguments": arguments}})
@@ -132,7 +170,11 @@ def call_jev(tool, arguments):
     except (OSError, ValueError, KeyError, IndexError) as error:
         return None, f"{tool} failed ({type(error).__name__})"
     finally:
-        server.terminate()
+        try:
+            os.killpg(server.pid, signal.SIGKILL)
+        except OSError:
+            server.kill()
+        server.wait()
 
 
 # ---------------------------------------------------------------- the two checks
@@ -296,6 +338,7 @@ def main():
     check = choose_check(event)
     if check is None:
         return
+    log(event, "invoked", started)     # written BEFORE the slow part: a killed run is still visible
     message, note = check(event)
     log(event, note, started)
     if message:
