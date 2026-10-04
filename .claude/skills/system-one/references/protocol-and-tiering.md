@@ -13,8 +13,8 @@ Condensed from vault notes `agent-operating-protocol`, `model-tiering-sonnet-opu
 1. **Classify the shape** — see `decision-matrix.md`.
 2. **Pick the tool.** MCP moments per the repo skill `jev-checkpoint`: close choice
    -> `jev_decide`; claim into report/PR/commit -> `jev_verify`; before "done" ->
-   `jev_review`/`jev_gate`; external content -> `jev_screen`. Others only when the
-   task is exactly that shape (`jev-mcp-tools.md`). Without MCP: SDK/HTTP
+   `jev_review`/`jev_gate`; external content -> `jev_screen`. Any other bounded judgment:
+   Jev is the default unless a Jev-first exception in SKILL.md applies (`jev-mcp-tools.md`). Without MCP: SDK/HTTP
    (`POST https://api.typesafe.ai/v1/systemone`) or Laya `laya-serve`.
 3. **Design** — `question-design.md`.
 4. **Fan out once.** All independent questions over one state in one request;
@@ -88,8 +88,9 @@ Opus reads notes, not raw sources; spot-checks raw only for disputed numbers.
   server once (trust prompt, or `{"enabledMcpjsonServers": ["jev"]}` in uncommitted
   `.claude/settings.local.json`); avoid `enableAllProjectMcpServers` when another
   server must stay gated; verify with `claude mcp list`, `/mcp`, one real call.
-- **No hooks on purpose:** a Stop/PreToolUse hook would send diffs to a third party
-  every turn, and an exit-2 hook would turn an advisory tool into a gate.
+- **Hook, narrowly:** `.claude/hooks/jev_hook.py` (PostToolUse on `Bash|WebFetch`, added 2026-10-03)
+  reviews a just-made commit and screens a fetched page; advisory, always exits 0, never a gate.
+  No Stop/PreToolUse hook: that would send diffs to a third party every turn.
 - HTTP mode of jev-mcp requires `JEV_MCP_AUTH_TOKEN` unless bound to loopback.
 
 ## Privacy and cost gates (privacy-and-cost-gates)

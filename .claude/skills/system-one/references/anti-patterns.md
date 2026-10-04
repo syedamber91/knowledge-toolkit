@@ -17,6 +17,7 @@ Condensed from vault note `anti-patterns`. Citations are vault note names.
 | generation via chained choices | candidates from regex/LLM, model picks |
 | several judgments in one question | atomic questions, compose in code |
 | using Jev as a coding agent's LLM | no such setting; code calls Jev |
+| hosted Jev on private / PII / licensed / do-not-quote state (Jev is the default, this is its main exception) | code, trained MiniLM+LR or Laya/Kev local; never send it |
 
 ## Wording traps
 Vague/overlapping options; no `other`; parameter-named questions; topical instead

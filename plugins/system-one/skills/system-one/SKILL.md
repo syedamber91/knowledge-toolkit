@@ -1,6 +1,6 @@
 ---
 name: system-one
-description: Pick the right decision tier - deterministic code, MiniLM-style embeddings, a System One model (TypeSafe Jev hosted, Laya local), Sonnet or Opus - and use it correctly. Use when about to classify, route, score, rerank, extract, verify, screen or decide; when choosing between Jev, Laya, embeddings, Sonnet and Opus; when designing Choice/Score/Noul questions or thresholds; or when asked about System One, Jev, Laya, Kev or jev-mcp.
+description: Pick the right decision tier - deterministic code first, then Jev (TypeSafe hosted System One) as the default model, with MiniLM+LR / Laya local as privacy, labels, volume or offline exceptions, then Sonnet or Opus - and use it correctly. Use when about to classify, route, score, rerank, extract, verify, screen or decide; when choosing between Jev, Laya, embeddings, Sonnet and Opus; when designing Choice/Score/Noul questions or thresholds; or when asked about System One, Jev, Laya, Kev or jev-mcp.
 ---
 
 # system-one
@@ -11,34 +11,53 @@ description: Pick the right decision tier - deterministic code, MiniLM-style emb
 > design the question, and how Sonnet and Opus split the rest. Built 2026-10-02
 > from the System One vault (64 condensed source notes + 8 playbook notes).
 
-## 30-second ladder (climb only when the rung below cannot decide)
+## 30-second ladder (code first; Jev is the default model; climb only when the rung below cannot decide)
 
 ```
-1 code / regex            exact rules, arithmetic, counting, dates, lookups, candidate spans
-2 embedding shortlist     many options / big corpus -> top ~20-30 (MiniLM, BM25); or train MiniLM+LR if labels exist
-                          (NOT page-finding in long financial PDFs: it lowered accuracy, see references/anti-patterns.md G)
-3 System One model        bounded judgment over messy text: Choice | Score | Noul
-                          Jev hosted (~0.1-0.5 s, $0.042/M input) | Laya/Kev local (private, 23-43 ms Laya)
-4 Sonnet                  generation, bulk reading, condensation, LLM-written extraction
-5 Opus                    synthesis, retrieval/routing over sources, contradiction resolution, final answers
+1 code / regex            exact rules, arithmetic, counting, dates, lookups, candidate spans. Free, exact: always first.
+2 Jev (hosted)            DEFAULT for any bounded judgment over messy text: Choice | Score | Noul | jev_* tools.
+                          ~0.1-0.5 s, $0.042/M input, <=~240 options, 32k state+longest question.
+                          If a Jev-first exception below applies, use its local substitute instead:
+                          trained MiniLM+LR (labels exist) | Laya/Kev (private, offline, high-volume few-option)
+3 Sonnet                  generation, bulk reading, condensation, LLM-written extraction
+4 Opus                    synthesis, retrieval/routing over sources, contradiction resolution, final answers
 ```
 
-Escalate a rung when: code can't express the meaning; options exceed the model
-(Laya >~20, Jev 255 cap / ~240 reliable); Choice confidence under the floor
-(0.5-0.6 typical); Choice top probability < 0.60 or Noul in 0.30-0.70
-("uncertain"); any verifier P(wrong) > 0.7; the task needs prose, rationale or
-multi-hop reasoning; sources disagree. Details: `references/decision-matrix.md`.
+Narrowing (not a rung): a MiniLM/BM25 shortlist or hierarchy walk ONLY when options exceed ~240
+or the candidates will not fit in state; Jev then picks. Never for page-finding in long financial
+PDFs (`references/anti-patterns.md` G).
 
-**Never use a System One model for:** math, counting, numeric nearness, date
-order/gaps; generation, summaries, explanations; several judgments in one
-question; multi-hop (System Two) reasoning; padding state with irrelevant text;
-safety boundaries (an injection score is one filter, not a wall); non-text input.
+Escalate when: code cannot express the meaning (leave rung 1). From Jev: Choice confidence under
+the floor (0.5-0.6 typical) or top probability < 0.60; Noul in 0.30-0.70 ("uncertain"); any verifier
+P(wrong) > 0.7; `invalid_response` or truncation -> read the primary source yourself, or go up a
+tier. Options > ~240 (255 hard cap): narrow first, then back to Jev. The task needs prose, rationale
+or multi-hop reasoning: Sonnet writes, Opus reasons. Sources disagree: Opus. Thresholds are
+illustrative, tune on labelled data. Details: `references/decision-matrix.md`.
+
+**Jev-first exceptions (skip hosted Jev, use the named substitute):**
+1. **Privacy or licensing.** `.env`, keys, tokens, PII, or licensed / private / do-not-quote
+   material (e.g. `provenance.quote`, course transcripts) -> code, trained MiniLM+LR, or Laya/Kev local.
+2. **Labels exist.** Dozens of classes and thousands of labelled rows -> trained MiniLM+LR
+   (BANKING77: 90.3% vs Jev 76.3%, `references/decision-matrix.md`).
+3. **Volume.** Sustained bulk where a local model is good enough -> MiniLM+LR or Laya. Rate limits
+   100K tok/s + 40 req/s; no break-even number is recorded [inference].
+4. **Offline or no MCP.** `ToolSearch "jev"` lists nothing -> say so in one line, fall back to
+   Laya / code / LLM tier. Never fake a result.
+5. **Options cap.** More than ~240 options -> shortlist or hierarchy walk, then Jev.
+6. **State too big.** Over 32k for state plus longest question -> filter in code first.
+7. **Non-English.** Test first, or use the Laya Router.
+
+**Never use Jev (or any System One model) for:** anything code computes exactly (math, counting,
+numeric nearness, date order/gaps); generation, summaries, explanations, or a rationale an auditor
+must read; several judgments in one question; multi-hop (System Two) reasoning; padding state with
+irrelevant text; safety boundaries (an injection score is one filter, not a wall); non-text input;
+gating (it never changes a verdict or replaces a repo's own check); anything under exception 1.
 
 ## Tiering rule (owner)
 
 - **Sonnet = READING and CONDENSATION.** Bulk reading, extraction, summarising source docs, mechanical steps.
 - **Opus = SYNTHESIS and RETRIEVAL/ROUTING.** Which notes/sources matter, resolving contradictions, final answers.
-- **System One = cheap typed judgments** inside either tier (rerank, find, classify, screen, verify).
+- **System One = cheap typed judgments** inside either tier (rerank, find, classify, screen, verify). **Jev is the default** for these once code cannot decide; local substitutes only per the exceptions above.
 - A subagent cannot spawn subagents: the **main session** fans out Sonnet readers
   (one message, parallel), then calls the Opus advisor (`system-one-advisor`
   agent) or synthesizes inline if it is already Opus.

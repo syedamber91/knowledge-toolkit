@@ -944,8 +944,9 @@ options or the claim. It never stands in for the G2 cited-quote gate or `verify_
 
 `knowledge/system-one/` is an Obsidian vault condensing TypeSafe's Jev / System One docs plus
 Laya, Kev and MiniLM material (start at `08-playbook/when-to-use-which-model`). The `system-one`
-skill decides *which tier* (code, MiniLM embeddings, Jev hosted, Laya local, Sonnet, Opus) fits a
-task and how to design the question; it extends `jev-checkpoint` and carries self-contained
+skill decides *which tier* fits a task - deterministic code first, then Jev hosted as the default model
+(since 2026-10-04), with trained MiniLM+LR / Laya local as the privacy, labels, volume or offline exceptions,
+then Sonnet or Opus - and how to design the question; it extends `jev-checkpoint` and carries self-contained
 `references/`. The `system-one-advisor` agent is Opus: Sonnet reads/condenses, Opus synthesizes
 and does retrieval. Same advisory-only rule as Jev: it never replaces the G2 gate or
 `verify_briefs.py`. Edit `plugins/system-one/` or the vault, then run
