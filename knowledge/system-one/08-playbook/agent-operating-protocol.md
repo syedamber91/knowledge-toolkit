@@ -74,7 +74,7 @@ One line per call: tool, verdict, confidence/probability, action taken, cost/usa
 | Cloud (claude.ai/code) | (1) env network access -> Custom, add `api.typesafe.ai`, keep default list; (2) `TYPESAFE_API_KEY` in the environment's settings, **never in chat** (anyone using the env can read it); (3) start a **one-repo** session (multi-repo sessions don't read clones' `.mcp.json`); (4) verify: `ToolSearch "jev"`, trivial `jev_decide`, proxy status shows no `api.typesafe.ai` rejection |
 | Proxy gotcha | Node `fetch` ignores `HTTPS_PROXY` unless `NODE_USE_ENV_PROXY=1` (Node >= 22.21); without it: "Jev provider typesafe: request failed" while curl works. `.mcp.json` sets it |
 | Local CLI | export `TYPESAFE_API_KEY` in the launching shell; approve server (trust prompt, or `{"enabledMcpjsonServers": ["jev"]}` in uncommitted `.claude/settings.local.json`); don't use `enableAllProjectMcpServers` when another server must stay gated; verify `claude mcp list`, `/mcp`, one real call |
-| Not done on purpose | no hooks: a Stop/PreToolUse hook would send diffs to a third party every turn and an exit-2 hook turns advisory into a gate |
+| Hook, narrowly | `.claude/hooks/jev_hook.py` (PostToolUse on `Bash|WebFetch`, 2026-10-03) reviews a just-made commit and screens a fetched page; advisory, exits 0, never a gate. No Stop/PreToolUse hook: it would send diffs to a third party every turn |
 jev-mcp needs Node 22+; HTTP mode requires `JEV_MCP_AUTH_TOKEN` unless loopback ([[jev-mcp-server]]).
 
 ## Related

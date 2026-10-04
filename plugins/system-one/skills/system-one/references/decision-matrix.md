@@ -8,18 +8,20 @@ Citations are vault note names. `[inference]` = synthesis, not stated in a sourc
 
 ## Ladder
 ```
-1 deterministic code / regex
-2 embedding shortlist (MiniLM / BM25) — or trained MiniLM + logistic regression when labels exist
-  (NOT for page-finding in long financial PDFs: owner-measured 36/58 vs 40/58 plain text; read all pages + grep — references/anti-patterns.md G)
-3 System One decision model — Jev hosted | Laya / Kev local
-4 Sonnet — generation, reading, condensation
-5 Opus — synthesis, retrieval/routing, contradiction resolution, final answers
+1 deterministic code / regex      free, exact: always first
+2 Jev hosted (DEFAULT model)      bounded judgment over messy text: Choice | Score | Noul | jev_* tools
+  exceptions -> local substitute: trained MiniLM + logistic regression when labels exist | Laya / Kev when private, offline or high-volume few-option
+  narrowing (not a rung): MiniLM / BM25 shortlist only when options > ~240 or candidates will not fit in state
+  (NOT for page-finding in long financial PDFs: owner-measured 36/58 vs 40/58 plain text; read all pages + grep - references/anti-patterns.md G)
+3 Sonnet - generation, reading, condensation
+4 Opus - synthesis, retrieval/routing, contradiction resolution, final answers
 ```
 Basis: code first (how-to-build-with-system-one step 1); "code -> Jev -> text LLM"
-(awesome-typesafe-jev); shortlist before judging (cb-reranking BM25 top-30;
-cb-classifying-rag-passages cosine top-12; minilm-embeddings Laya top-20);
-reasoning model only for flagged items (cb-sde-cascade). Sonnet/Opus split is the
-owner's rule.
+(awesome-typesafe-jev); Jev beat every zero-shot local option in the owner-measured table
+above (rank, not accuracy); trained MiniLM+LR still beats Jev when labels exist (BANKING77
+below); reasoning model only for flagged items (cb-sde-cascade). Sonnet/Opus split is the
+owner's rule. Jev-first is the owner's 2026-10-04 default, set after an Opus review: code stays
+first because it is free and exact, and the privacy rule stops a full flip.
 
 ## Task shape -> first rung
 | Shape | Rung | Source |
@@ -29,7 +31,7 @@ owner's rule.
 | one of N known options from messy text | Choice | choice, intent-routing |
 | is X true of this text | Noul | noul |
 | position on an ordered rubric | Score | score |
-| rank many candidates vs a query | shortlist -> one Noul per (query, candidate) | cb-reranking |
+| rank many candidates vs a query | <=~240 candidates: `jev_rerank` directly; more: shortlist -> Noul per (query, candidate) | cb-reranking |
 | dozens of classes + thousands of labels | MiniLM + logistic regression | minilm-embeddings |
 | write prose / code / summary / rationale | Sonnet | jev-with-coding-agents, jev-1-13-jaggedness #9 |
 | multi-hop reasoning, synthesis across sources | Opus | jev-1-13-jaggedness #4; owner rule |

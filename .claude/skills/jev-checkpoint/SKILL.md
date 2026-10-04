@@ -29,8 +29,11 @@ clones' `.mcp.json` is not read), an env network policy blocking
 | A yes/no proposition where a calibrated probability helps | `jev_noul` | Context informs it; it is not proof. |
 
 `jev_classify`, `jev_find`, `jev_rerank`, `jev_compare`, `jev_extract`
-and `jev_audit` exist too; reach for them only when the task is exactly
-that shape.
+and `jev_audit` are the default for any other bounded judgment over messy
+text once code cannot decide (Jev first among models; code stays first).
+Skip hosted Jev and use the local substitute where the system-one skill's
+Jev-first exceptions apply: private / PII / licensed material, labels exist
+(trained MiniLM+LR), sustained volume, or no MCP.
 
 ## Rules that bind every call
 

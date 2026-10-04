@@ -51,7 +51,7 @@ memory (AUC 0.506).
 | Calibration | ECE 0.081 after refit (own); raw weak; English root 0.000 accuracy on Khmer at 0.952 confidence — use the Router |
 | Limits | 192-token shared option budget; degrades past ~20 options; context 512 (vanekt) vs 8,192 max / 1,024 default multilingual (Menon) — unresolved |
 | Fine-tune | free Kaggle 2xT4 notebook, ~4 h |
-Use for: privacy, few options, English or routed multilingual, high volume, binary
+Use for (Jev-first exceptions): privacy, few options, English or routed multilingual, high volume, binary
 safety calls, when you can fine-tune. Not for: zero-shot 50-100 options, long inputs.
 
 ## Kev (Jared Palmer; open)
@@ -72,7 +72,7 @@ Hardware: Mac (0.8B) to one 80 GB GPU (27B).
 - Nearest label name (zero-shot): TREC 48.6%, BANKING77 56.5%.
 - As a shortlister in front of Laya: top-20 lifted Laya 37.0% -> 59.1%, but "most of that row is MiniLM's work".
 - Not a System One model: no typed schema; calibration not measured; exact checkpoint unknown.
-- Use when dozens of classes + labels exist, or to shortlist for a small-budget decision model.
+- Use (Jev-first exception) when dozens of classes + labels exist, or to shortlist for a small-budget decision model.
 
 ## Other open/hosted options (tracker, self-reported)
 Liquid AI d1 (hosted, `POST /decisions/v1/systemone`, free tier), OpenAI Decisions API

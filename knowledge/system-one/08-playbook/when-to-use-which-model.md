@@ -9,15 +9,18 @@ topics: [topic-model-selection, topic-routing, topic-cost-latency, topic-calibra
 # When To Use Which Model
 > Executable decision matrix: deterministic code vs MiniLM-style embeddings vs a System One model (Jev hosted / Laya local / Kev / openjev) vs Sonnet vs Opus. Ladder, escalation triggers, never-use list. Every number cites the note it came from; trust labels matter.
 
-## 0. The ladder (climb only when the rung below cannot decide)
+## 0. The ladder (code first; Jev is the default model; climb only when the rung below cannot decide)
 ```
-1 deterministic code / regex      exact rules, arithmetic, dates, counting, lookups, candidate finding
-2 embedding shortlist (MiniLM)    many options or big corpus -> cut to ~20-30 candidates (or train LR if labels exist)
-3 System One decision model       bounded judgment over messy text: Jev hosted | Laya/Kev local
-4 Sonnet                          generation, reading/condensing, extraction an LLM must write
-5 Opus                            synthesis, multi-hop reasoning, routing over sources, contradiction resolution, final answer
+1 deterministic code / regex      exact rules, arithmetic, dates, counting, lookups, candidate finding. Free and exact: always first.
+2 Jev hosted (DEFAULT model)      bounded judgment over messy text: Choice | Score | Noul | jev_* tools
+  exceptions -> local substitute  trained MiniLM + LR when labels exist | Laya / Kev when private, offline or high-volume few-option
+  narrowing (not a rung)          MiniLM / BM25 shortlist only when options > ~240 or candidates will not fit in state
+3 Sonnet                          generation, reading/condensing, extraction an LLM must write
+4 Opus                            synthesis, multi-hop reasoning, routing over sources, contradiction resolution, final answer
 ```
-> **Caution on rung 2:** not for page-finding in long financial PDFs - owner-measured, it lowered answer accuracy (36/58 vs 40/58 plain text; recall@4 0.40-0.55). Read all pages via `media_core.pdf_text` and grep. See [[anti-patterns]] section G.
+> **Jev-first (owner default, 2026-10-04, set after an Opus review).** Jev goes ahead of embeddings and Laya because it beat every zero-shot local option in the owner-measured table below (rank, not accuracy). Exceptions, in order of weight: (1) privacy or licensing - `.env`, keys, PII, licensed / do-not-quote material never goes to hosted Jev; (2) labels exist - trained MiniLM+LR beat Jev on BANKING77 (90.3% vs 76.3%); (3) sustained volume; (4) no MCP or offline - say so in one line and fall back, never fake a result; (5) more than ~240 options; (6) state over 32k; (7) non-English. Code stays rung 1: Jev can be wrong at 0.97 confidence when the question is the wrong shape.
+
+> **Caution on the narrowing step:** not for page-finding in long financial PDFs - owner-measured, it lowered answer accuracy (36/58 vs 40/58 plain text; recall@4 0.40-0.55). Read all pages via `media_core.pdf_text` and grep. See [[anti-patterns]] section G.
 
 > **Owner-measured (2026-10-03) vs hand-checked labels, 66 spoken passages:** Jev topic question 0.64 top-1; Jev yes/no 0.52; MiniLM 0.37-0.41; Laya 0.23-0.39; BGE-reranker-v2-m3 zero-shot 0.39 (best local on the lenient measure); Qwen3-Reranker-0.6B 0.31; mxbai 0.28; TF-IDF 0.16-0.18. CI about +-0.13, sample built from Jev disagreements: rank, don't read accuracy. For whole notes all but TF-IDF-on-passages are indistinguishable at n=20. Details: docs/SYSTEM-ONE-TRAINING.md.
 
@@ -53,7 +56,7 @@ Basis: code first ([[how-to-build-with-system-one]] step 1; [[awesome-typesafe-j
 ## 3. Escalation triggers (rung N -> N+1)
 | Trigger | Escalate to | Source |
 |---|---|---|
-| Code cannot express the judgment (meaning, tone, intent, relevance) | System One | [[how-to-build-with-system-one]] |
+| Code cannot express the judgment (meaning, tone, intent, relevance) | Jev (unless a Jev-first exception applies) | [[how-to-build-with-system-one]] |
 | More options than the model handles well (Laya >~20; Jev >255 hard cap, ~240 reliable) | shortlist first, or walk a hierarchy | [[laya]], [[choice]], [[cb-hierarchical-classification]] |
 | Choice `confidence` below floor (examples: 0.3 triage, 0.5, 0.6, 0.75, 0.8) | human / bigger model / coarser label | [[choice]], [[confidence]], [[confidence-gated-routing]], [[how-to-build-with-system-one]] |
 | Top probability < 0.60 -> label `uncertain` | human review | [[cb-consistency-choices]] |
@@ -66,7 +69,7 @@ Basis: code first ([[how-to-build-with-system-one]] step 1; [[awesome-typesafe-j
 All thresholds above are the sources' illustrative values; every source says tune on your own labelled data ([[confidence]], [[awesome-typesafe-jev]] jevcal: <~100 labelled rows not trustworthy).
 
 ## 4. Jev vs Laya in one rule
-Privacy hard requirement -> Laya/local regardless of accuracy. Many options, long inputs, zero labels, no fine-tune capacity -> Jev (or trained MiniLM+LR if labels exist). Few options, English, high volume, binary safety calls -> Laya. Multilingual -> Laya Router. ([[jev-vs-laya]]). Jev's "87% vs Laya 42% on many options" is likely overstated: 0.870 was a 72-label, descriptions-supplied pilot; 76.3% on all 77 ([[benchmarks-and-comparisons]]).
+Jev is the default. Privacy hard requirement -> Laya/local regardless of accuracy (a Jev-first exception). Many options, long inputs, zero labels, no fine-tune capacity -> Jev (or trained MiniLM+LR if labels exist). Few options, English, high volume, binary safety calls -> Laya. Multilingual -> Laya Router. ([[jev-vs-laya]]). Jev's "87% vs Laya 42% on many options" is likely overstated: 0.870 was a 72-label, descriptions-supplied pilot; 76.3% on all 77 ([[benchmarks-and-comparisons]]).
 
 ## 5. Never use a System One model for
 From [[jev-1-13-jaggedness]] ("As a reminder, avoid") and [[how-to-build-with-system-one]]:
