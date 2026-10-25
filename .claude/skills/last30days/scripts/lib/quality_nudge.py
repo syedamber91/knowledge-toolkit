@@ -63,16 +63,34 @@ def _has_x_credentials(config: dict) -> bool:
 def _x_error_prescription(config: dict, research_results: dict) -> prescriptions.Prescription:
     """The fix for a configured X that errored, routed through the X policy.
 
-    On an official-only host a credit-exhaustion error asks for a top-up
-    (``payment_required``) and every other error asks for a valid bearer or
-    the connector (``cookies_expired`` maps to ``bearer_invalid`` there);
-    elsewhere the entry is today's ``cookies_expired``.
+    The pipeline stamps the failed backend into ``x_error`` or
+    ``x_degraded_error``, sometimes behind a simplified-query retry label.
+    Use that runtime provenance before the host policy.
     """
-    message = str(research_results.get("x_error") or "")
+    message = str(research_results.get("x_error") or research_results.get("x_degraded_error") or "")
     if message.startswith(x_envelope.DETAIL_NOT_PASSED):
         # The model declared the X connector lane and passed no envelope:
         # the fix is the connector, on any host.
         return prescriptions.for_x(config, "connector_missing")
+    backend_error = message.removeprefix("Simplified-query retry failed: ")
+    backend_error = backend_error.removeprefix("All X backends failed — ")
+    if backend_error.startswith("X served via "):
+        served_backend, separator, origin_error = backend_error.removeprefix("X served via ").partition(" after ")
+        if separator:
+            backend_error = origin_error.split(f"; {served_backend}", 1)[0]
+    if backend_error.startswith("xai:"):
+        state = http.classify_failure(message=backend_error)
+        if state == health.PAYMENT_REQUIRED:
+            failure = "xai_payment_required"
+        elif state == health.RATE_LIMITED:
+            failure = "xai_rate_limited"
+        elif state == health.TIMEOUT:
+            failure = "xai_timeout"
+        elif state == health.AUTH_FAILED or "model" in backend_error.lower():
+            failure = "xai_error"
+        else:
+            failure = "xai_unavailable"
+        return prescriptions.for_x(config, failure)
     failure = "cookies_expired"
     if env.x_policy(config).hint_namespace == "official":
         if http.classify_failure(message=message) == health.PAYMENT_REQUIRED:
@@ -148,38 +166,39 @@ def _is_youtube_degraded(research_results: dict, threshold: float) -> bool:
     return (transcripts / eligible) < threshold
 
 
-def _is_instagram_silent_failure(config: dict, research_results: dict) -> bool:
-    """Instagram is silently failing when SC is configured but the source
-    returned zero items. The canonical cause is SC's v2 reels endpoint
-    500'ing on multi-token queries (it wraps Google Search and is documented
-    to be flaky there). Pre-fix the user got no signal at all - no Instagram
-    section in the brief, no error in the footer, just unexplained absence.
+def _instagram_bonus_outcome(config: dict, research_results: dict) -> str | None:
+    """Return the bonus-source outcome for Instagram, or None when not applicable.
+
+    Returns:
+        ``"errored"``  — SC is configured, the source ran, and it returned an error
+                         (e.g. HTTP 404 from the ScrapeCreators endpoint).
+        ``"no_items"`` — SC is configured, the source ran with no error, but returned
+                         zero items (endpoint was live but had nothing for the query).
+        ``None``       — SC not configured, source excluded, or source not run this
+                         invocation.
     """
     if not config.get("SCRAPECREATORS_API_KEY"):
-        return False  # not configured — not a silent failure
-    # Honor EXCLUDE_SOURCES: a user who set EXCLUDE_SOURCES=instagram
-    # intentionally turned the source off, so a zero-item count is
-    # expected, not a silent failure. Mirror the canonical parsing
-    # pattern from pipeline.available_sources().
+        return None
     excluded = {
         s.strip().lower()
         for s in (config.get("EXCLUDE_SOURCES") or "").split(",")
         if s.strip()
     }
-    # Symmetric case: INCLUDE_SOURCES is an opt-in allowlist. If it is
-    # non-empty and does not name instagram, the source was intentionally
-    # filtered out, so a zero-item count is expected — not a silent failure.
     included = {
         s.strip().lower()
         for s in (config.get("INCLUDE_SOURCES") or "").split(",")
         if s.strip()
     }
     if "instagram" in excluded or (included and "instagram" not in included):
-        return False
+        return None
     count = research_results.get("instagram_items_count")
     if count is None:
-        return False  # source not run this invocation
-    return int(count) == 0
+        return None  # source not run this invocation
+    if int(count) == 0:
+        if research_results.get("instagram_error"):
+            return "errored"
+        return "no_items"
+    return None
 
 
 def compute_quality_score(config: dict, research_results: dict) -> dict:
@@ -192,8 +211,10 @@ def compute_quality_score(config: dict, research_results: dict) -> dict:
             ``youtube_videos_count`` and ``youtube_transcripts_count`` enable
             degraded-YouTube detection (transcript-fetch ratio below threshold,
             or fallback/provider data returned without local yt-dlp).
-            Optional key ``instagram_items_count`` enables silent-failure
-            detection for the bonus Instagram source.
+            Optional keys ``instagram_items_count`` and ``instagram_error``
+            enable failed/no-items detection for the bonus Instagram source.
+            ``x_degraded_error``
+            carries a failed xAI lane when another backend served X items.
 
     Returns:
         {
@@ -202,7 +223,7 @@ def compute_quality_score(config: dict, research_results: dict) -> dict:
             "core_missing": ["youtube"],
             "core_errored": [],          # configured but errored at top level
             "core_degraded": [],         # configured and returned items but quality below threshold
-            "bonus_errored": [],         # bonus sources (Instagram, etc.) configured but silent
+            "bonus_errored": [],         # bonus sources (Instagram, etc.) configured but failed or returned no items
             "nudge_text": "..." or None if all sources healthy
         }
     """
@@ -226,6 +247,8 @@ def compute_quality_score(config: dict, research_results: dict) -> dict:
     )
     if _is_x_active(config, research_results):
         core_active.append("x")
+        if research_results.get("x_degraded_error"):
+            core_degraded.append("x")
     elif x_configured and research_results.get("x_error"):
         core_missing.append("x")
         core_errored.append("x")
@@ -260,17 +283,21 @@ def compute_quality_score(config: dict, research_results: dict) -> dict:
         if has_ytdlp and research_results.get("youtube_error"):
             core_errored.append("youtube")
 
-    # Bonus sources (Instagram, etc.): SC-key holders expect content from
-    # these but until now the pipeline fell silent on configured-but-zero.
-    if _is_instagram_silent_failure(config, research_results):
-        bonus_errored.append("instagram")
+    # Bonus sources (Instagram, etc.): SC-key holders expect content but the
+    # source can fail (HTTP 404) or return zero items without surfacing a
+    # clear signal in the brief. Track both outcomes separately.
+    _ig_outcome = _instagram_bonus_outcome(config, research_results)
+    if _ig_outcome == "errored":
+        bonus_errored.append("instagram:failed")
+    elif _ig_outcome == "no_items":
+        bonus_errored.append("instagram:no_items")
 
     scored_source_count = len(CORE_SOURCES) - len(optional_omitted)
     score_pct = int(len(core_active) / scored_source_count * 100)
 
     has_sc = bool(config.get("SCRAPECREATORS_API_KEY"))
     active_sources = research_results.get("active_sources") or []
-    x_fix = _x_error_prescription(config, research_results) if "x" in core_errored else None
+    x_fix = _x_error_prescription(config, research_results) if "x" in core_errored or "x" in core_degraded else None
     nudge_text = _build_nudge_text(
         core_missing,
         core_errored,
@@ -335,8 +362,22 @@ def _build_nudge_text(
         degraded_labels = ", ".join(SOURCE_LABELS[s] for s in core_degraded)
         lines.append(f"Degraded: {degraded_labels}.")
     if bonus_errored:
-        bonus_labels = ", ".join(s.capitalize() for s in bonus_errored)
-        lines.append(f"Bonus source silent: {bonus_labels}.")
+        failed_sources = []
+        unavailable_sources = []
+        silent_sources = []
+        for s in bonus_errored:
+            if s == "instagram:failed":
+                failed_sources.append("Instagram")
+            elif s == "instagram:no_items":
+                unavailable_sources.append("Instagram")
+            else:
+                silent_sources.append(s.capitalize())
+        if failed_sources:
+            lines.append(f"Bonus source failed: {', '.join(failed_sources)}.")
+        if unavailable_sources:
+            lines.append(f"Bonus source unavailable: {', '.join(unavailable_sources)}.")
+        if silent_sources:
+            lines.append(f"Bonus source silent: {', '.join(silent_sources)}.")
     lines.append("")
 
     # Free suggestions
@@ -349,6 +390,11 @@ def _build_nudge_text(
         if x_fix is None:
             x_fix = prescriptions.get("x", "cookies_expired")
         free_suggestions.append(f"X/Twitter errored - {x_fix.fix_nl}.")
+
+    if "x" in core_degraded:
+        if x_fix is None:
+            x_fix = prescriptions.get("x", "cookies_expired")
+        free_suggestions.append(f"X/Twitter used a backup - {x_fix.fix_nl}.")
 
     if "youtube" in core_missing:
         if "youtube" in core_errored:
@@ -401,7 +447,7 @@ def _build_nudge_text(
                 f"or {pip_update}."
             )
 
-    if "instagram" in bonus_errored:
+    if "instagram:failed" in bonus_errored or "instagram:no_items" in bonus_errored:
         free_suggestions.append(
             "Instagram returned 0 reels despite SC being configured. SC's "
             "v2 reels endpoint wraps Google Search and 500's frequently on "

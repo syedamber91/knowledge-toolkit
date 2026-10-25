@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple
@@ -18,6 +19,7 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 from . import brightdata
+from .private_files import write_private_text
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +38,7 @@ _WELCOME_TEXT = """Welcome to /last30days! I research any topic across Reddit, X
 I synthesize what people are actually saying right now across social, news, and market sources.
 
 Auto setup gives you the core sources free in about 30 seconds:
-- Reddit with comments - free keyless discovery (RSS + shreddit), no API key needed.
+- Reddit with comments - free keyless discovery (Reddit search + shreddit), no API key needed.
 - YouTube search + transcripts - installs yt-dlp (open source, 190K+ GitHub stars).
 - Digg - trending news, GitHub stars, and pipeline feeds - installs the free, keyless Digg CLI.
 - arXiv (papers) + Techmeme (tech-news) - install free, keyless Printing Press CLIs and run on any topic (arXiv is relevance + recency gated to research topics).
@@ -80,7 +82,9 @@ def run_auto_setup(config: Dict[str, Any], *, allow_browser_cookies: bool = Fals
         Dict with keys:
           cookies_found: {source_name: browser_name} for each source where cookies were found
           browser_cookie_scan_attempted: bool (True only after explicit consent
-              AND on a host whose X policy permits cookie discovery)
+              and at least one browser is eligible for extraction)
+          x_cookie_access_denied: browser names denied during an attempted X
+              cookie read when no other browser supplied a complete X pair
           cookie_note: present only on an official-only host, where the scan
               is skipped for every domain (neutral, relayable text)
           ytdlp_installed: bool
@@ -95,7 +99,9 @@ def run_auto_setup(config: Dict[str, Any], *, allow_browser_cookies: bool = Fals
     from .env import COOKIE_DOMAINS, cookie_extraction_browsers, x_policy
 
     cookies_found: Dict[str, str] = {}
+    access_denied: dict[str, set[str]] = {}
     cookie_note: Optional[str] = None
+    browsers: list[str] = []
 
     # Official-only host (LAST30DAYS_HOST=grok-bot): the consented
     # cookie scan is skipped for EVERY domain (X and Truth Social alike) and
@@ -110,14 +116,15 @@ def run_auto_setup(config: Dict[str, Any], *, allow_browser_cookies: bool = Fals
         from . import cookie_extract
 
         cookie_config = dict(config)
+        cookie_config["BROWSER_CONSENT"] = "true"
         if not (cookie_config.get("FROM_BROWSER") or "").strip():
-            # Chromium-first: Chrome/Brave/etc. read cookies via the Keychain
-            # with no Full Disk Access, so try them before Safari, whose
-            # binarycookies read requires FDA (the dead-end most users hit).
+            # Chromium-first avoids Safari's usual Full Disk Access prompt.
+            # Browser-data permissions can still deny Chromium DB reads before
+            # the Keychain step, so a failed scan must report that separately.
             # firefox/safari stay as the silent fallbacks. Note: an explicit
             # comma list preserves this order (cookie_extraction_browsers);
             # "auto" would put the silent browsers first, so do not use it here.
-            cookie_config["FROM_BROWSER"] = "chrome,brave,edge,vivaldi,arc,chromium,firefox,safari"
+            cookie_config["FROM_BROWSER"] = "chrome,brave,edge,vivaldi,opera,arc,chromium,firefox,safari"
         browsers = cookie_extraction_browsers(cookie_config)
 
         for source_name, spec in COOKIE_DOMAINS.items():
@@ -127,12 +134,15 @@ def run_auto_setup(config: Dict[str, Any], *, allow_browser_cookies: bool = Fals
             for browser in browsers:
                 try:
                     result = cookie_extract.extract_cookies_with_source(browser, domain, cookie_names)
+                except PermissionError:
+                    access_denied.setdefault(source_name, set()).add(browser)
+                    continue
                 except Exception as exc:
                     logger.debug("Cookie extraction failed for %s via %s: %s", source_name, browser, exc)
                     continue
-                if result is not None and result[0]:
+                if result is not None and cookie_extract.has_complete_pair(result[0], cookie_names):
                     cookies_found[source_name] = result[1]
-                    break  # Found cookies for this service, stop trying browsers
+                    break  # Complete pair found for this service, stop trying browsers
 
     # Check yt-dlp availability and install via Homebrew if missing. Windows
     # has no Homebrew, and its working install path is `pip install yt-dlp`
@@ -172,9 +182,14 @@ def run_auto_setup(config: Dict[str, Any], *, allow_browser_cookies: bool = Fals
     digg_installed, digg_action, digg_stderr, digg_path = _install_digg_cli()
     pp_sources = install_default_pp_sources()
 
+    scan_attempted = allow_browser_cookies and bool(browsers)
     results: Dict[str, Any] = {
         "cookies_found": cookies_found,
-        "browser_cookie_scan_attempted": allow_browser_cookies,
+        "x_cookie_access_denied": (
+            [browser for browser in browsers if browser in access_denied.get("x", set())]
+            if scan_attempted and "x" not in cookies_found else []
+        ),
+        "browser_cookie_scan_attempted": scan_attempted,
         "ytdlp_installed": ytdlp_installed,
         "ytdlp_action": ytdlp_action,
         "digg_installed": digg_installed,
@@ -288,6 +303,11 @@ def _run_npx_install(slug: str) -> Tuple[str, str]:
     npx = shutil.which("npx")
     if npx is None:
         return "no_npx", ""
+    print(
+        f"Installing {slug} CLI via npx ({PRINTING_PRESS_NPM} --cli-only) ...",
+        file=sys.stderr,
+        flush=True,
+    )
     try:
         proc = subprocess.run(
             [npx, "-y", PRINTING_PRESS_NPM, "install", slug, "--cli-only"],
@@ -526,6 +546,13 @@ def _open_secret_append(path: Path):
     return os.fdopen(fd, "a", encoding="utf-8")
 
 
+def _env_line_key(stripped: str) -> str:
+    """Return the key a stripped ``KEY=value`` line sets, as the loader reads it."""
+    from . import env as _env
+
+    return _env.env_line_key(stripped.split("=", 1)[0])
+
+
 def _replace_env_line(env_path: Path, content: str, key_name: str, value: str) -> bool:
     """Rewrite every ``key_name=`` line of ``content`` with ``value`` as a 0o600 secret.
 
@@ -533,16 +560,25 @@ def _replace_env_line(env_path: Path, content: str, key_name: str, value: str) -
     over the original, so the secret never has a readable window and a
     crash mid-write leaves the old file intact.
     """
+    def _is_key(stripped: str) -> bool:
+        return bool(
+            stripped and not stripped.startswith("#") and "=" in stripped
+            and _env_line_key(stripped) == key_name
+        )
+
+    stripped_lines = [line.strip() for line in content.splitlines()]
+    # Keep a hand-written ``export`` -- on any of the duplicates being
+    # collapsed -- so a shell that sources the file still exports the key.
+    exported = any(
+        _is_key(s) and s.split("=", 1)[0].strip() != key_name for s in stripped_lines
+    )
     new_line = f"{key_name}={_format_env_value(value)}"
+    if exported:
+        new_line = f"export {new_line}"
     lines = []
     replaced = False
-    for line in content.splitlines():
-        stripped = line.strip()
-        is_key = (
-            stripped and not stripped.startswith("#") and "=" in stripped
-            and stripped.split("=", 1)[0].strip() == key_name
-        )
-        if is_key:
+    for line, stripped in zip(content.splitlines(), stripped_lines):
+        if _is_key(stripped):
             if not replaced:
                 lines.append(new_line)
                 replaced = True
@@ -585,20 +621,30 @@ def _format_env_value(value: str) -> str:
     return value
 
 
-def write_setup_config(env_path: Path, from_browser: str | None = None) -> bool:
-    """Write SETUP_COMPLETE and FROM_BROWSER to the .env file.
+def write_setup_config(
+    env_path: Path,
+    from_browser: str | None = None,
+    *,
+    browser_consent: bool | None = None,
+    x_cookie_access_denied: str | None = None,
+) -> bool:
+    """Write setup completion, browser selection, and consent to the .env file.
 
     Creates the file and parent directories if needed.
-    Appends to existing file without overwriting existing keys.
+    Appends without overwriting existing keys, except for an explicit consent
+    decision.
 
     Args:
         env_path: Path to the .env file (e.g. ~/.config/last30days/.env)
-        from_browser: Browser extraction mode to persist. Pass the browser that
-            actually yielded cookies (e.g. "firefox") to fast-path future runs.
-            Pass None (default) to NOT pin FROM_BROWSER — the steady-state
-            default (Firefox/Safari, no Keychain prompt) then applies. We avoid
-            persisting "auto" because it makes every later run probe Chrome and
-            re-trigger the Keychain prompt.
+        from_browser: Browser or comma-separated browser list that actually
+            yielded cookies after consent (e.g. "chrome,firefox"). Pass None
+            (default) to leave FROM_BROWSER unchanged; when unset, future runs
+            do not read native browser stores. Avoid "auto", which would also probe
+            browsers that did not supply cookies during setup.
+        browser_consent: Record the user's current cookie-access decision.
+            None preserves any previous decision.
+        x_cookie_access_denied: Setup's non-secret last X denial observation.
+            Pass "none" to clear a prior denial after a new setup run.
 
     Returns:
         True if config was written successfully, False on error.
@@ -606,6 +652,18 @@ def write_setup_config(env_path: Path, from_browser: str | None = None) -> bool:
     try:
         env_path = Path(env_path)
         env_path.parent.mkdir(parents=True, exist_ok=True)
+        if browser_consent is not None:
+            if not write_api_key(
+                env_path, "true" if browser_consent else "false",
+                key_name="BROWSER_CONSENT", replace=True,
+            ):
+                return False
+        if x_cookie_access_denied is not None:
+            if not write_api_key(
+                env_path, x_cookie_access_denied,
+                key_name="LAST30DAYS_X_COOKIE_ACCESS_DENIED", replace=True,
+            ):
+                return False
 
         # Read existing content to avoid overwriting keys
         existing_keys: set = set()
@@ -615,7 +673,7 @@ def write_setup_config(env_path: Path, from_browser: str | None = None) -> bool:
             for line in existing_content.splitlines():
                 stripped = line.strip()
                 if stripped and not stripped.startswith("#") and "=" in stripped:
-                    key = stripped.split("=", 1)[0].strip()
+                    key = _env_line_key(stripped)
                     existing_keys.add(key)
 
         lines_to_add = []
@@ -652,11 +710,12 @@ def write_api_key(
 
     Reuses the same secret-safe write path as ``write_setup_config`` so the
     value lands with restrictive permissions and round-trips through
-    ``env.load_env_file``. Idempotent by default: if ``key_name`` is already
-    present in the file, nothing is written and the existing value is
+    ``env.load_env_file``. Idempotent by default: if ``key_name`` already has
+    a nonempty parsed value, nothing is written and the existing value is
     preserved (we never clobber a key the user may have set by hand). With
     ``replace=True`` an existing line is rewritten in place instead, so an
     explicit ``setup --store-key`` can rotate a rejected credential.
+    Empty assignments are replaced so a signup key becomes usable.
 
     Args:
         env_path: Path to the .env file (e.g. ~/.config/last30days/.env).
@@ -680,8 +739,10 @@ def write_api_key(
             for line in existing_content.splitlines():
                 stripped = line.strip()
                 if stripped and not stripped.startswith("#") and "=" in stripped:
-                    if stripped.split("=", 1)[0].strip() == key_name:
-                        if replace:
+                    if _env_line_key(stripped) == key_name:
+                        from .env import load_env_file
+
+                        if replace or not load_env_file(env_path).get(key_name):
                             return _replace_env_line(env_path, existing_content, key_name, api_key)
                         return True  # Already configured; do not duplicate
 
@@ -718,6 +779,8 @@ def get_setup_status_text(results: Dict[str, Any]) -> str:
     Returns:
         Multi-line status text.
     """
+    from .env import X_COOKIE_ACCESS_FIX
+
     lines = []
     lines.append("Setup complete! Here's what I found:")
     lines.append("")
@@ -726,6 +789,15 @@ def get_setup_status_text(results: Dict[str, Any]) -> str:
     if results.get("browser_cookie_scan_attempted") and cookies_found:
         for source, browser in cookies_found.items():
             lines.append(f"  - {source.upper()} cookies found in {browser}")
+    denied_browsers = (
+        results.get("x_cookie_access_denied") or []
+        if results.get("browser_cookie_scan_attempted") else []
+    )
+    if denied_browsers:
+        lines.append(
+            "  - X cookie access was permission denied in "
+            f"{', '.join(denied_browsers)}. {X_COOKIE_ACCESS_FIX}"
+        )
 
     ytdlp_action = results.get("ytdlp_action", "")
     if ytdlp_action == "installed":
@@ -846,6 +918,8 @@ def get_setup_status_text(results: Dict[str, Any]) -> str:
         lines.append("")
         if cookie_note:
             lines.append("Configuration saved.")
+        elif denied_browsers:
+            lines.append("Configuration saved. X browser cookie access remains unverified.")
         else:
             lines.append("Configuration saved. Future runs will auto-detect your browsers.")
 
@@ -935,6 +1009,21 @@ def _existing_scrapecreators_key() -> Optional[str]:
     return None
 
 
+def _clamp_device_interval(interval: Any) -> int:
+    """Clamp a server-provided device-flow poll interval to [1, 30] seconds.
+
+    The ``interval`` comes from the server (device/code response or the
+    persisted poll handle), so 0 would hot-loop ``time.sleep``, a negative
+    would crash it, a huge value would sail past the poll timeout, and a
+    non-numeric value would raise. Defaults to 5 on missing/garbled input.
+    """
+    try:
+        value = int(interval or 5)
+    except (TypeError, ValueError):
+        return 5
+    return min(max(value, 1), 30)
+
+
 def run_device_auth() -> Optional[Tuple[str, str, str, int]]:
     """Start the device authorization flow.
 
@@ -957,7 +1046,7 @@ def run_device_auth() -> Optional[Tuple[str, str, str, int]]:
     device_code = data.get("device_code")
     user_code = data.get("user_code")
     verification_uri = data.get("verification_uri")
-    interval = data.get("interval", 5)
+    interval = _clamp_device_interval(data.get("interval", 5))
 
     if not device_code or not user_code:
         # Log only the response's key names, never its values — a returning
@@ -991,6 +1080,7 @@ def poll_device_auth(
     """
     import sys
 
+    interval = _clamp_device_interval(interval)
     started_at = time.time()
     deadline = started_at + timeout
     last_reminder = started_at
@@ -1294,8 +1384,9 @@ def run_github_start() -> Dict[str, Any]:
         path = _device_handle_path()
         try:
             path.parent.mkdir(parents=True, exist_ok=True)
-            path.write_text(json.dumps(handle), encoding="utf-8")
-            os.chmod(path, 0o600)
+            write_private_text(path, json.dumps(handle), encoding="utf-8")
+            if os.name != "posix":
+                os.chmod(path, 0o600)
         except Exception as exc:
             logger.warning("Could not persist device handle: %s", exc)
     return public
@@ -1323,7 +1414,7 @@ def run_github_poll(timeout: int = 300, *, _handle: Optional[Dict[str, Any]] = N
             }
 
     device_code = data["device_code"]
-    interval = int(data.get("interval", 5))
+    interval = _clamp_device_interval(data.get("interval", 5))
     user_code = data.get("user_code", "")
     # Read the real clipboard state so the polling reminder never falsely claims
     # the code is on the clipboard (non-macOS, or a failed pbcopy). Missing key

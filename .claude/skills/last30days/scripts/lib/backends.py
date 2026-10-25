@@ -21,7 +21,7 @@ Two resolution modes:
   results fall below the configured thinness floor (see the gating in
   ``lib/pipeline.py``). No probe can pick one winner, so resolution renders
   honest conditional wording instead of an ``active_backend``. Reddit's
-  internal keyless lanes (rss/listing/arctic/shreddit) are sub-probe detail
+  internal keyless lanes (search/listing/arctic/shreddit) are sub-probe detail
   inside the public composite, never chain entries.
 
 ``active_backend`` semantics: a PREDICTION — "the first backend the probes
@@ -138,8 +138,10 @@ class ChainDescriptor:
     source: str
     mode: str
     backends: Tuple[BackendSpec, ...]
-    pin_var: Optional[str] = None   # env var pin (X, Reddit)
+    pin_var: Optional[str] = None   # env var pin (X, Reddit, YouTube)
     pin_flag: Optional[str] = None  # CLI flag pin (web: --web-backend)
+    # Env pin values the runtime honors; None means any backend name.
+    pin_values: Optional[Tuple[str, ...]] = None
 
 
 @dataclass
@@ -456,7 +458,7 @@ def _probe_reddit_public(config: Dict[str, Any]) -> BackendFinding:
     return BackendFinding(
         name="public",
         status=health.OK,
-        detail="public keyless composite (lanes: rss, listing, arctic, shreddit)",
+        detail="public keyless composite (lanes: search, listing, arctic, shreddit)",
         requires="none (public endpoints)",
     )
 
@@ -538,7 +540,8 @@ DESCRIPTORS: Dict[str, ChainDescriptor] = {
             ),
             _SC_SPEC,
         ),
-        pin_var=None,  # no YouTube pin knob exists
+        pin_var=env.YOUTUBE_BACKEND_PIN_VAR,
+        pin_values=env.YOUTUBE_BACKEND_PIN_VALUES,
     ),
     "web": ChainDescriptor(
         source="web",
@@ -678,8 +681,14 @@ def _resolve_alternative(
     if pin and pin not in ("auto", "none") and pin in by_name:
         pin_name = pin
     elif descriptor.pin_var:
-        raw = (config.get(descriptor.pin_var) or "").lower()
-        if raw in by_name:
+        if descriptor.pin_var == env.YOUTUBE_BACKEND_PIN_VAR:
+            # Same spelling rules as the runtime gate (strip, "ytdlp" alias).
+            raw = env.youtube_backend_pin(config)
+        else:
+            raw = (config.get(descriptor.pin_var) or "").lower()
+        if raw in by_name and (
+            descriptor.pin_values is None or raw in descriptor.pin_values
+        ):
             pin_name = raw
 
     if pin_name:
@@ -721,15 +730,6 @@ def _resolve_alternative(
     return res
 
 
-def _reddit_sc_min_items(config: Dict[str, Any]) -> int:
-    """The thinness floor, parsed exactly as the pipeline parses it
-    (lib/pipeline.py reddit fetch: int(... or 0), malformed -> 0)."""
-    try:
-        return int(config.get(env.REDDIT_SC_MIN_ITEMS_VAR) or 0)
-    except (TypeError, ValueError):
-        return 0
-
-
 def _resolve_conditional(
     descriptor: ChainDescriptor,
     config: Dict[str, Any],
@@ -747,7 +747,7 @@ def _resolve_conditional(
     has_key = bool(config.get("SCRAPECREATORS_API_KEY"))
     raw_pin = (config.get(descriptor.pin_var) or "").lower() if descriptor.pin_var else ""
     pinned_sc = has_key and raw_pin == "scrapecreators"
-    floor = _reddit_sc_min_items(config)
+    floor = env.reddit_sc_min_items(config)
 
     if pinned_sc:
         res.pinned = True
