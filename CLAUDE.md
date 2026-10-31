@@ -1037,6 +1037,14 @@ and does retrieval. Same advisory-only rule as Jev: it never replaces the G2 gat
   `docs/superpowers/specs/2026-07-06-storm-business-research-design.md`. MVP is
   `idea` mode; `gap`/`rescore`/`research` are designed but not yet built.
 
+- `smart-highlight` (`/smart-highlight`) — pre-highlights a chapter or web page in the owner's
+  color code (pink recall, yellow caution, blue worked examples, green/red reading flow), then
+  proofreads the marks with a blind-reader agent that sees only the highlights. AlgoMaster has a
+  native highlighter, so marks persist in the owner's account and sync across devices; the skill
+  ships the working browser helper (`references/algomaster-highlighter.js`). Personal use only;
+  it never touches highlights it did not create. Also installed user-level at
+  `~/.claude/skills/smart-highlight`.
+
 **Agents** (`.claude/agents/`): `substack-capturer`, `youtube-capturer`,
 `media-capturer`, `instagram-capturer` (capture orchestrators); `justin-sung`,
 `ben-dicken`, `vutr`, `lucsystemdesign`, `sdcourse`, `alex` (verification/
