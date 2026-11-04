@@ -99,3 +99,15 @@ Quote check (12 quotes the seat used), two layers:
   Raw does contain "average directional index" nearby, so item 10 is likely a paraphrase of a real lecture, not a fake.
 Seat flagged as untested: pledge %, related parties, auditor, valuation (no P/E), CFO for NEULANDLAB, PAT-growth bar past 300%.
 Not done: learning-vault-invest cross-check; quote check by Fable-tier second model.
+
+## Adversarial review of the quote check (2026-11-05, Fable-tier, report `output/funnel/review_crosscheck_2026-11-05.md`)
+My earlier "7/12 verified" was too generous. Findings:
+- REF codes are not unique (MODULB = 8 lessons, MODULA = 8, ...). My check matched anywhere in the corpus, never in the named lesson.
+  Reviewer re-tested: items 3,4,5,6,7,8,11 DO sit in a lesson with that code. Public card must name lesson TITLES, not just codes.
+- Timestamp drift: item 3 raw 00:11:28 (card 00:11:24), item 7 01:00:43 (01:00:39), item 8 00:05:25 (00:05:12). Fix stamps.
+- Paraphrase printed as quote: item 1 (raw: CFO/EBITDA "at least 70% B2C, 60% B2B", not CFO/PAT wording), item 2 (raw says above 80-90% of a B2B case, which
+  contradicts brain S452 B2B 60-70%), item 9 (raw: "more than 50X"; "30 to 50" fuses with a separate "above 30 to 35 P if it doesn't grow"), item 10 (raw: "ADX more than 20 to 25"; RSI-50 pairing to HOWD unsupported), item 12 (persona-written line, not a lecture).
+- I re-ran item 9 myself: ">50x" and "above 30 to 35 P" both confirmed in raw. Others taken from the reviewer, not re-run by me.
+- "market cap 26867 Cr" not in my stated inputs for the seat; "Passed/Failed/delete a company" wording reads like a verdict sheet.
+Safe to quote on a card (name lesson title, fix stamp): items 3,4,5,6,7,8,11. NOT quotable: 1,2,9,10,12 -> restate as paraphrase with corrected numbers.
+Nothing in this step is advice. Not done: card itself, scorecard.
