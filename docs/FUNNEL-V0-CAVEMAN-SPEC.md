@@ -67,3 +67,15 @@ Caveat: the docs rule picks on what is ON DISK, not on business quality. 11 gate
 
 ## Not claimed
 No proof this picks better than random. No Shariah. No lamps S1-S7 (no data for related party / auditor in DB).
+
+## Pre-registration (2026-11-05, set before any new result is read)
+Owner decisions: pilot = Healthcare. List only, alphabetical, no ranking. "Worth your time" = CANDIDATE
++ >=1 concall + >=1 annual report on disk (reading time, never return).
+Done well = ALL of:
+1. Every pick and every dropped name has a cited rule_id (reasons table).
+2. shortlist + reasons rows == universe (48).
+3. Beats seeded random_3 (seed 7, drawn from the whole universe) on one reading-time test:
+   share of names that clear all gates AND have docs on disk. Funnel picks must be 100%.
+4. Zero buy/sell/hold words; no return metric anywhere.
+If any check fails: ship as a plain reading list, no claim.
+Not claimed: any edge on returns; any ranking.
