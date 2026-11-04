@@ -1,0 +1,21 @@
+step_id,step,tier,model,in_tokens,out_tokens,wall_s,status,source_of_number
+S10a,"Convict turn prompt (one turn, ~227,531 chars)",Claude,Sonnet,"67000-71000",,,ESTIMATE,"trial-2 doc: Ollama server counted 3.2-3.4 chars/token on slices; scaled to 227531 chars"
+S10b,"Convict scoring pass (15 turns)",Claude,Sonnet,"~1000000-1065000",,,ESTIMATE,"15 turns x S10a; no billed number exists in repo"
+S10c,"Read hearing.md once (224817 bytes)",Claude,any,"~68000",,,ESTIMATE,"bytes / 3.3"
+S14,"web-fetch subagent summary (Screener/Notion/peers)",Claude,subagent,"~35000",,,CLAIMED,"master handoff A text; not verified here"
+X1,"Fable review of this spec (this session)",Claude,Fable,"97689 total",,40,MEASURED,"subagent usage line in task notification; in+out not split"
+X2,"This session context after T0-T5b",Claude,Sonnet,"215879",,,MEASURED,"mcp get_usage context.tokensUsed; ~88k of it is fixed overhead (memory, tools, system, skills); messages 121292"
+S1,"fetch results + gap-urls",model-free,,0,0,,UNMEASURED,"case-study modes fetch-results,fetch-gap; job comment says no model; mode code not read"
+S2,"fetch calls (pdftotext)",model-free,,0,0,,UNMEASURED,"mode fetch-calls; same caveat"
+S3,"fetch decks + deck-layout + deck-numbers",model-free,,0,0,,UNMEASURED,"same caveat"
+S4,"fetch annual report + annual-report-pages",model-free,,0,0,,UNMEASURED,"same caveat"
+S5,"announcements / announcements-latest",model-free,,0,0,,UNMEASURED,"same caveat"
+S6,"excerpts, management-text, qa-pairs",model-free,,0,0,,UNMEASURED,"same caveat"
+S7,"screener + price-panel fetch",model-free,,0,0,,UNMEASURED,"mode screener already exists in case-study"
+S8,"AR claims, tiers, blind grader",UNKNOWN,,,,,UNMEASURED,"handoff does not say which parts use a model"
+S9,"case-book build",model-free?,,,,,UNMEASURED,"case-book text says figures are worked out by code; script not read"
+S11,"closings + judge notes rewrite",Claude,Opus/Sonnet,,,,UNMEASURED,
+S12,"check_hearing.py guards",model-free,,0,0,,UNMEASURED,"python guards, 141 tests per handoff"
+S13,"report / one-sheet / PDF builders",model-free,,0,0,,UNMEASURED,"Kid/Teen plain lines are Claude-written"
+S15,"re-read AR page files + hand grep",Claude,any,,,,UNMEASURED,"target of retrieval (T4)"
+S16,"post-hearing reads of NSE PDFs",Claude,any,,,,UNMEASURED,
