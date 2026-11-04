@@ -54,3 +54,13 @@ Command: `gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main
   - 16:36 "Resignation of Director/KMP/SMP" — `.../BIOCON_ROID_103428_KMP_Doc.zip` (a zip, unread; who resigned is UNCHECKED)
   - 20:51 Link of earnings-call recording — `.../BIOCON_04112026205126_Earning_Calls_outcome.pdf` (transcript not yet published)
 - Why `fetch-results` cannot do this alone: it reads the frozen corpus wording filter, not new announcements. The route is `data/gap-urls.txt` + mode `fetch-gap`, which needs that file committed on a branch first (a write to soic-ladder). NOT done yet.
+
+## RESULT of run #3 — mode `fetch-gap`, branch `claude/q2fy27-gap-urls`, `as_of=2026-11-04` (run 41889054837)
+- Branch `claude/q2fy27-gap-urls` (soic-ladder, from main 6f97ab9) = 1 commit: appended 3 Q2 FY27 URLs to `data/gap-urls.txt` (kept the 4 Mar-2025 lines). Not merged. (Name avoids `run/**`, which would auto-trigger a run.)
+- Success. Network + pdftotext, no model. Opened soic-ladder **PR #1290** (2 files: gap-urls.txt + `gap-manifest-2026-11-04.json`). Not merged.
+- Results-marker counts (words found in the text, NOT figures read):
+  - q2fy27-a (BMOutcome 13:15): total income 2, profit before tax 5, quarter ended 15, segment 23, EPS 2 → looks like the results filing.
+  - q2fy27-b (Bioconlimited BMOutcome 13:25): same counts as -a → probably the same results document filed twice. UNCHECKED.
+  - q2fy27-c (press release): PBT 0 → not the results table.
+  - mar25-a..d re-fetched with identical counts to the original run (a mini repeat-check: PASS).
+- **GAP FOUND:** `fetch-gap` puts the PDF text on the VPS only (`$SOIC_RUNS/…/gap-pdftext-2026-11-04`, gitignored) and commits just the manifest. So a cloud session still cannot read the Q2 FY27 numbers. T2 done-when (b) is NOT met for this quarter. `excerpts` (which does commit text) has the Mar-2025 gap file hard-coded (`--extra 2025-03-31=…mar25-a`), so it would need a small code change to include `q2fy27-a`.
