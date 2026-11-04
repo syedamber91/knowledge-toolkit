@@ -42,3 +42,15 @@ Command: `gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main
 - Script warnings worth keeping: Jun-2024 quarter `not_found`; no segment table for 2024-06-30 and 2025-09-30; no consolidated income statement for 2024-06-30. These match the known gap list; not new.
 - Side note: the runner's commit template names "Claude Fable 5.1" as co-author regardless of who ran it. Not ours to change here.
 - The 11 quarters found (2023-12-31 … 2026-06-30) include 2026-06-30 but NOT 2026-09-30: the Q2 FY27 filing is not in the VPS text yet → needs `fetch-results` (network).
+
+## RESULT of run #2 — mode `announcements-latest` (run 41888407157)
+- Success, ~11 s of work (18:34:24 → 18:34:35). Network, no model. Script: `case_study_announcements_live.py --symbol BIOCON --start 2026-09-03 --end 2026-11-04` → **20 announcements** (NSE cookie handled by the script: the "UNCHECKED" cookie risk for this mode is now CHECKED, it worked).
+- Opened soic-ladder PR #1289 (1 file: `docs/idea/case-study/BIOCON/data/announcements-latest.csv`). NOT merged (owner's call). Read from branch `results/case-study-20261104-1834`.
+- **Q2 FY27 is out. Filed 2026-11-04** (title/URL only; contents NOT read yet):
+  - 13:19 Outcome of Board Meeting — "financial results for the period ended September 30, 2026" — `https://nsearchives.nseindia.com/corporate/BIOCON_04112026131527_BMOutcome.pdf`
+  - 13:23 Press release on results — `.../BIOCON_04112026132336_Press_Release.pdf`
+  - 15:09 Investor Presentation — `.../BIOCON_04112026150858_Presentation.pdf`
+  - 16:29 "Communication regarding withholding of final dividend for FY 2025-26" — `.../BIOCON_04112026162937_SE_Intimation.pdf` (unread)
+  - 16:36 "Resignation of Director/KMP/SMP" — `.../BIOCON_ROID_103428_KMP_Doc.zip` (a zip, unread; who resigned is UNCHECKED)
+  - 20:51 Link of earnings-call recording — `.../BIOCON_04112026205126_Earning_Calls_outcome.pdf` (transcript not yet published)
+- Why `fetch-results` cannot do this alone: it reads the frozen corpus wording filter, not new announcements. The route is `data/gap-urls.txt` + mode `fetch-gap`, which needs that file committed on a branch first (a write to soic-ladder). NOT done yet.
