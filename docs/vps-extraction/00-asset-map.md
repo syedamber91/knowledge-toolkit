@@ -20,12 +20,12 @@ Method: GitHub API trees (`gh api .../git/trees/<branch>?recursive=1`). Not loca
 | Courtroom scripts | roast-room same branch | `.claude/skills/courtroom/scripts/` (`check_hearing.py`, `add_after_panel.py`, `model_trial.py`, ...) | YES |
 | BIOCON external items | roast-room same branch | `docs/company-record/biocon/external-items-2026-10-30.json` | YES |
 | Provenance RAG core | provenance `main` | `src/chunker.py`, `src/embedder.py`, `src/verify.py`, `scripts/null_test_verifier.py` | YES |
-| `hearing.md`, `case-book.md`, sessions | roast-room | `sessions/` is gitignored | **NO — local to the earlier machine/cloud container only** |
+| `hearing.md` (225 KB), `case-book.md` (60 KB), `external.md`, `work/judge-final*.md` | roast-room `integration/free-model-offload` | `sessions/2026-10-30-court-biocon-live-example/` | **YES — force-added to git despite .gitignore (corrected after T5b).** Handoff says hearing.md ~397 KB and a 2026-11-01 SOIC-lawyer session; that session is NOT on this branch — UNCHECKED where it is |
 | `after-hearing.json` (commit 9ad6c94) | roast-room | not checked | UNCHECKED |
 | Search/hybrid code in provenance (RRF, FTS5) | provenance | only chunker/embedder/verify seen by name match; search file not located | UNCHECKED |
 
 ## What this changes in the spec
 - Handoff files live in **roast-room**, not soic-ladder. Fixed.
 - BIOCON data IS in git: T-1 (freeze fixtures) can copy from it.
-- `hearing.md` is NOT in git → golden set (T5b) cannot be rebuilt from it unless the user supplies it. Fall back to master handoff §4 + Known errors (thin).
+- The 2026-10-30 `hearing.md` IS in roast-room git; the 2026-11-01 SOIC-lawyer session (397 KB hearing) is not found. T5b v1 used the master handoff + AR pages; rows from the hearing's I1–I10 still to add.
 - Stale-clone trap goes into every VPS-job step: fetch before reading.
