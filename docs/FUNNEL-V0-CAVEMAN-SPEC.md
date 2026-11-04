@@ -88,3 +88,14 @@ Not claimed: any edge on returns; any ranking.
    Caveat: summary file prints a different control (from CANDIDATE only: CONCORDBIO, GLAND, GLENMARK). Pre-reg control is the one above.
 4. Zero buy/sell/hold words; no return metric. PASS.
 Verdict: all 4 pass. Ship as a reading list. Claim = "rule applied correctly", NOT "beats chance at picking good companies".
+
+## Persona step result (2026-11-05, council-soic seat from roast-room, brain files _hot, voice, rules, checks)
+Card: `output/funnel/persona_healthcare_2026-08-29.md` (gitignored). Seat given gate values from `judge_company`.
+Quote check (12 quotes the seat used), two layers:
+- In the seat's own brain notes: 12/12 verbatim.
+- In raw SOIC transcripts (`data/content.json`): 7/12 verbatim (items 3-8, 11).
+- NOT found in raw transcripts, so UNVERIFIED and not used on the sector card: item 1 (CFO/PAT 70%/60%, S036), 2 (80-90%, S470),
+  9 (30-50x earnings, S430), 10 (ADX 20 line, S093), 12 (peak PE, S009). They are wording from course NOTES, not spoken words.
+  Raw does contain "average directional index" nearby, so item 10 is likely a paraphrase of a real lecture, not a fake.
+Seat flagged as untested: pledge %, related parties, auditor, valuation (no P/E), CFO for NEULANDLAB, PAT-growth bar past 300%.
+Not done: learning-vault-invest cross-check; quote check by Fable-tier second model.
