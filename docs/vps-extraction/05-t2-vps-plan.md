@@ -70,7 +70,7 @@ Command: `gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main
 **Offline modes (dispatched on soic-ladder main, each "the job changed nothing; no pull request to open"):**
 management-text (run 41902113862), qa-pairs (41902734734), screener (41902896864). Idempotent, no model. CHECKED from the run logs.
 
-**Q2 text gap fixed (soic-ladder branch `claude/excerpts-q2fy27`, 2 commits, NOT merged):**
+**Q2 text gap fixed (soic-ladder branch `claude/excerpts-q2fy27`, 2 commits, since merged):**
 - `scripts/soic_run.sh` excerpts mode now also passes `--extra 2026-09-30=.../gap-pdftext-2026-11-04/q2fy27-a.txt.gz`.
 - Test first: `test_case_study_excerpts_reads_the_frozen_filings...` got the new assert, was red, then green.
 - Full `tests/test_soic_run.py` + excerpts tests: the same 10 tests fail before and after my change (CHECKED by diffing the FAILED lists); none is excerpts. Looks like Mac-vs-Linux env, cause UNCHECKED.
@@ -78,5 +78,5 @@ management-text (run 41902113862), qa-pairs (41902734734), screener (41902896864
 - Spot check: Q2 consolidated table shows Revenue from operations 43,889 Rs million (= 4,389 cr) for 3 months ended 30.09.2026, matching the Screener Sep 2026 Sales 4,389 cr. Total income 44,234; PBT 548 (Rs million).
 - Known limits: the Q2 path is hard-coded to the 2026-11-04 folder (a next quarter needs another line); excerpts now fails loud if that VPS file is gone; 2024-06-30 still `not_found` (pre-existing); segment table missing for 2024-06-30 and 2025-09-30 (pre-existing).
 
-**Open soic-ladder PRs from this work (none merged):** #1289, #1290, #1291, plus branches `claude/q2fy27-gap-urls`, `claude/excerpts-q2fy27`.
-**Still golden N03:** the Q2 text is now committed on a PR branch but not on main, so the row stays "not in main corpus" until you merge.
+**Merged 2026-11-05 (owner yes):** PRs #1289, #1290, #1291 are on soic-ladder main. Branches `claude/q2fy27-gap-urls` and `claude/excerpts-q2fy27` left in place. Each PR showed the same one failing check (`test_annual_report_prose`, missing python lib on the runner) with 11,796 passed; whether it already fails on main is UNCHECKED.
+**Golden N03:** changed from a refuse row to an answerable row (Q2 filing now on main). Needs a retrieval test and a human check.
