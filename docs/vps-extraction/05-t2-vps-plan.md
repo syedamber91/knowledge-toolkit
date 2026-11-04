@@ -64,3 +64,19 @@ Command: `gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main
   - q2fy27-c (press release): PBT 0 → not the results table.
   - mar25-a..d re-fetched with identical counts to the original run (a mini repeat-check: PASS).
 - **GAP FOUND:** `fetch-gap` puts the PDF text on the VPS only (`$SOIC_RUNS/…/gap-pdftext-2026-11-04`, gitignored) and commits just the manifest. So a cloud session still cannot read the Q2 FY27 numbers. T2 done-when (b) is NOT met for this quarter. `excerpts` (which does commit text) has the Mar-2025 gap file hard-coded (`--extra 2025-03-31=…mar25-a`), so it would need a small code change to include `q2fy27-a`.
+
+## Runs #4–#7 (2026-11-04/05) — offline modes + Q2 text fix
+
+**Offline modes (dispatched on soic-ladder main, each "the job changed nothing; no pull request to open"):**
+management-text (run 41902113862), qa-pairs (41902734734), screener (41902896864). Idempotent, no model. CHECKED from the run logs.
+
+**Q2 text gap fixed (soic-ladder branch `claude/excerpts-q2fy27`, 2 commits, NOT merged):**
+- `scripts/soic_run.sh` excerpts mode now also passes `--extra 2026-09-30=.../gap-pdftext-2026-11-04/q2fy27-a.txt.gz`.
+- Test first: `test_case_study_excerpts_reads_the_frozen_filings...` got the new assert, was red, then green.
+- Full `tests/test_soic_run.py` + excerpts tests: the same 10 tests fail before and after my change (CHECKED by diffing the FAILED lists); none is excerpts. Looks like Mac-vs-Linux env, cause UNCHECKED.
+- First dispatch failed loud (FileNotFoundError): the Q2 text sits in `gap-pdftext-2026-11-04`, not the as_of folder. Path fixed. Second dispatch (41904673283) succeeded -> PR #1291 on branch `results/case-study-20261104-2014` with `consolidated-2026-09-30.txt`, `segment-2026-09-30.txt`, `excerpts-manifest.json`.
+- Spot check: Q2 consolidated table shows Revenue from operations 43,889 Rs million (= 4,389 cr) for 3 months ended 30.09.2026, matching the Screener Sep 2026 Sales 4,389 cr. Total income 44,234; PBT 548 (Rs million).
+- Known limits: the Q2 path is hard-coded to the 2026-11-04 folder (a next quarter needs another line); excerpts now fails loud if that VPS file is gone; 2024-06-30 still `not_found` (pre-existing); segment table missing for 2024-06-30 and 2025-09-30 (pre-existing).
+
+**Open soic-ladder PRs from this work (none merged):** #1289, #1290, #1291, plus branches `claude/q2fy27-gap-urls`, `claude/excerpts-q2fy27`.
+**Still golden N03:** the Q2 text is now committed on a PR branch but not on main, so the row stays "not in main corpus" until you merge.
