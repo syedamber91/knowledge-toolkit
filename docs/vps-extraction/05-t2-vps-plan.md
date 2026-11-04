@@ -33,3 +33,12 @@ Stop after #1 and read the result before running #2+.
 
 ## Owner decision needed
 Dispatching = a real run on the owner's VPS + a PR on a private repo. Needs an explicit yes. Public repo note: outputs stay in private soic-ladder, not in this public repo.
+
+## RESULT of run #1 — mode `excerpts` (2026-11-04, GitHub Actions run 41887808011)
+Command: `gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main -f job=case-study -f companies=excerpts`
+- **Outcome: success. "the job changed nothing; no pull request to open."** → idempotent at default as_of (done-when d, offline modes): PASSED.
+- Wall time ~47 s end to end (18:30:22 → 18:31:09 UTC); the script itself ~1 s (`scripts/case_study_excerpts.py` over 11 quarterly PDF-text files).
+- No model call: the log's only mentions of model/vendor names are workflow comments and the commit template (4 lines, read one by one).
+- Script warnings worth keeping: Jun-2024 quarter `not_found`; no segment table for 2024-06-30 and 2025-09-30; no consolidated income statement for 2024-06-30. These match the known gap list; not new.
+- Side note: the runner's commit template names "Claude Fable 5.1" as co-author regardless of who ran it. Not ours to change here.
+- The 11 quarters found (2023-12-31 … 2026-06-30) include 2026-06-30 but NOT 2026-09-30: the Q2 FY27 filing is not in the VPS text yet → needs `fetch-results` (network).
