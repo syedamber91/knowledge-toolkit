@@ -79,3 +79,12 @@ Done well = ALL of:
 4. Zero buy/sell/hold words; no return metric anywhere.
 If any check fails: ship as a plain reading list, no claim.
 Not claimed: any edge on returns; any ranking.
+
+## Pre-reg result (2026-11-05, Healthcare, as of 2026-08-29)
+1. Rule ids: every dropped name has one (reasons table). PASS.
+2. 2 + 46 == 48. PASS.
+3. Picks ACUTAAS, NEULANDLAB: 2/2 clear gates + have docs. Random_3 (whole universe, seed 7) = BLUEJET, GLAXO, JUBLPHARMA: 0/3. Base rate 2/48. PASS.
+   Caveat: this test is near-circular, the picks are DEFINED by that rule. It shows the rule is applied right, not that the picks are better to read.
+   Caveat: summary file prints a different control (from CANDIDATE only: CONCORDBIO, GLAND, GLENMARK). Pre-reg control is the one above.
+4. Zero buy/sell/hold words; no return metric. PASS.
+Verdict: all 4 pass. Ship as a reading list. Claim = "rule applied correctly", NOT "beats chance at picking good companies".
