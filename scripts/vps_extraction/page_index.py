@@ -37,9 +37,17 @@ def _terms(query: str):
     return re.findall(r"[A-Za-z0-9]+", query)
 
 
+_STOP = frozenset("a an and are as at be by did do does for from how in is it its of on or s the to was were what when which who with".split())
+
+
+def query_terms(query: str):
+    """Question words minus filler (what/was/the/...) so they cannot outweigh the real clue."""
+    return [t for t in _terms(normalize_years(query)) if t.lower() not in _STOP]
+
+
 def search(conn, query: str, k: int = 5):
     """[(page, bm25_score)] best first; any-word match so a long question still finds the page."""
-    terms = _terms(normalize_years(query))
+    terms = query_terms(query)
     if not terms:
         return []
     match = " OR ".join(f'"{t}"' for t in terms)

@@ -38,3 +38,6 @@ Page counts are FY22 496, FY23 517, FY24 473, FY25 558, FY26 558. The handoff's 
 - 2026-11-05: owner opened source PDFs and confirmed 10 of 16 new rows (C01-C06, A01, A03, A05, A07) -> human_checked=true. C07, C08, A02, A04, A06, A08 still unchecked.
 - Diagnosis of call misses C01, C05: (1) OR-matching counts filler words (what/was/the/for/in/s); (2) the quarter tag (Q2FY23) is in the file name, not the page text, so the right call is not singled out. Fixes proposed (stopwords; index label with text), NOT applied or tested.
 - Deck rows D01-D08 added (subagent-drafted, token-on-page checked, human_checked=false). Deck hit@5 = 1/8. Same cause: every quarter's deck has the same slide titles and the quarter lives only in the file name.
+
+## Run 3 (2026-11-05): two general fixes, applied
+`query_terms` drops filler words; chunk label + quarter tag (from file name) are indexed with the text. hit@5 before -> after: decks 1/8 -> 7/8; calls 6/8 -> 6/8 (C01 fixed, C06 newly missed: decks of the same quarter now out-rank its call page); announcements 8/8 -> 8/8; annual report 12/16 -> 12/16. Fake accepted 0 everywhere. C05 and D06, G01-G03, G11 still miss. One row regressed (C06); kept because net 27 -> 33 of 40, but flagged. Rows are not tuned to individual questions.

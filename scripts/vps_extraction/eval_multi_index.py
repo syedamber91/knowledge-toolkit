@@ -24,8 +24,8 @@ def fake(token: str) -> str:
 def load_chunks(data: Path):
     chunks = []
     for f in sorted((data / "calls").glob("call-*.txt.gz")):
-        date = re.search(r"call-(\d{4}-\d{2}-\d{2})", f.name).group(1)
-        chunks += chunk_call(gzip.open(f, "rt", errors="replace").read(), date)
+        m = re.search(r"call-(\d{4}-\d{2}-\d{2})-(q\dfy\d{2})", f.name)
+        chunks += chunk_call(gzip.open(f, "rt", errors="replace").read(), m.group(1), m.group(2))
     for f in sorted((data / "decks-layout").glob("deck-*.txt")):
         chunks += chunk_deck_layout(f.read_text(errors="replace"))
     seen = set()

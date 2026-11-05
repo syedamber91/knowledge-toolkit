@@ -10,17 +10,18 @@ import re
 import sqlite3
 from typing import NamedTuple
 
-from vps_extraction.page_index import _terms, normalize_years
+from vps_extraction.page_index import normalize_years, query_terms
 
 
 class Chunk(NamedTuple):
     source: str
     label: str
     text: str
+    tags: str = ""  # searchable but not shown: e.g. the quarter, which lives in the file name
 
 
-def chunk_call(text: str, date: str):
-    return [Chunk("call", f"{date} p{i}", t) for i, t in enumerate(text.split("\f"), 1) if t.strip()]
+def chunk_call(text: str, date: str, quarter: str = ""):
+    return [Chunk("call", f"{date} p{i}", t, quarter) for i, t in enumerate(text.split("\f"), 1) if t.strip()]
 
 
 _DECK_HDR = re.compile(r"^=== (\S+) page (\d+) ===$", re.M)
@@ -50,14 +51,15 @@ def build(chunks) -> sqlite3.Connection:
     conn.execute("create table chunks(id integer primary key, source text, label text, text text)")
     conn.execute("create virtual table fts using fts5(text, content='chunks', content_rowid='id')")
     for c in chunks:
-        cur = conn.execute("insert into chunks(source, label, text) values (?,?,?)", tuple(c))
-        conn.execute("insert into fts(rowid, text) values (?, ?)", (cur.lastrowid, normalize_years(c.text)))
+        cur = conn.execute("insert into chunks(source, label, text) values (?,?,?)", (c.source, c.label, c.text))
+        conn.execute("insert into fts(rowid, text) values (?, ?)",
+                     (cur.lastrowid, normalize_years(f"{c.tags} {c.label} {c.text}")))
     return conn
 
 
 def search(conn, query: str, k: int = 5, source: str = None):
     """[(source, label, bm25)] best first; optional restriction to one source."""
-    terms = _terms(normalize_years(query))
+    terms = query_terms(query)
     if not terms:
         return []
     match = " OR ".join(f'"{t}"' for t in terms)

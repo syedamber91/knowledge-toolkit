@@ -31,3 +31,22 @@ def test_search_returns_source_and_label_across_sources():
 def test_search_can_be_limited_to_one_source():
     conn = build([Chunk("call", "a", "alpha beta"), Chunk("deck", "b", "alpha beta alpha")])
     assert {h[0] for h in search(conn, "alpha", k=5, source="call")} == {"call"}
+
+
+def test_filler_words_do_not_outrank_the_real_clue():
+    conn = build([Chunk("call", "a", "what was the for in what was the for in what was the"),
+                  Chunk("call", "b", "ebitda margin")])
+    assert search(conn, "what was the ebitda for in", k=1)[0][1] == "b"
+
+
+def test_quarter_tag_in_label_or_tags_is_searchable():
+    conn = build([Chunk("deck", "deck-2024-02-09-q3fy24 p1", "revenue 100"),
+                  Chunk("deck", "deck-2024-05-17-q4fy24 p1", "revenue 100"),
+                  Chunk("call", "2024-02-09 p1", "revenue 100", "q3fy24")])
+    top2 = {h[1] for h in search(conn, "Q3FY24 revenue", k=2)}
+    assert top2 == {"deck-2024-02-09-q3fy24 p1", "2024-02-09 p1"}
+
+
+def test_chunk_call_takes_quarter_as_tag():
+    (c,) = chunk_call("text", "2024-02-09", "q3fy24")
+    assert c.tags == "q3fy24" and c.label == "2024-02-09 p1"

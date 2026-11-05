@@ -54,3 +54,9 @@ def test_page_that_prints_26FY_is_found_by_a_FY26_question(tmp_path):
     (tmp_path / "p002.md").write_text("Total income total income total income notes and more text here")
     conn = build_index(tmp_path)
     assert search(conn, "FY26 total income", k=1)[0][0] == 1
+
+
+def test_query_terms_drop_filler_words():
+    from vps_extraction.page_index import query_terms
+    assert query_terms("What was the total income for FY26?") == ["total", "income", "FY26"]
+    assert query_terms("what was the") == []
