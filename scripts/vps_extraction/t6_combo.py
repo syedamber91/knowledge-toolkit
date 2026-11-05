@@ -7,13 +7,12 @@ Arms: nemotron | nemotron+jev | nemotron+laya | nemotron+jev+laya. Scoring is th
 as t6_models (a model never grades a model). Advisory-only tiers: this measures them, it gates nothing
 in the repo.
 
-usage (VPS; NVIDIA_API_KEY and TYPESAFE_API_KEY as project environment variables, LAYA_DIR = the one installed copy):
+usage (VPS; NVIDIA_API_KEY and TYPESAFE_API_KEY as project environment variables, LAYA_CHECKPOINT optional):
   t6_combo.py --golden docs/vps-extraction/golden.jsonl docs/vps-extraction/golden_new.jsonl \
      --data BIOCON/data --ar BIOCON/annual-report/FY26 \
-     --model <nemotron-nim-id> --laya-dir $LAYA_DIR --reps 3 --out docs/vps-extraction/combo-table.md
+     --model <nemotron-nim-id> --reps 3 --out docs/vps-extraction/combo-table.md
 """
 import argparse
-import importlib.util
 import json
 import os
 import sys
@@ -43,39 +42,26 @@ def gate(reply, hits, question, verifiers, errors=None, mins=None):
     return reply
 
 
-def _find_verdict(x):
-    if isinstance(x, dict):
-        if "verdict" in x:
-            return x
-        x = list(x.values())
-    if isinstance(x, list):
-        for y in x:
-            r = _find_verdict(y)
-            if r:
-                return r
-    return None
+_INSTR = "The excerpt states that the proposed answer is correct for the question."
 
 
-def jev_verifier(call):
-    """call = jev_hook.call_jev: (tool, args) -> (result, error). Returns P(supported); non-verified = 0."""
+def jev_verifier(client, noul_cls):
+    """client = typesafe_sdk.TypeSafeClient() and noul_cls = typesafe_sdk.Noul (the path soic-ladder's
+    jev_vs_nemotron.py already runs on the VPS). One noul question; returns P(yes)."""
     def v(question, answer, excerpt):
-        res, err = call("jev_verify", {"claims": [f"The answer to '{question}' is: {answer}"],
-                                       "evidence": [{"id": "excerpt", "text": excerpt}]})
-        if err:
-            raise RuntimeError(err)
-        r = _find_verdict(res)
-        if not r:
-            raise RuntimeError("unknown jev_verify result shape")
-        return float(r.get("confidence", 0.0)) if r["verdict"] == "verified" else 0.0
+        text = f"Question: {question}\nProposed answer: {answer}\nExcerpt: {excerpt}"
+        return float(client.system_one(state=text, questions={"ok": noul_cls(instructions=_INSTR)}).nouls["ok"].noul)
     return v
 
 
 def laya_verifier(agent):
-    q = {"ok": {"type": "noul", "instructions": "The excerpt states that this answer is correct for the question.",
+    """agent = laya.load(...) (the soic-ladder pattern); one noul question, P(yes)."""
+    q = {"ok": {"type": "noul", "instructions": "The excerpt states that the proposed answer is correct for the question.",
                 "criteria": {"false": "The excerpt does not state this answer.", "true": "The excerpt states this answer."}}}
 
     def v(question, answer, excerpt):
-        return float(agent.predict({"question": question, "answer": answer, "excerpt": excerpt}, q)["answers"]["ok"]["noul"])
+        text = f"Question: {question}\nProposed answer: {answer}\nExcerpt: {excerpt}"
+        return float(agent.system_one(text, q)["answers"]["ok"]["noul"])
     return v
 
 
@@ -99,13 +85,6 @@ def run_arms(rows, hits, replies, arms, mins=None):
     return out
 
 
-def _load_call_jev():
-    spec = importlib.util.spec_from_file_location("jev_hook", Path(__file__).resolve().parents[2] / ".claude/hooks/jev_hook.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod.call_jev
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--golden", nargs="+", required=True, type=Path)
@@ -114,16 +93,16 @@ def main(argv=None) -> int:
     ap.add_argument("--env", type=Path, help="optional .env file; the NVIDIA_API_KEY environment variable wins")
     ap.add_argument("--model", default="nvidia/nemotron-3-super-120b-a12b",
                     help="Nemotron NIM id; default is the one soic-ladder's 2026-08-30 briefs used (not re-checked against NIM today)")
-    ap.add_argument("--laya-dir", type=Path, default=os.environ.get("LAYA_DIR"), help="default: $LAYA_DIR")
+    ap.add_argument("--laya-checkpoint", default=os.environ.get("LAYA_CHECKPOINT"),
+                    help="local Laya dir; default $LAYA_CHECKPOINT, else the published typed-decisions checkpoint (as soic-ladder does)")
     ap.add_argument("--jev-min", type=float, default=0.5)
     ap.add_argument("--laya-min", type=float, default=0.5, help="zero-shot Laya is overconfident; tune on a held-out split, not these rows")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("-k", type=int, default=5)
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args(argv)
-    if not a.laya_dir:
-        ap.error("--laya-dir or the LAYA_DIR environment variable is required")
-    from laya import Agent
+    import laya
+    from typesafe_sdk import Noul, TypeSafeClient
     from vps_extraction.ask import ask
     from vps_extraction.eval_multi_index import load_chunks
     from vps_extraction.multi_index import build
@@ -140,7 +119,7 @@ def main(argv=None) -> int:
             except Exception as e:  # kind only: the request carries the key
                 print(f"{r['id']}: {type(e).__name__}", file=sys.stderr)
                 replies[r["id"]].append(None)
-    verifiers = {"jev": jev_verifier(_load_call_jev()), "laya": laya_verifier(Agent(str(a.laya_dir), device="cpu"))}
+    verifiers = {"jev": jev_verifier(TypeSafeClient(), Noul), "laya": laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions"))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
              f"Noise floor: one row = {100 / len(rows):.1f} points; a gap below that is a tie (pick the cheaper arm).\n",

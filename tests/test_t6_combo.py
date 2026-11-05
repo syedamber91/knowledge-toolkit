@@ -43,31 +43,28 @@ def test_a_verifier_that_errors_fails_closed_and_is_counted():
     assert out["refuse"] is True and len(errs) == 1
 
 
-def test_jev_verifier_maps_verified_to_its_confidence_and_anything_else_to_zero():
+def test_jev_verifier_asks_one_noul_question_and_returns_its_probability():
     seen = {}
 
-    def fake(tool, args):
-        seen.update(tool=tool, args=args)
-        return {"results": [{"verdict": "verified", "confidence": 0.93}]}, None
-    assert jev_verifier(fake)("q", "INR 854", "revenue INR 854") == 0.93
-    assert seen["tool"] == "jev_verify" and "INR 854" in str(seen["args"])
-    assert jev_verifier(lambda t, a: ({"results": [{"verdict": "unsupported", "confidence": 0.9}]}, None))("q", "a", "e") == 0.0
+    class R:
+        nouls = {"ok": type("N", (), {"noul": 0.93})()}
 
-
-def test_jev_verifier_raises_on_an_error_or_a_shape_it_does_not_know():
-    import pytest
-    with pytest.raises(RuntimeError):
-        jev_verifier(lambda t, a: (None, "TYPESAFE_API_KEY is not set"))("q", "a", "e")
-    with pytest.raises(RuntimeError):
-        jev_verifier(lambda t, a: ({"weird": 1}, None))("q", "a", "e")
+    class FakeClient:
+        def system_one(self, state, questions):
+            seen.update(state=state, questions=questions)
+            return R()
+    assert jev_verifier(FakeClient(), lambda instructions: ("NOUL", instructions))("the q", "INR 854", "revenue INR 854") == 0.93
+    assert "INR 854" in seen["state"] and "the q" in seen["state"]
+    assert list(seen["questions"]) == ["ok"] and seen["questions"]["ok"][0] == "NOUL"
 
 
 def test_laya_verifier_asks_one_noul_question_and_returns_its_probability():
     class FakeAgent:
-        def predict(self, state, questions):
-            assert state["excerpt"] == "e" and "ok" in questions and questions["ok"]["type"] == "noul"
+        def system_one(self, text, questions):
+            assert "the question" in text and "the answer" in text and "the excerpt" in text
+            assert list(questions) == ["ok"] and questions["ok"]["type"] == "noul"
             return {"answers": {"ok": {"noul": 0.77}}}
-    assert laya_verifier(FakeAgent())("q", "a", "e") == 0.77
+    assert laya_verifier(FakeAgent())("the question", "the answer", "the excerpt") == 0.77
 
 
 def test_arms_share_one_set_of_model_replies_and_differ_only_by_the_gate():
