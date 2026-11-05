@@ -112,7 +112,8 @@ def main(argv=None) -> int:
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--ar", required=True, type=Path)
     ap.add_argument("--env", type=Path, help="optional .env file; the NVIDIA_API_KEY environment variable wins")
-    ap.add_argument("--model", required=True, help="the Nemotron NIM model id")
+    ap.add_argument("--model", default="nvidia/nemotron-3-super-120b-a12b",
+                    help="Nemotron NIM id; default is the one soic-ladder's 2026-08-30 briefs used (not re-checked against NIM today)")
     ap.add_argument("--laya-dir", type=Path, default=os.environ.get("LAYA_DIR"), help="default: $LAYA_DIR")
     ap.add_argument("--jev-min", type=float, default=0.5)
     ap.add_argument("--laya-min", type=float, default=0.5, help="zero-shot Laya is overconfident; tune on a held-out split, not these rows")
