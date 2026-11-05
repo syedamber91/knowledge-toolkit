@@ -97,3 +97,23 @@ def test_a_run_where_most_model_calls_failed_is_stopped_not_tabled():
     with pytest.raises(SystemExit) as e:
         check_error_rate([("a", "status=404")] * 6, 10)
     assert "status=404" in str(e.value) and "6 of 10" in str(e.value)
+
+
+def test_a_404_stop_message_lists_the_nemotron_ids_the_account_can_use():
+    import pytest
+    from vps_extraction.t6_combo import check_error_rate
+    with pytest.raises(SystemExit) as e:
+        check_error_rate([("a", "status=404 attempts=1: HTTP 404: Not Found")] * 4, 4,
+                         list_models=lambda: ["nvidia/nemotron-x-1", "nvidia/nemotron-y-2"])
+    assert "nvidia/nemotron-x-1" in str(e.value) and "--model" in str(e.value)
+
+
+def test_the_model_list_is_only_asked_for_on_a_404():
+    import pytest
+    from vps_extraction.t6_combo import check_error_rate
+
+    def boom():
+        raise AssertionError("must not be called")
+    with pytest.raises(SystemExit) as e:
+        check_error_rate([("a", "status=503")] * 4, 4, list_models=boom)
+    assert "status=503" in str(e.value)

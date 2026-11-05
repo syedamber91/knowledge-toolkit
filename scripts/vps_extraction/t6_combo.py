@@ -77,11 +77,27 @@ def collect_replies(rows, hits, reps, generate):
     return replies, errors
 
 
-def check_error_rate(errors, total, limit=0.5):
-    """A table built from failed calls is a lie (every arm 0%). Stop instead, naming the reasons."""
+def check_error_rate(errors, total, limit=0.5, list_models=None):
+    """A table built from failed calls is a lie (every arm 0%). Stop instead, naming the reasons.
+    On a 404 (model withdrawn / not on this account) also name the Nemotron ids that ARE available."""
     if total and len(errors) / total > limit:
         reasons = sorted({e[1] for e in errors})[:3]
-        raise SystemExit(f"t6_combo: {len(errors)} of {total} Nemotron calls failed; no table written. Reasons: {reasons}")
+        msg = f"t6_combo: {len(errors)} of {total} Nemotron calls failed; no table written. Reasons: {reasons}"
+        if list_models and any("status=404" in e[1] for e in errors):
+            try:
+                msg += f" Available nemotron ids on this account (pass one with --model): {list_models()}"
+            except Exception as e:  # the listing is a courtesy; never hide the real failure behind it
+                msg += f" (could not list models: {type(e).__name__})"
+        raise SystemExit(msg)
+
+
+def nemotron_ids():
+    """GET /v1/models with the key from the environment (never printed); ids containing 'nemotron'."""
+    import requests
+    from soic_ladder.commentary_llm import NVIDIA_MODELS_URL, resolve_api_key
+    r = requests.get(NVIDIA_MODELS_URL, headers={"Authorization": f"Bearer {resolve_api_key()}"}, timeout=60)
+    r.raise_for_status()
+    return sorted(m["id"] for m in r.json().get("data", []) if "nemotron" in m.get("id", "").lower())
 
 
 def nim_generate(model):
@@ -143,7 +159,7 @@ def main(argv=None) -> int:
     replies, errors = collect_replies(rows, hits, a.reps, nim_generate(a.model))
     for rid, why in errors[:5]:
         print(f"{rid}: {why}", file=sys.stderr)
-    check_error_rate(errors, len(rows) * a.reps)
+    check_error_rate(errors, len(rows) * a.reps, list_models=nemotron_ids)
     verifiers = {"jev": jev_verifier(TypeSafeClient(), Noul), "laya": laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions"))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
