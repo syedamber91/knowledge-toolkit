@@ -100,12 +100,12 @@ def nemotron_ids():
     return sorted(m["id"] for m in r.json().get("data", []) if "nemotron" in m.get("id", "").lower())
 
 
-def nim_generate(model):
+def nim_generate(model, max_tokens=2000):
     """The soic-ladder client (retries, key scrubbing, reasoning kept apart); needs src/ on PYTHONPATH."""
     from soic_ladder.commentary_llm import call_nvidia_parts
 
     def generate(prompt):
-        parts, meta = call_nvidia_parts(prompt, model, max_tokens=900, system="/no_think")
+        parts, meta = call_nvidia_parts(prompt, model, max_tokens=max_tokens, system="/no_think")
         if parts is None:
             return None, meta.summary
         return parts.content, (None if parts.content.strip() else f"empty content (finish={parts.finish_reason})")
@@ -143,6 +143,7 @@ def main(argv=None) -> int:
                     help="local Laya dir; default $LAYA_CHECKPOINT, else the published typed-decisions checkpoint (as soic-ladder does)")
     ap.add_argument("--jev-min", type=float, default=0.5)
     ap.add_argument("--laya-min", type=float, default=0.5, help="zero-shot Laya is overconfident; tune on a held-out split, not these rows")
+    ap.add_argument("--max-tokens", type=int, default=2000, help="reasoning models need room to think before they answer")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("-k", type=int, default=5)
     ap.add_argument("--out", type=Path, required=True)
@@ -156,13 +157,14 @@ def main(argv=None) -> int:
     rows = [r for f in a.golden for r in map(json.loads, f.open()) if r["kind"] in ANSWERABLE or r["kind"] == "not_in_corpus"]
     ar, multi = build_index(a.ar), build(load_chunks(a.data))
     hits = {r["id"]: ask(r["question"], ar, multi, a.k, width=900)["hits"] for r in rows}
-    replies, errors = collect_replies(rows, hits, a.reps, nim_generate(a.model))
+    replies, errors = collect_replies(rows, hits, a.reps, nim_generate(a.model, a.max_tokens))
     for rid, why in errors[:5]:
         print(f"{rid}: {why}", file=sys.stderr)
     check_error_rate(errors, len(rows) * a.reps, list_models=nemotron_ids)
     verifiers = {"jev": jev_verifier(TypeSafeClient(), Noul), "laya": laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions"))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
+             f"Generator calls that returned no usable reply: {len(errors)} of {len(rows) * a.reps} (those rows count as wrong in every arm).\n",
              f"Noise floor: one row = {100 / len(rows):.1f} points; a gap below that is a tie (pick the cheaper arm).\n",
              "| arm | min % | max % | blocked right | caught wrong | verifier errors |", "|---|---|---|---|---|---|"]
     for name, names in ARMS.items():
