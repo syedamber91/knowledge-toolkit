@@ -1,12 +1,13 @@
 """ask: one question -> cited hits from the annual report + calls + decks + announcements. No model.
 
-usage: ask.py "question" --data BIOCON/data --ar BIOCON/annual-report/FY26 [--number "7,245"] [-k 5]
+usage: ask.py "question" --data BIOCON/data --ar BIOCON/annual-report/FY26 [--number "7,245"] [-k 5] [--note VAULT/BIOCON.md]
 
 Every hit names its source and page/date. With --number, the answer is "ok" only if those exact
 digits are on a retrieved hit; otherwise it REFUSES (never falls back to memory or a guess). "ok"
 proves the digits are on that page, not that they belong to the line item asked about.
 """
 import argparse
+from datetime import datetime
 import re
 import sys
 from pathlib import Path
@@ -44,6 +45,27 @@ def ask(question: str, ar_conn, multi_conn, k: int = 5, number: str = None) -> d
     return out
 
 
+def write_note(path, question: str, result: dict, number, when: str) -> None:
+    """Append one dated section to an Obsidian note (created with frontmatter if missing). Never overwrites."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not path.exists():
+        path.write_text("---\ntags:\n  - ask-note\n  - biocon\n---\n\n# BIOCON - ask log\n\n"
+                        "Append-only. Each section is one `ask.py` run: cited hits from the annual report, calls, "
+                        "decks and announcements. A number marked OK is on that page; that does not prove it is "
+                        "the line item asked about.\n")
+    lines = [f"\n## {when} - {question}\n"]
+    if number:
+        lines.append(f"**{result['status'].upper()}** - {number}" + (
+            f" is on {result['found_in'][0]} {result['found_in'][1]}\n" if result["status"] == "ok"
+            else " is not on any retrieved page; no answer given\n"))
+    elif result["status"] == "refuse":
+        lines.append("**REFUSE** - nothing matched\n")
+    lines += [f"- `{h['source']} {h['label']}` - {h['snippet']}" for h in result["hits"]]
+    with path.open("a") as f:
+        f.write("\n".join(lines) + "\n")
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("question")
@@ -51,6 +73,7 @@ def main(argv=None) -> int:
     ap.add_argument("--ar", required=True, type=Path, help="annual-report/FYxx dir of pNNN.md pages")
     ap.add_argument("--number")
     ap.add_argument("-k", type=int, default=5)
+    ap.add_argument("--note", type=Path, help="append the result to this Obsidian note (created if missing)")
     a = ap.parse_args(argv)
     from vps_extraction.eval_multi_index import load_chunks
     from vps_extraction.multi_index import build
@@ -62,6 +85,9 @@ def main(argv=None) -> int:
                                            else f": {a.number} is not on any retrieved page - no answer given"))
     elif r["status"] == "refuse":
         print("\nREFUSE: nothing matched")
+    if a.note:
+        write_note(a.note, a.question, r, a.number, datetime.now().strftime("%Y-%m-%d %H:%M"))
+        print(f"note: {a.note}")
     return 0 if r["status"] == "ok" else 1
 
 

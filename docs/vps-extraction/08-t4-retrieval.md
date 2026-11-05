@@ -64,3 +64,8 @@ Still missed: G01, G02, G03 (answer is on another page, p6 is a short KPI page) 
 - With `--number`: OK only if those exact digits are on a retrieved hit; else REFUSE (exit 1). No memory fallback.
 - Unchecked: the two indexes' BM25 scores are merged by raw score (rough; each index has its own scale). Live check: guarantee 7,245 -> OK on AR p324; fake 999,111 -> REFUSE.
 - Not built: Obsidian routing (what "route to a vault" means is not defined in the spec); graphify refresh.
+
+## Run 7 - `ask --note` (2026-11-05)
+`--note VAULT/BIOCON.md` appends one dated section (question, OK/REFUSE, cited hits) to an Obsidian note; creates it with frontmatter if missing; never overwrites.
+BIOCON note: iCloud vault "Stock Framework" -> `ask-notes/BIOCON.md` (own folder, so the vault builder's `companies/` is untouched). Two real runs logged (AR p324 guarantee; call 2024-02-09 p7 Syngene).
+Not done: no `Home.md` / `Log.md` link to the note (those are builder-owned in that vault); tests 27 pass.

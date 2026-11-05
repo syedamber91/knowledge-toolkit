@@ -37,3 +37,25 @@ def test_no_match_at_all_is_a_refusal_not_a_guess(tmp_path):
     ar, multi = _indexes(tmp_path)
     r = ask("zzzzqq", ar, multi, number="1")
     assert r["hits"] == [] and r["status"] == "refuse"
+
+
+def test_note_is_created_with_frontmatter_then_appended_never_overwritten(tmp_path):
+    from vps_extraction.ask import write_note
+    ar, multi = _indexes(tmp_path)
+    note = tmp_path / "vault" / "BIOCON.md"
+    r1 = ask("total income", ar, multi, number="172,695")
+    write_note(note, "total income", r1, "172,695", "2026-11-05 10:00")
+    r2 = ask("Syngene revenue Q3FY24", ar, multi)
+    write_note(note, "Syngene revenue Q3FY24", r2, None, "2026-11-05 10:05")
+    t = note.read_text()
+    assert t.startswith("---\n") and t.count("tags:") == 1
+    assert t.index("total income") < t.index("Syngene revenue Q3FY24")  # append order
+    assert "OK" in t and "annual-report AR p1" in t and "call 2024-02-09 p7" in t
+
+
+def test_note_records_a_refusal_plainly(tmp_path):
+    from vps_extraction.ask import write_note
+    ar, multi = _indexes(tmp_path)
+    note = tmp_path / "BIOCON.md"
+    write_note(note, "total income", ask("total income", ar, multi, number="999,999"), "999,999", "t")
+    assert "REFUSE" in note.read_text()
