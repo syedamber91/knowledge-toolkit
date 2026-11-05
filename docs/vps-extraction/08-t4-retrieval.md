@@ -36,3 +36,5 @@ Page counts are FY22 496, FY23 517, FY24 473, FY25 558, FY26 558. The handoff's 
 - New golden rows `golden_new.jsonl` (C01-C08, A01-A08), drafted by a subagent, token-in-chunk checked, `human_checked=false`. Zero deck rows yet.
 - Results (`eval_multi_index.py`): announcements hit@5 8/8; calls hit@5 6/8 (75%, below the 80% bar -- C01, C05 miss; not tuned). Fake accepted 0. Sample is 8 rows, 1 row = 12.5 points.
 - 2026-11-05: owner opened source PDFs and confirmed 10 of 16 new rows (C01-C06, A01, A03, A05, A07) -> human_checked=true. C07, C08, A02, A04, A06, A08 still unchecked.
+- Diagnosis of call misses C01, C05: (1) OR-matching counts filler words (what/was/the/for/in/s); (2) the quarter tag (Q2FY23) is in the file name, not the page text, so the right call is not singled out. Fixes proposed (stopwords; index label with text), NOT applied or tested.
+- Deck rows D01-D08 added (subagent-drafted, token-on-page checked, human_checked=false). Deck hit@5 = 1/8. Same cause: every quarter's deck has the same slide titles and the quarter lives only in the file name.
