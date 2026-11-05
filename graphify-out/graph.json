@@ -73362,6 +73362,206 @@
       "id": "g1adj_gates",
       "community": 138,
       "norm_label": "soic_wiki/gates.py g1 hapax gate"
+    },
+    {
+      "id": "scripts_funnel_v0",
+      "label": "funnel_v0.py",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "funnel_v0.py"
+    },
+    {
+      "id": "scripts_funnel_v0_shortlist",
+      "label": "shortlist()",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L23",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "shortlist()"
+    },
+    {
+      "id": "scripts_funnel_v0_first_not_pass",
+      "label": "first_not_pass()",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L31",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "first_not_pass()"
+    },
+    {
+      "id": "scripts_funnel_v0_random_control",
+      "label": "random_control()",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L37",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "random_control()"
+    },
+    {
+      "id": "scripts_funnel_v0_has_advice_words",
+      "label": "has_advice_words()",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L41",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "has_advice_words()"
+    },
+    {
+      "id": "scripts_funnel_v0_count_docs",
+      "label": "count_docs()",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L45",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "count_docs()"
+    },
+    {
+      "id": "scripts_funnel_v0_main",
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L55",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "main()"
+    },
+    {
+      "id": "scripts_funnel_v0_rationale_1",
+      "label": "Funnel v0: one sector -> gate verdicts -> reading shortlist + reasons table.  Sc",
+      "file_type": "rationale",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "funnel v0: one sector -> gate verdicts -> reading shortlist + reasons table.  sc"
+    },
+    {
+      "id": "scripts_funnel_v0_rationale_24",
+      "label": "Pre-registered rule: CANDIDATE and >=1 concall and >=1 annual report on disk.",
+      "file_type": "rationale",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L24",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "pre-registered rule: candidate and >=1 concall and >=1 annual report on disk."
+    },
+    {
+      "id": "scripts_funnel_v0_rationale_32",
+      "label": "rows = (gate, rule_id, outcome, value, check_rule). Earliest gate that is not PA",
+      "file_type": "rationale",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L32",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "rows = (gate, rule_id, outcome, value, check_rule). earliest gate that is not pa"
+    },
+    {
+      "id": "tests_test_funnel_v0",
+      "label": "test_funnel_v0.py",
+      "file_type": "code",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "test_funnel_v0.py"
+    },
+    {
+      "id": "tests_test_funnel_v0_test_shortlist_needs_candidate_and_concall_and_annual_report",
+      "label": "test_shortlist_needs_candidate_and_concall_and_annual_report()",
+      "file_type": "code",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L11",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "test_shortlist_needs_candidate_and_concall_and_annual_report()"
+    },
+    {
+      "id": "tests_test_funnel_v0_test_first_failed_gate_picks_earliest_gate_not_pass",
+      "label": "test_first_failed_gate_picks_earliest_gate_not_pass()",
+      "file_type": "code",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L17",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "test_first_failed_gate_picks_earliest_gate_not_pass()"
+    },
+    {
+      "id": "tests_test_funnel_v0_test_first_not_pass_none_when_all_pass",
+      "label": "test_first_not_pass_none_when_all_pass()",
+      "file_type": "code",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L26",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "test_first_not_pass_none_when_all_pass()"
+    },
+    {
+      "id": "tests_test_funnel_v0_test_random_control_is_seeded_and_size_3",
+      "label": "test_random_control_is_seeded_and_size_3()",
+      "file_type": "code",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L30",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "test_random_control_is_seeded_and_size_3()"
+    },
+    {
+      "id": "tests_test_funnel_v0_test_no_advice_words",
+      "label": "test_no_advice_words()",
+      "file_type": "code",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L36",
+      "_origin": "ast",
+      "community": 43,
+      "norm_label": "test_no_advice_words()"
+    },
+    {
+      "id": "docs_funnel_v0_caveman_spec",
+      "label": "FUNNEL-V0-CAVEMAN-SPEC.md",
+      "file_type": "document",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "community": 43,
+      "norm_label": "funnel-v0-caveman-spec.md",
+      "_origin": "manual-update"
+    },
+    {
+      "id": "docs_funnel_v0_caveman_spec_reading_rule",
+      "label": "Reading-worth rule (CANDIDATE + concall + annual report)",
+      "file_type": "document",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "community": 43,
+      "norm_label": "reading-worth rule (candidate + concall + annual report)",
+      "_origin": "manual-update"
+    },
+    {
+      "id": "docs_funnel_v0_caveman_spec_healthcare_pilot",
+      "label": "Healthcare pilot (48 names, 13 pass gates, shortlist ACUTAAS NEULANDLAB)",
+      "file_type": "document",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "community": 43,
+      "norm_label": "healthcare pilot (48 names, 13 pass gates, shortlist acutaas neulandlab)",
+      "_origin": "manual-update"
+    },
+    {
+      "id": "docs_funnel_v0_caveman_spec_random_control",
+      "label": "Seeded random-3 control",
+      "file_type": "document",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "community": 43,
+      "norm_label": "seeded random-3 control",
+      "_origin": "manual-update"
     }
   ],
   "links": [
@@ -173306,8 +173506,274 @@
       "source_file": "configs/g1_adjudications.yaml",
       "source_location": null,
       "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "scripts_funnel_v0_shortlist",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L23",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "scripts_funnel_v0_first_not_pass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L31",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "scripts_funnel_v0_random_control",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L37",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "scripts_funnel_v0_has_advice_words",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L41",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "scripts_funnel_v0_count_docs",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L45",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "scripts_funnel_v0_main",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L55",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_main",
+      "target": "scripts_funnel_v0_count_docs",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L92",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_main",
+      "target": "scripts_funnel_v0_shortlist",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L96",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_main",
+      "target": "scripts_funnel_v0_first_not_pass",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L116",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_main",
+      "target": "scripts_funnel_v0_random_control",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L124",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_main",
+      "target": "scripts_funnel_v0_has_advice_words",
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L138",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_rationale_1",
+      "target": "scripts_funnel_v0",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L1",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_rationale_24",
+      "target": "scripts_funnel_v0_shortlist",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L24",
+      "weight": 1.0
+    },
+    {
+      "source": "scripts_funnel_v0_rationale_32",
+      "target": "scripts_funnel_v0_first_not_pass",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": "L32",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_funnel_v0",
+      "target": "tests_test_funnel_v0_test_shortlist_needs_candidate_and_concall_and_annual_report",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L11",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_funnel_v0",
+      "target": "tests_test_funnel_v0_test_first_failed_gate_picks_earliest_gate_not_pass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L17",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_funnel_v0",
+      "target": "tests_test_funnel_v0_test_first_not_pass_none_when_all_pass",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L26",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_funnel_v0",
+      "target": "tests_test_funnel_v0_test_random_control_is_seeded_and_size_3",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L30",
+      "weight": 1.0
+    },
+    {
+      "source": "tests_test_funnel_v0",
+      "target": "tests_test_funnel_v0_test_no_advice_words",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": "L36",
+      "weight": 1.0
+    },
+    {
+      "source": "docs_funnel_v0_caveman_spec_reading_rule",
+      "target": "docs_funnel_v0_caveman_spec",
+      "relation": "part_of",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 1.0
+    },
+    {
+      "source": "docs_funnel_v0_caveman_spec_healthcare_pilot",
+      "target": "docs_funnel_v0_caveman_spec",
+      "relation": "part_of",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 1.0
+    },
+    {
+      "source": "docs_funnel_v0_caveman_spec_random_control",
+      "target": "docs_funnel_v0_caveman_spec",
+      "relation": "part_of",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 1.0
+    },
+    {
+      "source": "docs_funnel_v0_caveman_spec",
+      "target": "scripts_funnel_v0",
+      "relation": "documents",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/FUNNEL-V0-CAVEMAN-SPEC.md",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 1.0
+    },
+    {
+      "source": "tests_test_funnel_v0",
+      "target": "scripts_funnel_v0",
+      "relation": "tests",
+      "confidence": "INFERRED",
+      "source_file": "tests/test_funnel_v0.py",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 0.7
+    },
+    {
+      "source": "scripts_funnel_v0_shortlist",
+      "target": "docs_funnel_v0_caveman_spec_reading_rule",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 0.7
+    },
+    {
+      "source": "scripts_funnel_v0_random_control",
+      "target": "docs_funnel_v0_caveman_spec_random_control",
+      "relation": "implements",
+      "confidence": "INFERRED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 0.7
+    },
+    {
+      "source": "scripts_funnel_v0",
+      "target": "src_soic_wiki_sector_gate",
+      "relation": "conceptually_related_to",
+      "confidence": "INFERRED",
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": null,
+      "weight": 1.0,
+      "confidence_score": 0.7
+    },
+    {
+      "source": "scripts_funnel_v0_rationale_32",
+      "target": "src_soic_senses_decision_rules_check_rule",
+      "relation": "references",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "scripts/funnel_v0.py",
+      "source_location": null,
+      "weight": 1.0
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "93b07434081b7b750ab44f17a6f01e501dfa2b21"
+  "built_at_commit": "76dee22d7ecd65af973deabfc12448b20cab5002"
 }
