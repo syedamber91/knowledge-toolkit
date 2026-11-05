@@ -29,3 +29,9 @@ Page counts are FY22 496, FY23 517, FY24 473, FY25 558, FY26 558. The handoff's 
 1. Add calls, decks, announcements to the same index and add golden rows for them.
 2. Look at why G01-G03 miss (page 6) before adding vectors; vectors did not fix them.
 3. Decide with the owner on AGPL (`pymupdf4llm`) for the page files.
+
+## Run 2 (2026-11-05): year fix + calls/decks/announcements in one index
+- Year spellings (26FY, FY 2026, FY2025-26 -> FY26) normalised in index and query (`page_index.normalize_years`). AR hit@5 11 -> 12 of 16; fake accepted 0. G01-G03 (page 6) and G11 still miss: long pages out-score the short highlights page. Reported as a limit, no question-specific tweak.
+- `multi_index.py`: calls cut at form feeds (all 8 calls have them; only 6 have "Page N of M" footers; page numbers NOT checked against printed footers), decks from decks-layout page headers, announcements one row per chunk. 566 chunks (197 call, 209 deck, 160 announcement). Derived files not indexed.
+- New golden rows `golden_new.jsonl` (C01-C08, A01-A08), drafted by a subagent, token-in-chunk checked, `human_checked=false`. Zero deck rows yet.
+- Results (`eval_multi_index.py`): announcements hit@5 8/8; calls hit@5 6/8 (75%, below the 80% bar -- C01, C05 miss; not tuned). Fake accepted 0. Sample is 8 rows, 1 row = 12.5 points.
