@@ -69,3 +69,9 @@ Still missed: G01, G02, G03 (answer is on another page, p6 is a short KPI page) 
 `--note VAULT/BIOCON.md` appends one dated section (question, OK/REFUSE, cited hits) to an Obsidian note; creates it with frontmatter if missing; never overwrites.
 BIOCON note: iCloud vault "Stock Framework" -> `ask-notes/BIOCON.md` (own folder, so the vault builder's `companies/` is untouched). Two real runs logged (AR p324 guarantee; call 2024-02-09 p7 Syngene).
 Not done: no `Home.md` / `Log.md` link to the note (those are builder-owned in that vault); tests 27 pass.
+
+## Run 8 - T6 harness (2026-11-05, built here, NOT yet run)
+`scripts/vps_extraction/t6_models.py`: retrieves top-k hits per golden row (ask, 900-char excerpts), shows a model ONLY those, demands JSON `{answer, cite}` or `{refuse}`, scores by code (number in answer AND on the cited hit AND cite was shown; unanswerable rows pass only on refusal). 3 reps, min-max, noise floor = 100/N points. Scorer tested offline (9 tests, incl. made-up number, wrong cite, never-retrieved cite).
+- Ceiling: with k=5 only 33 of 40 answerable rows even show their numbers to the model (31 at k=3); no model can beat that.
+- Run it on the VPS (key in `$SOIC_ROOT/.env`, never printed): see the usage block at the top of the file. Needs NIM model ids (not chosen yet).
+- Unchecked: the real NIM call (`nim_call`) has never run; endpoint/response shape taken from the OpenAI-compatible NIM docs from memory.

@@ -25,7 +25,7 @@ def _snippet(text: str, terms, number=None, width=110) -> str:
     return flat[max(0, at - width): at + width]
 
 
-def ask(question: str, ar_conn, multi_conn, k: int = 5, number: str = None) -> dict:
+def ask(question: str, ar_conn, multi_conn, k: int = 5, number: str = None, width: int = 110) -> dict:
     terms = query_terms(question)
     hits = []
     for page, score in ar_search(ar_conn, question, k):
@@ -37,7 +37,7 @@ def ask(question: str, ar_conn, multi_conn, k: int = 5, number: str = None) -> d
     out = {"hits": [], "status": "ok" if hits else "refuse"}
     for h in hits:
         out["hits"].append({"source": h["source"], "label": h["label"],
-                            "snippet": _snippet(h["text"], terms, number if number and _has_number(h["text"], number) else None)})
+                            "snippet": _snippet(h["text"], terms, number if number and _has_number(h["text"], number) else None, width)})
         if number and "found_in" not in out and _has_number(h["text"], number):
             out["found_in"] = (h["source"], h["label"])
     if number and "found_in" not in out:
