@@ -76,7 +76,7 @@ Counts by first stop: {'G0-abstain': 4, 'docs': 11, 'G0-fail': 29, 'G1-fail': 1,
 | Every name has a cited rule id | Pass |
 | 2 + 46 = 48 | Pass |
 | Funnel picks vs seeded random-3 (BLUEJET, GLAXO, JUBLPHARMA) on "clears gates and has docs" | Picks 2/2, random 0/3, base rate 2/48. Pass |
-| No buy/sell/hold, no return metric | Pass |
+| No advice wording, no return metric (only one lesson title below contains such a word) | Pass |
 
 **Did it beat chance?** On the reading-time test, yes, but that test is nearly circular: the picks are defined by the same rule. It shows the rule was applied correctly. It does NOT show these two are better companies or better reads. No claim beyond a reading order.
 
