@@ -40,3 +40,17 @@ def test_number_must_match_whole_not_inside_a_longer_number(tmp_path):
     assert answer_or_refuse(conn, "total income", "999", k=3)["status"] == "refuse"
     assert answer_or_refuse(conn, "total income", "11,999", k=3)["status"] == "ok"
     assert answer_or_refuse(conn, "total income", "9990", k=3)["status"] == "ok"
+
+
+def test_year_spellings_all_become_fy26():
+    from vps_extraction.page_index import normalize_years
+    for s in ["26FY", "FY 2026", "FY2026", "FY2025-26", "FY 2025-26", "FY26"]:
+        assert normalize_years(s) == "FY26", s
+    assert normalize_years("FY25 and 24FY") == "FY25 and FY24"
+
+
+def test_page_that_prints_26FY_is_found_by_a_FY26_question(tmp_path):
+    (tmp_path / "p001.md").write_text("Highlights 26FY total income 172,695")
+    (tmp_path / "p002.md").write_text("Total income total income total income notes and more text here")
+    conn = build_index(tmp_path)
+    assert search(conn, "FY26 total income", k=1)[0][0] == 1

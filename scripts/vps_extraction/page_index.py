@@ -12,6 +12,14 @@ from pathlib import Path
 _PAGE = re.compile(r"^p(\d+)\.md$")
 
 
+_YEAR = re.compile(r"\b(?:FY\s?(?:20)?\d{2}\s?-\s?(\d{2})|FY\s?20(\d{2})|FY\s?(\d{2})|(\d{2})\s?FY)\b", re.I)
+
+
+def normalize_years(text: str) -> str:
+    """26FY, FY 2026, FY2025-26 -> FY26. Years only; nothing question-specific."""
+    return _YEAR.sub(lambda m: "FY" + next(g for g in m.groups() if g), text)
+
+
 def build_index(pages_dir) -> sqlite3.Connection:
     conn = sqlite3.connect(":memory:")
     conn.execute("create table pages(page integer primary key, text text)")
@@ -20,7 +28,8 @@ def build_index(pages_dir) -> sqlite3.Connection:
         m = _PAGE.match(f.name)
         if m:
             conn.execute("insert into pages values (?, ?)", (int(m.group(1)), f.read_text(errors="replace")))
-    conn.execute("insert into fts(rowid, text) select page, text from pages")
+    for page, text in conn.execute("select page, text from pages").fetchall():
+        conn.execute("insert into fts(rowid, text) values (?, ?)", (page, normalize_years(text)))
     return conn
 
 
@@ -30,7 +39,7 @@ def _terms(query: str):
 
 def search(conn, query: str, k: int = 5):
     """[(page, bm25_score)] best first; any-word match so a long question still finds the page."""
-    terms = _terms(query)
+    terms = _terms(normalize_years(query))
     if not terms:
         return []
     match = " OR ".join(f'"{t}"' for t in terms)
