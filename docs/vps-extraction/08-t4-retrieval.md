@@ -75,3 +75,9 @@ Not done: no `Home.md` / `Log.md` link to the note (those are builder-owned in t
 - Ceiling: with k=5 only 33 of 40 answerable rows even show their numbers to the model (31 at k=3); no model can beat that.
 - Run it on the VPS (key in `$SOIC_ROOT/.env`, never printed): see the usage block at the top of the file. Needs NIM model ids (not chosen yet).
 - Unchecked: the real NIM call (`nim_call`) has never run; endpoint/response shape taken from the OpenAI-compatible NIM docs from memory.
+
+## Run 9 - T6 combination: Nemotron + Jev + Laya (2026-11-05, built here, NOT yet run)
+`scripts/vps_extraction/t6_combo.py`. Nemotron answers from the short hits; Jev (`jev_verify`, hosted) and Laya (local noul question) act as gates that can only turn an answer into a refusal; fail closed, errors counted. One set of Nemotron replies is shared by four arms (`nemotron`, `+jev`, `+laya`, `+jev+laya`) so arms differ only by the gate. Table adds "blocked right" (good answers a gate wrongly stopped) and "caught wrong" (bad answers it stopped). 11 offline tests; scorer is code.
+- Unverified: `jev_verify` result shape (parser accepts any dict with `verdict`; unknown shape = counted error); Laya zero-shot is overconfident (noul 0.6-0.9), so `--laya-min 0.5` is a weak gate - tune on a held-out split, not these 40 rows.
+- Advisory only: measures the tiers; gates nothing in the repo (G2 / verify_briefs unaffected).
+- Needs on the VPS: `NVIDIA_API_KEY` in `--env`, `TYPESAFE_API_KEY` in env, `LAYA_DIR`, the Nemotron NIM model id.
