@@ -8,12 +8,13 @@ min-max and the noise floor (one row = 100/N points; a gap smaller than that is 
 
 usage (on the VPS, where the key lives):
   t6_models.py --golden docs/vps-extraction/golden.jsonl docs/vps-extraction/golden_new.jsonl \
-     --data BIOCON/data --ar BIOCON/annual-report/FY26 --env $SOIC_ROOT/.env \
+     --data BIOCON/data --ar BIOCON/annual-report/FY26 \
      --models <nim-model-id>,<nim-model-id> --reps 3 --out docs/vps-extraction/model-table.md
-The key is read from --env and never printed or logged.
+The key is read from the NVIDIA_API_KEY environment variable (or an optional --env file) and never printed or logged.
 """
 import argparse
 import json
+import os
 import re
 import sys
 import urllib.request
@@ -25,7 +26,12 @@ URL = "https://integrate.api.nvidia.com/v1/chat/completions"
 ANSWERABLE = {"page_grep", "announcement_grep", "call_grep", "deck_grep"}
 
 
-def load_key(env_path) -> str:
+def load_key(env_path=None) -> str:
+    """NVIDIA_API_KEY from the environment (project env var) first, else from an optional .env file."""
+    if os.environ.get("NVIDIA_API_KEY"):
+        return os.environ["NVIDIA_API_KEY"]
+    if env_path is None:
+        raise RuntimeError("NVIDIA_API_KEY is not set in the environment and no --env file was given")
     for line in Path(env_path).read_text().splitlines():
         k, _, v = line.partition("=")
         if k.strip() == "NVIDIA_API_KEY" and v.strip().strip("'\""):
@@ -92,7 +98,7 @@ def main(argv=None) -> int:
     ap.add_argument("--golden", nargs="+", required=True, type=Path)
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--ar", required=True, type=Path)
-    ap.add_argument("--env", required=True, type=Path)
+    ap.add_argument("--env", type=Path, help="optional .env file; the NVIDIA_API_KEY environment variable wins")
     ap.add_argument("--models", required=True)
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("-k", type=int, default=5)

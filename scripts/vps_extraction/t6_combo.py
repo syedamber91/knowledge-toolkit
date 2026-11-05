@@ -7,14 +7,15 @@ Arms: nemotron | nemotron+jev | nemotron+laya | nemotron+jev+laya. Scoring is th
 as t6_models (a model never grades a model). Advisory-only tiers: this measures them, it gates nothing
 in the repo.
 
-usage (VPS; NVIDIA_API_KEY in --env, TYPESAFE_API_KEY in the environment, LAYA_DIR = the one installed copy):
+usage (VPS; NVIDIA_API_KEY and TYPESAFE_API_KEY as project environment variables, LAYA_DIR = the one installed copy):
   t6_combo.py --golden docs/vps-extraction/golden.jsonl docs/vps-extraction/golden_new.jsonl \
-     --data BIOCON/data --ar BIOCON/annual-report/FY26 --env $SOIC_ROOT/.env \
+     --data BIOCON/data --ar BIOCON/annual-report/FY26 \
      --model <nemotron-nim-id> --laya-dir $LAYA_DIR --reps 3 --out docs/vps-extraction/combo-table.md
 """
 import argparse
 import importlib.util
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -110,15 +111,17 @@ def main(argv=None) -> int:
     ap.add_argument("--golden", nargs="+", required=True, type=Path)
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--ar", required=True, type=Path)
-    ap.add_argument("--env", required=True, type=Path)
+    ap.add_argument("--env", type=Path, help="optional .env file; the NVIDIA_API_KEY environment variable wins")
     ap.add_argument("--model", required=True, help="the Nemotron NIM model id")
-    ap.add_argument("--laya-dir", required=True, type=Path)
+    ap.add_argument("--laya-dir", type=Path, default=os.environ.get("LAYA_DIR"), help="default: $LAYA_DIR")
     ap.add_argument("--jev-min", type=float, default=0.5)
     ap.add_argument("--laya-min", type=float, default=0.5, help="zero-shot Laya is overconfident; tune on a held-out split, not these rows")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("-k", type=int, default=5)
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args(argv)
+    if not a.laya_dir:
+        ap.error("--laya-dir or the LAYA_DIR environment variable is required")
     from laya import Agent
     from vps_extraction.ask import ask
     from vps_extraction.eval_multi_index import load_chunks

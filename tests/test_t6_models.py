@@ -55,3 +55,15 @@ def test_key_is_read_from_env_file_and_missing_key_raises_without_leaking(tmp_pa
     with pytest.raises(RuntimeError) as e:
         load_key(f)
     assert "abc123" not in str(e.value)
+
+
+def test_key_comes_from_the_environment_first_and_env_file_is_optional(tmp_path, monkeypatch):
+    monkeypatch.setenv("NVIDIA_API_KEY", "fromenv")
+    assert load_key(None) == "fromenv"
+    f = tmp_path / ".env"
+    f.write_text("NVIDIA_API_KEY=fromfile\n")
+    assert load_key(f) == "fromenv"  # project env var wins
+    monkeypatch.delenv("NVIDIA_API_KEY")
+    assert load_key(f) == "fromfile"
+    with pytest.raises(RuntimeError):
+        load_key(None)
