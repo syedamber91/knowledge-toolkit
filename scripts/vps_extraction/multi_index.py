@@ -105,3 +105,7 @@ def search(conn, query: str, k: int = 5, source: str = None):
         hit = [r for r in rows if q in f"{r[3]} {r[1]}".lower()]
         rows = hit + [r for r in rows if r not in hit]
     return [r[:3] for r in rows[:k]]
+
+
+def chunk_text(conn, source: str, label: str) -> str:
+    return conn.execute("select text from chunks where source=? and label=?", (source, label)).fetchone()[0]

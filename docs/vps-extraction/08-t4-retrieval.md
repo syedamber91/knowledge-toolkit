@@ -57,3 +57,10 @@ Fixes, all general (none names a question). Honest eval now runs a real `search(
 - Tried and dropped: a forced slot per source (net -1), Porter stemming (AR 12 -> 11, decks 7 -> 6).
 Scores hit@5 (strict gold page): calls 8/8, announcements 8/8, decks 8/8, annual report 12/16. Net 36 of 40 (was 33). Fake accepted 0.
 Still missed: G01, G02, G03 (answer is on another page, p6 is a short KPI page) and G11 (gold at rank 9; page says "capitalisation", note "finance costs"). Reported, bar not moved.
+
+## Run 6 - `ask` command (2026-11-05)
+`PYTHONPATH=scripts:src python scripts/vps_extraction/ask.py "question" --data BIOCON/data --ar BIOCON/annual-report/FY26 [--number "7,245"] [-k 5]`
+- Searches the AR index and the calls/decks/announcements index; each hit shows source, page/date and a snippet.
+- With `--number`: OK only if those exact digits are on a retrieved hit; else REFUSE (exit 1). No memory fallback.
+- Unchecked: the two indexes' BM25 scores are merged by raw score (rough; each index has its own scale). Live check: guarantee 7,245 -> OK on AR p324; fake 999,111 -> REFUSE.
+- Not built: Obsidian routing (what "route to a vault" means is not defined in the spec); graphify refresh.
