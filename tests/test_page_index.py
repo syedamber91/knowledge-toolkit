@@ -60,3 +60,9 @@ def test_query_terms_drop_filler_words():
     from vps_extraction.page_index import query_terms
     assert query_terms("What was the total income for FY26?") == ["total", "income", "FY26"]
     assert query_terms("what was the") == []
+
+
+def test_word_endings_do_not_hide_a_page(tmp_path):
+    (tmp_path / "p001.md").write_text("interest net of borrowing cost capitalisation 1,597")
+    (tmp_path / "p002.md").write_text("unrelated words only")
+    assert [pg for pg, _ in search(build_index(tmp_path), "capitalised", k=2)] == [1]

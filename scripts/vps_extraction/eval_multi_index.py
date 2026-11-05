@@ -60,15 +60,16 @@ def main(golden: Path, data: Path) -> None:
             continue
         ranks, fakes, misses = [], [], []
         for r in kr:
-            hits = search(conn, r["question"], k=10)
-            rank = next((i for i, h in enumerate(hits, 1) if is_gold(r, h[0], h[1])), None)
-            ranks.append(rank)
-            if rank is None or rank > 5:
-                misses.append((r["id"], r["question"], [h[1] for h in hits[:5]]))
+            # each K is a real search(k=K): the one-per-source rule depends on K
+            hit_k = {K: any(is_gold(r, h[0], h[1]) for h in search(conn, r["question"], k=K)) for K in (1, 3, 5, 10)}
+            hits = search(conn, r["question"], k=5)
+            ranks.append(min((K for K in hit_k if hit_k[K]), default=None))
+            if not hit_k[5]:
+                misses.append((r["id"], r["question"], [h[1] for h in hits]))
             for t in r["tokens"]:
                 if re.search(r"\d", t):
                     ft = fake(t)
-                    if any(_has_number(text_of[(h[0], h[1])], ft) for h in hits[:5]):
+                    if any(_has_number(text_of[(h[0], h[1])], ft) for h in hits):
                         fakes.append((r["id"], t, ft))
         n = len(kr)
         print(f"[{kind}] rows={n} " + " ".join(f"hit@{k}={sum(1 for x in ranks if x and x <= k)}/{n}" for k in (1, 3, 5, 10))

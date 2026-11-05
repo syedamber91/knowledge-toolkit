@@ -50,3 +50,24 @@ def test_quarter_tag_in_label_or_tags_is_searchable():
 def test_chunk_call_takes_quarter_as_tag():
     (c,) = chunk_call("text", "2024-02-09", "q3fy24")
     assert c.tags == "q3fy24" and c.label == "2024-02-09 p1"
+
+
+def test_a_quarter_in_the_question_puts_that_quarters_chunks_first():
+    conn = build([Chunk("call", "2025-02-07 p1", "syngene revenue syngene revenue", "q3fy25"),
+                  Chunk("call", "2024-02-09 p1", "syngene revenue", "q3fy24")])
+    assert search(conn, "Syngene revenue Q3FY24", k=2)[0][1] == "2024-02-09 p1"
+    assert search(conn, "Syngene revenue", k=2)[0][1] == "2025-02-07 p1"  # no quarter asked: plain score
+
+
+def test_a_quarter_also_matches_a_deck_label():
+    conn = build([Chunk("deck", "deck-2025-05-09-q4fy25 p1", "ebitda ebitda ebitda"),
+                  Chunk("deck", "deck-2024-05-17-q4fy24 p1", "ebitda")])
+    assert search(conn, "ebitda Q4 FY24", k=2)[0][1] == "deck-2024-05-17-q4fy24 p1"
+
+
+def test_a_source_word_in_the_question_puts_that_source_first():
+    conn = build([Chunk("deck", "d p1", "ebitda ebitda ebitda"), Chunk("call", "c p1", "ebitda"),
+                  Chunk("announcement", "a", "ebitda ebitda")])
+    assert search(conn, "ebitda in the call", k=3)[0][:2] == ("call", "c p1")
+    assert search(conn, "ebitda per the deck", k=3)[0][:2] == ("deck", "d p1")
+    assert search(conn, "ebitda", k=3)[0][:2] == ("deck", "d p1")  # no source word: plain score

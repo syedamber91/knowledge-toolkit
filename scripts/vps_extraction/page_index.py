@@ -45,12 +45,23 @@ def query_terms(query: str):
     return [t for t in _terms(normalize_years(query)) if t.lower() not in _STOP]
 
 
+def match_expr(terms) -> str:
+    """OR of quoted terms. A long word also matches by its first 8 letters, so 'capitalised' finds
+    'capitalisation' (BM25 alone sees two different words). Short words stay exact."""
+    parts = []
+    for t in terms:
+        parts.append(f'"{t}"')
+        if len(t) >= 10:
+            parts.append(f'"{t[:8]}"*')
+    return " OR ".join(parts)
+
+
 def search(conn, query: str, k: int = 5):
     """[(page, bm25_score)] best first; any-word match so a long question still finds the page."""
     terms = query_terms(query)
     if not terms:
         return []
-    match = " OR ".join(f'"{t}"' for t in terms)
+    match = match_expr(terms)
     rows = conn.execute("select rowid, bm25(fts) from fts where fts match ? order by bm25(fts) limit ?",
                         (match, k)).fetchall()
     return [(page, score) for page, score in rows]

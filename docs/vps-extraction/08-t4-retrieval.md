@@ -48,3 +48,12 @@ Strict misses (gold page not in top 5) vs answer text anywhere in the top 5: D06
 - 2026-11-05: owner opened source links for the remaining 14 new rows (A02, A04, A06, A08, C07, C08, D01-D08): all confirmed. golden_new.jsonl now 24/24 human_checked. The 16 annual-report rows in golden.jsonl remain unchecked.
 
 - 2026-11-05: owner opened the FY26 annual report PDF and confirmed all 16 annual-report rows (G01-G16). All 40 golden rows are now human-checked. Page numbers remain my own file counts, not checked against printed pages.
+
+## Run 5 - the three misses (2026-11-05)
+Fixes, all general (none names a question). Honest eval now runs a real `search(k=K)` for each K.
+- Quarter in the question ("Q3FY24") puts that quarter's chunks first. Fixed C05.
+- Source word ("call", "deck", "press release") puts that source first. Fixed C06.
+- Long words (10+ letters) also match by their first 8 letters ("capitalised" finds "capitalisation"). Fixed D03/D07 side effects; decks 7 -> 8.
+- Tried and dropped: a forced slot per source (net -1), Porter stemming (AR 12 -> 11, decks 7 -> 6).
+Scores hit@5 (strict gold page): calls 8/8, announcements 8/8, decks 8/8, annual report 12/16. Net 36 of 40 (was 33). Fake accepted 0.
+Still missed: G01, G02, G03 (answer is on another page, p6 is a short KPI page) and G11 (gold at rank 9; page says "capitalisation", note "finance costs"). Reported, bar not moved.
