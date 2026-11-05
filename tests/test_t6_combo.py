@@ -79,3 +79,21 @@ def test_arms_share_one_set_of_model_replies_and_differ_only_by_the_gate():
 
 def test_four_arms_are_defined():
     assert list(ARMS) == ["nemotron", "nemotron+jev", "nemotron+laya", "nemotron+jev+laya"]
+
+
+def test_collect_replies_keeps_errors_with_their_reason_and_never_swallows_them():
+    from vps_extraction.t6_combo import collect_replies
+    calls = iter([('{"refuse": true}', None), (None, "status=404 attempts=1: model not found")])
+    rows = [ROW, NOT]
+    replies, errors = collect_replies(rows, {"C05": HITS, "N01": HITS}, 1, lambda prompt: next(calls))
+    assert replies["C05"] == [{"refuse": True}] and replies["N01"] == [None]
+    assert errors == [("N01", "status=404 attempts=1: model not found")]
+
+
+def test_a_run_where_most_model_calls_failed_is_stopped_not_tabled():
+    import pytest
+    from vps_extraction.t6_combo import check_error_rate
+    check_error_rate([("a", "x")], 10)  # 10% failing: fine
+    with pytest.raises(SystemExit) as e:
+        check_error_rate([("a", "status=404")] * 6, 10)
+    assert "status=404" in str(e.value) and "6 of 10" in str(e.value)

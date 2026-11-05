@@ -18,7 +18,7 @@ import os
 import sys
 from pathlib import Path
 
-from vps_extraction.t6_models import (ANSWERABLE, build_prompt, load_key, nim_call, parse_reply, score_row)
+from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, score_row
 
 ARMS = {"nemotron": [], "nemotron+jev": ["jev"], "nemotron+laya": ["laya"], "nemotron+jev+laya": ["jev", "laya"]}
 
@@ -65,6 +65,37 @@ def laya_verifier(agent):
     return v
 
 
+def collect_replies(rows, hits, reps, generate):
+    """generate(prompt) -> (text, error_or_None). Returns ({id: [parsed reply per rep]}, [(id, reason)])."""
+    replies, errors = {r["id"]: [] for r in rows}, []
+    for _ in range(reps):
+        for r in rows:
+            text, err = generate(build_prompt(r["question"], hits[r["id"]]))
+            if err:
+                errors.append((r["id"], err))
+            replies[r["id"]].append(parse_reply(text) if text else None)
+    return replies, errors
+
+
+def check_error_rate(errors, total, limit=0.5):
+    """A table built from failed calls is a lie (every arm 0%). Stop instead, naming the reasons."""
+    if total and len(errors) / total > limit:
+        reasons = sorted({e[1] for e in errors})[:3]
+        raise SystemExit(f"t6_combo: {len(errors)} of {total} Nemotron calls failed; no table written. Reasons: {reasons}")
+
+
+def nim_generate(model):
+    """The soic-ladder client (retries, key scrubbing, reasoning kept apart); needs src/ on PYTHONPATH."""
+    from soic_ladder.commentary_llm import call_nvidia_parts
+
+    def generate(prompt):
+        parts, meta = call_nvidia_parts(prompt, model, max_tokens=900, system="/no_think")
+        if parts is None:
+            return None, meta.summary
+        return parts.content, (None if parts.content.strip() else f"empty content (finish={parts.finish_reason})")
+    return generate
+
+
 def run_arms(rows, hits, replies, arms, mins=None):
     """replies[row_id] = [reply per rep]. arms = {name: [verifier callables]}."""
     n_reps = len(next(iter(replies.values())))
@@ -90,7 +121,6 @@ def main(argv=None) -> int:
     ap.add_argument("--golden", nargs="+", required=True, type=Path)
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--ar", required=True, type=Path)
-    ap.add_argument("--env", type=Path, help="optional .env file; the NVIDIA_API_KEY environment variable wins")
     ap.add_argument("--model", default="nvidia/nemotron-3-super-120b-a12b",
                     help="Nemotron NIM id; default is the one soic-ladder's 2026-08-30 briefs used (not re-checked against NIM today)")
     ap.add_argument("--laya-checkpoint", default=os.environ.get("LAYA_CHECKPOINT"),
@@ -107,18 +137,13 @@ def main(argv=None) -> int:
     from vps_extraction.eval_multi_index import load_chunks
     from vps_extraction.multi_index import build
     from vps_extraction.page_index import build_index
-    key = load_key(a.env)
     rows = [r for f in a.golden for r in map(json.loads, f.open()) if r["kind"] in ANSWERABLE or r["kind"] == "not_in_corpus"]
     ar, multi = build_index(a.ar), build(load_chunks(a.data))
     hits = {r["id"]: ask(r["question"], ar, multi, a.k, width=900)["hits"] for r in rows}
-    replies = {r["id"]: [] for r in rows}
-    for _ in range(a.reps):
-        for r in rows:
-            try:
-                replies[r["id"]].append(parse_reply(nim_call(key, a.model, build_prompt(r["question"], hits[r["id"]]))))
-            except Exception as e:  # kind only: the request carries the key
-                print(f"{r['id']}: {type(e).__name__}", file=sys.stderr)
-                replies[r["id"]].append(None)
+    replies, errors = collect_replies(rows, hits, a.reps, nim_generate(a.model))
+    for rid, why in errors[:5]:
+        print(f"{rid}: {why}", file=sys.stderr)
+    check_error_rate(errors, len(rows) * a.reps)
     verifiers = {"jev": jev_verifier(TypeSafeClient(), Noul), "laya": laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions"))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
