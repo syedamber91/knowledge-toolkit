@@ -74,6 +74,26 @@ def score_row(row, hits, reply) -> bool:
     return bool(cited and nums and all(_has_number(answer, n) and _has_number(cited["snippet"], n) for n in nums))
 
 
+def why_wrong(row, hits, reply) -> str:
+    """The first reason score_row would fail this reply ("ok" if it passes). For the report, not for scoring."""
+    if reply is None:
+        return "no JSON in reply"
+    if row["kind"] not in ANSWERABLE:
+        return "ok" if reply.get("refuse") is True else "answered an unanswerable row"
+    if reply.get("refuse") is True:
+        return "refused an answerable row"
+    cited = next((h for h in hits if h["label"] == reply.get("cite")), None)
+    if cited is None:
+        return "cite is not a shown label"
+    nums = _numbers(row["tokens"])
+    answer = str(reply.get("answer", ""))
+    if not all(_has_number(answer, n) for n in nums):
+        return "number missing from answer"
+    if not all(_has_number(cited["snippet"], n) for n in nums):
+        return "number not on the cited hit"
+    return "ok"
+
+
 def summarize(results: dict) -> dict:
     """results: {model: [rep: [bool per row]]} -> min/max % over reps, plus the one-row noise floor."""
     out, n = {}, 0

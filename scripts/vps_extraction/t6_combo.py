@@ -18,7 +18,7 @@ import os
 import sys
 from pathlib import Path
 
-from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, score_row
+from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, score_row, why_wrong
 
 ARMS = {"nemotron": [], "nemotron+jev": ["jev"], "nemotron+laya": ["laya"], "nemotron+jev+laya": ["jev", "laya"]}
 
@@ -171,6 +171,12 @@ def main(argv=None) -> int:
         res = run_arms(rows, hits, replies, {name: [verifiers[n] for n in names]}, [mins[n] for n in names])[name]
         pct = [100 * sum(rep) / len(rep) for rep in res["reps"]]
         lines.append(f"| {name} | {min(pct):.1f} | {max(pct):.1f} | {res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
+    from collections import Counter
+    why = Counter(why_wrong(r, hits[r["id"]], rep) for r in rows for rep in replies[r["id"]])
+    lines += ["", "Why the plain Nemotron replies were right or wrong (all rows x reps, before any gate):", ""]
+    lines += [f"- {k}: {v}" for k, v in why.most_common()]
+    bad = [(r["id"], rep) for r in rows for rep in replies[r["id"]] if why_wrong(r, hits[r["id"]], rep) != "ok"][:6]
+    lines += ["", "First wrong replies (parsed JSON, 200 chars):", ""] + [f"- {rid}: {json.dumps(rep)[:200]}" for rid, rep in bad]
     a.out.write_text("\n".join(lines) + "\n")
     print("\n".join(lines))
     return 0

@@ -67,3 +67,18 @@ def test_key_comes_from_the_environment_first_and_env_file_is_optional(tmp_path,
     assert load_key(f) == "fromfile"
     with pytest.raises(RuntimeError):
         load_key(None)
+
+
+def test_why_wrong_names_the_first_reason_a_reply_fails():
+    from vps_extraction.t6_models import why_wrong
+    hits = [{"source": "call", "label": "c p7", "snippet": "revenue INR 854 crores"}]
+    row = {"id": "C05", "kind": "call_grep", "question": "q", "tokens": ["INR 854"]}
+    assert why_wrong(row, hits, None) == "no JSON in reply"
+    assert why_wrong(row, hits, {"refuse": True}) == "refused an answerable row"
+    assert why_wrong(row, hits, {"answer": "854", "cite": "zzz"}) == "cite is not a shown label"
+    assert why_wrong(row, hits, {"answer": "855", "cite": "c p7"}) == "number missing from answer"
+    assert why_wrong(row, hits, {"answer": "854", "cite": "c p7"}) == "ok"
+    hits2 = [{"source": "call", "label": "c p7", "snippet": "revenue nothing"}]
+    assert why_wrong(row, hits2, {"answer": "854", "cite": "c p7"}) == "number not on the cited hit"
+    unans = {"id": "N01", "kind": "not_in_corpus", "question": "q", "tokens": []}
+    assert why_wrong(unans, hits, {"answer": "1", "cite": "c p7"}) == "answered an unanswerable row"
