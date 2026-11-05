@@ -132,6 +132,35 @@ def run_arms(rows, hits, replies, arms, mins=None):
     return out
 
 
+def cached(v):
+    """Ask the verifier once per input, so a threshold sweep costs no extra model calls."""
+    memo = {}
+
+    def w(q, a, e):
+        if (q, a, e) not in memo:
+            memo[(q, a, e)] = v(q, a, e)
+        return memo[(q, a, e)]
+    return w
+
+
+GRID = [round(0.05 * i, 2) for i in range(20)]  # 0.0 = never block
+
+
+def _net(rows, hits, replies, verifier, t):
+    """Answers gained (+) or lost (-) vs no gate, summed over reps, at threshold t."""
+    plain = run_arms(rows, hits, replies, {"p": []})["p"]["reps"]
+    gated = run_arms(rows, hits, replies, {"g": [verifier]}, [t])["g"]["reps"]
+    return sum(map(sum, gated)) - sum(map(sum, plain))
+
+
+def tune(rows, hits, replies, verifier, grid=GRID):
+    """Pick the threshold on even rows (train), report it on odd rows (test). Ties go to the lowest."""
+    train, test = rows[0::2], rows[1::2]
+    tr = {t: _net(train, hits, replies, verifier, t) for t in grid}
+    best = max(grid, key=lambda t: (tr[t], -t))
+    return {"best": best, "train": tr, "test": {t: _net(test, hits, replies, verifier, t) for t in grid}}
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--golden", nargs="+", required=True, type=Path)
@@ -161,7 +190,7 @@ def main(argv=None) -> int:
     for rid, why in errors[:5]:
         print(f"{rid}: {why}", file=sys.stderr)
     check_error_rate(errors, len(rows) * a.reps, list_models=nemotron_ids)
-    verifiers = {"jev": jev_verifier(TypeSafeClient(), Noul), "laya": laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions"))}
+    verifiers = {"jev": cached(jev_verifier(TypeSafeClient(), Noul)), "laya": cached(laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions")))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
              f"Generator calls that returned no usable reply: {len(errors)} of {len(rows) * a.reps} (those rows count as wrong in every arm).\n",
@@ -171,6 +200,15 @@ def main(argv=None) -> int:
         res = run_arms(rows, hits, replies, {name: [verifiers[n] for n in names]}, [mins[n] for n in names])[name]
         pct = [100 * sum(rep) / len(rep) for rep in res["reps"]]
         lines.append(f"| {name} | {min(pct):.1f} | {max(pct):.1f} | {res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
+    lines += ["", "Threshold sweep (answers gained vs no gate, summed over reps; train = even rows, test = odd rows):", ""]
+    for name in ("jev", "laya"):
+        try:
+            tu = tune(rows, hits, replies, verifiers[name])
+        except Exception as e:  # a sweep is extra; never lose the table above
+            lines.append(f"- {name}: sweep failed ({type(e).__name__})")
+            continue
+        lines.append(f"- {name}: best threshold on train = {tu['best']}; on test rows it gives {tu['test'][tu['best']]:+d} "
+                     f"(at 0.5: {tu['test'][0.5]:+d}). Full test curve: " + ", ".join(f"{t}:{v:+d}" for t, v in tu["test"].items()))
     from collections import Counter
     why = Counter(why_wrong(r, hits[r["id"]], rep) for r in rows for rep in replies[r["id"]])
     lines += ["", "Why the plain Nemotron replies were right or wrong (all rows x reps, before any gate):", ""]

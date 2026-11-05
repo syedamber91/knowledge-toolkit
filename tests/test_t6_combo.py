@@ -117,3 +117,25 @@ def test_the_model_list_is_only_asked_for_on_a_404():
     with pytest.raises(SystemExit) as e:
         check_error_rate([("a", "status=503")] * 4, 4, list_models=boom)
     assert "status=503" in str(e.value)
+
+
+def test_cached_verifier_calls_the_model_once_per_input():
+    from vps_extraction.t6_combo import cached
+    n = []
+
+    def v(q, a, e):
+        n.append(1)
+        return 0.7
+    c = cached(v)
+    assert c("q", "a", "e") == c("q", "a", "e") == 0.7 and len(n) == 1
+
+
+def test_tune_picks_the_threshold_on_train_rows_and_scores_it_on_unseen_test_rows():
+    from vps_extraction.t6_combo import tune
+    # unanswerable rows: a wrong answer scores 0, a refusal scores 1. Verifier gives wrong answers 0.2.
+    rows = [{"id": f"N{i}", "kind": "not_in_corpus", "question": "q", "tokens": []} for i in range(4)]
+    hits = {r["id"]: HITS for r in rows}
+    replies = {r["id"]: [GOOD] for r in rows}
+    out = tune(rows, hits, replies, lambda q, a, e: 0.2, grid=[0.0, 0.1, 0.3, 0.5])
+    assert out["best"] == 0.3            # lowest threshold that blocks them all
+    assert out["train"][0.3] == 2 and out["test"][0.3] == 2 and out["test"][0.0] == 0
