@@ -56,7 +56,11 @@ def parse_reply(text: str):
         out = json.loads(m.group(0))
     except ValueError:
         return None
-    return out if isinstance(out, dict) else None
+    if not isinstance(out, dict):
+        return None
+    if isinstance(out.get("cite"), str):  # the prompt shows labels as [label]; accept the copy with brackets
+        out["cite"] = out["cite"].strip().strip("[]").strip()
+    return out
 
 
 def _numbers(tokens):

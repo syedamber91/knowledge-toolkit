@@ -82,3 +82,8 @@ def test_why_wrong_names_the_first_reason_a_reply_fails():
     assert why_wrong(row, hits2, {"answer": "854", "cite": "c p7"}) == "number not on the cited hit"
     unans = {"id": "N01", "kind": "not_in_corpus", "question": "q", "tokens": []}
     assert why_wrong(unans, hits, {"answer": "1", "cite": "c p7"}) == "answered an unanswerable row"
+
+
+def test_parse_reply_strips_brackets_the_prompt_shows_around_a_cite():
+    assert parse_reply('{"answer": "1", "cite": "[AR p347]"}')["cite"] == "AR p347"
+    assert parse_reply('{"answer": "1", "cite": "AR p347"}')["cite"] == "AR p347"
