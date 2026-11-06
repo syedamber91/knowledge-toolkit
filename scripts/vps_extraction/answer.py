@@ -6,6 +6,7 @@ guess, never a silent fallback to memory. Measured (docs/vps-extraction/08-t4-re
 86-89% right on the golden exam, 78% on Claude's BIOCON truth table with 2 wrong of 117; Jev/Laya added nothing.
 Limit: "the figure is on the cited page" proves provenance, not that it belongs to the line item asked about.
 """
+import json
 import re
 from pathlib import Path
 
@@ -51,6 +52,80 @@ def answer(question, hits, generate):
     if not ok:
         return {"status": "refuse", "reason": why}
     return {"status": "ok", "answer": str(reply["answer"]), "cite": cited["label"], "source": cited["source"], "reason": ""}
+
+
+def group_questions(questions, hits_by_id, size=6):
+    """Batches of at most `size`, with questions that share their top page kept together (so a page is sent once)."""
+    by_top = {}
+    for q in questions:
+        hs = hits_by_id.get(q["id"]) or []
+        by_top.setdefault(hs[0]["label"] if hs else "", []).append(q)
+    flat = [q for qs in by_top.values() for q in qs]
+    return [flat[i:i + size] for i in range(0, len(flat), size)]
+
+
+def union_hits(group, hits_by_id):
+    seen, out = set(), []
+    for q in group:
+        for h in hits_by_id.get(q["id"]) or []:
+            if h["label"] not in seen:
+                seen.add(h["label"])
+                out.append(h)
+    return out
+
+
+def build_batch_prompt(group, hits_by_id) -> str:
+    pages = "\n\n".join(f"[{h['label']}] ({h['source']})\n{shown_text(h)}" for h in union_hits(group, hits_by_id))
+    qs = "\n".join(f"{i}. {q['question']}" for i, q in enumerate(group, 1))
+    return ("Answer ONLY from the excerpts below. Copy numbers exactly, with their units. Each question needs its own answer. "
+            "If the excerpts do not contain an answer, refuse that question; never guess.\n\n"
+            f"{pages}\n\nQuestions:\n{qs}\n\n"
+            'Reply with JSON only: {"answers": [{"q": 1, "answer": "...", "cite": "<the [label] of the excerpt>"}, '
+            '{"q": 2, "refuse": true}, ...]} with one entry per question number.')
+
+
+def parse_batch_reply(text):
+    m = re.search(r"\{.*\}", text or "", re.S)
+    if not m:
+        return None
+    try:
+        items = json.loads(m.group(0)).get("answers")
+    except (ValueError, AttributeError):
+        return None
+    if not isinstance(items, list):
+        return None
+    out = {}
+    for it in items:
+        if isinstance(it, dict) and isinstance(it.get("q"), int):
+            r = {k: v for k, v in it.items() if k != "q"}
+            if isinstance(r.get("cite"), str):
+                r["cite"] = r["cite"].strip().strip("[]").strip()
+            out[it["q"]] = r
+    return out
+
+
+def answer_batch(questions, hits_by_id, generate, size=6):
+    """Grep once for everything, send each page once, ask `size` questions per call. Each answer is still
+    code-checked against ITS cited page. generate(prompt) -> (text, error). Returns {question id: result}."""
+    out = {}
+    for group in group_questions(questions, hits_by_id, size):
+        hits = union_hits(group, hits_by_id)
+        text, err = generate(build_batch_prompt(group, hits_by_id))
+        parsed = None if err or not text else parse_batch_reply(text)
+        for i, q in enumerate(group, 1):
+            if err or not text:
+                out[q["id"]] = {"status": "refuse", "reason": f"model call failed: {err or 'empty reply'}"}
+            elif parsed is None:
+                out[q["id"]] = {"status": "refuse", "reason": "no JSON in the model reply"}
+            elif i not in parsed:
+                out[q["id"]] = {"status": "refuse", "reason": "no answer returned for this question"}
+            elif parsed[i].get("refuse") is True:
+                out[q["id"]] = {"status": "refuse", "reason": "the model found no answer in the excerpts"}
+            else:
+                ok, cited, why = check_answer(parsed[i], hits)
+                out[q["id"]] = ({"status": "ok", "answer": str(parsed[i]["answer"]), "cite": cited["label"], "source": cited["source"], "reason": ""}
+                                if ok else {"status": "refuse", "reason": why})
+    return out
 
 
 def ask_and_answer(question, ar_conn, multi_conn, generate, k=5, note=None, when=""):

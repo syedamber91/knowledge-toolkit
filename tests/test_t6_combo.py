@@ -213,3 +213,18 @@ def test_replies_can_be_saved_and_reloaded_for_offline_rescoring(tmp_path):
     p = tmp_path / "r.json"
     save_replies(p, {"C05": [GOOD, None]})
     assert load_replies(p) == {"C05": [GOOD, None]}
+
+
+def test_run_batched_scores_with_the_pages_the_batch_actually_showed_and_counts_calls_and_text():
+    from vps_extraction.t6_combo import run_batched
+    r1 = dict(ROW, id="C05", question="q1")
+    r2 = {"id": "C06", "kind": "call_grep", "question": "q2", "tokens": ["172,695"]}
+    hits = {"C05": [HITS[0]], "C06": [HITS[1]]}      # different top pages, but one batch of 2
+
+    def gen(prompt):   # answers q1 from the call page and q2 from the AR page (shown in the same prompt)
+        return ('{"answers": [{"q": 1, "answer": "INR 854 crores", "cite": "c p7"}, '
+                '{"q": 2, "answer": "Rs 172,695 million", "cite": "AR p1"}]}'), None
+    replies, bhits, stats = run_batched([r1, r2], hits, gen, reps=2, size=2)
+    out = run_arms([r1, r2], bhits, replies, {"batched": []})["batched"]
+    assert out["reps"] == [[True, True], [True, True]]
+    assert stats["calls"] == 2 and stats["failed_calls"] == 0 and stats["chars"] > 0

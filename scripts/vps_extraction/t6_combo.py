@@ -191,6 +191,27 @@ def load_replies(path):
     return json.loads(Path(path).read_text())
 
 
+def run_batched(rows, hits, generate, reps, size):
+    """The batched arm: per rep, grep results for all rows are combined, each page is sent once, `size` questions per call.
+    Returns (replies like collect_replies, hits each row was scored against = its batch's pages, stats)."""
+    from vps_extraction.answer import answer_batch, build_batch_prompt, group_questions, union_hits
+    groups = group_questions(rows, hits, size)
+    bhits = {q["id"]: union_hits(g, hits) for g in groups for q in g}
+    replies = {r["id"]: [] for r in rows}
+    stats = {"calls": 0, "failed_calls": 0, "chars": 0}
+    for _ in range(reps):
+        for g in groups:
+            stats["chars"] += len(build_batch_prompt(g, hits))
+        stats["calls"] += len(groups)
+        res = answer_batch(rows, hits, generate, size)
+        for r in rows:
+            v = res[r["id"]]
+            stats["failed_calls"] += v["status"] == "refuse" and v["reason"].startswith("model call failed")
+            replies[r["id"]].append({"answer": v["answer"], "cite": v["cite"]} if v["status"] == "ok" else {"refuse": True})
+    stats["failed_calls"] = round(stats["failed_calls"] / max(1, size))  # one failed call refuses up to `size` rows
+    return replies, bhits, stats
+
+
 def cached(v):
     """Ask the verifier once per input, so a threshold sweep costs no extra model calls."""
     memo = {}
@@ -234,6 +255,7 @@ def main(argv=None) -> int:
     ap.add_argument("--max-tokens", type=int, default=2000, help="reasoning models need room to think before they answer")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("-k", type=int, default=5)
+    ap.add_argument("--batch", type=int, default=0, help="also run a batched arm: N questions per call, each page sent once")
     ap.add_argument("--no-gates", action="store_true", help="skip Jev and Laya (measured: neither helps); needs only NVIDIA_API_KEY")
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args(argv)
@@ -270,12 +292,19 @@ def main(argv=None) -> int:
     jobs = [(n, [verifiers[x] for x in xs], [mins[x] for x in xs], replies) for n, xs in ARMS.items() if all(x in verifiers for x in xs)]
     jobs += [("grep-only (no model)", [], None, {r["id"]: [grep_answer(r["question"], hits[r["id"]]) for _ in range(a.reps)] for r in rows}),
              ("grep-first, model on tables", [], None, grep_first(rows, hits, replies))]
-    for name, vs, mn, rep_src in jobs:
-        res = run_arms(rows, hits, rep_src, {name: vs}, mn)[name]
+    bstats = None
+    if a.batch:
+        breplies, bhits, bstats = run_batched(rows, hits, nim_generate(a.model, max_tokens=a.max_tokens * 2), a.reps, a.batch)
+    for name, vs, mn, rep_src in jobs + ([(f"batched ({a.batch} per call)", [], None, breplies)] if a.batch else []):
+        res = run_arms(rows, bhits if a.batch and name.startswith("batched") else hits, rep_src, {name: vs}, mn)[name]
         pct = [100 * sum(rep) / len(rep) for rep in res["reps"]]
         v = res["verdicts"]
         lines.append(f"| {name} | {min(pct):.1f}-{max(pct):.1f} | {v['right']} / {v['refused']} / {v['wrong']} / {v['none']} | {res['util']:+d} | "
                      f"{res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
+    if bstats:
+        per_q = sum(len(build_prompt(r["question"], hits[r["id"]])) for r in rows) * a.reps
+        lines += ["", f"Cost of the two ways to ask (all reps): one question per call = {len(rows) * a.reps} calls, {per_q:,} chars of text sent; "
+                      f"batched {a.batch} per call = {bstats['calls']} calls, {bstats['chars']:,} chars; failed batched calls: {bstats['failed_calls']}."]
     lines += ["", "Threshold sweep (utility gained vs no gate, summed over reps; train = even rows, test = odd rows):", ""]
     for name in [n for n in ("jev", "laya") if n in verifiers]:
         try:
