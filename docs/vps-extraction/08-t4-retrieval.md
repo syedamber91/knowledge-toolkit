@@ -99,3 +99,12 @@ Model `nvidia/nemotron-3-ultra-550b-a55b`, 44 rows x 3 reps, top-5 hits, 2000 ma
 - **Unstable baseline:** plain Nemotron moved from 64-71% to 52-64% between runs (no-JSON replies 9 -> 29). That swing is larger than any gate effect. Fix the empty/non-JSON replies before comparing anything else.
 - **Not tried:** other callable Nemotron ids; other Jev question wordings; a bigger exam (44 rows, 22 per half); grep-only baseline on the same rows.
 - **Verdict (advisory, gates nothing):** on this fact-lookup exam Jev and Laya add nothing as answer filters. Do not wire them in.
+
+## Run 11 - after the timeout fix (2026-11-06, run 42204763812, PR 1306)
+Cause of the empty replies: 29 of 132 Ultra calls died on the client's 120 s read timeout (not retried). Fix: 300 s wait, 3 tries; job limit 240 min. Result: empty replies 29 -> 11 of 132.
+
+| Nemotron alone | +Jev | +Laya | +Jev+Laya |
+|---|---|---|---|
+| 63.6-72.7% | 63.6-72.7% | 52.3-54.5% (19 right answers blocked) | 52.3-54.5% |
+
+Sweep again: best cutoff for Jev and Laya = 0.0 (never block); held-out gain +0. Wrong plain replies (39 of 132): 13 cite not a shown label, 11 no usable reply, 10 refused an answerable row, 5 number missing from the answer. Baseline is now steady across runs 2 and 4 (64-71% vs 64-73%). Conclusion unchanged: Jev and Laya add nothing here.
