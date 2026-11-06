@@ -71,3 +71,10 @@ def test_a_source_word_in_the_question_puts_that_source_first():
     assert search(conn, "ebitda in the call", k=3)[0][:2] == ("call", "c p1")
     assert search(conn, "ebitda per the deck", k=3)[0][:2] == ("deck", "d p1")
     assert search(conn, "ebitda", k=3)[0][:2] == ("deck", "d p1")  # no source word: plain score
+
+
+def test_a_date_in_the_question_puts_chunks_of_that_date_first():
+    multi = build([Chunk("filing", "Filing 2025-06-30", "Sale of products sale of products sale of products consolidated results", "2025-06-30"),
+                   Chunk("filing", "Filing 2025-09-30", "Sale of products consolidated results", "2025-09-30")])
+    got = search(multi, "Biocon sale of products for the quarter ended 2025-09-30")
+    assert got[0][1] == "Filing 2025-09-30"

@@ -69,3 +69,17 @@ def test_hits_carry_the_page_text_capped_and_centred_when_it_is_long(tmp_path):
     from vps_extraction.page_index import build_index
     long_hit = [x for x in ask("total income", build_index(tmp_path), multi, text_cap=500)["hits"] if x["label"] == "AR p3"][0]
     assert len(long_hit["text"]) <= 500
+
+
+def test_a_page_that_fits_the_cap_is_shown_whole_and_a_long_one_never_loses_its_start_to_a_late_match(tmp_path):
+    # the number sits near the start, the only query word sits near the end: the old window centred on the word
+    # and cut the number off (15 of the 20 truth-table refusals)
+    body = "Sale of products 29,473 " + "filler " * 600 + "Biocon"
+    multi = build([Chunk("filing", "Filing 2024-03-31", body, "2024-03-31")])
+    (tmp_path / "p001.md").write_text("x")
+    h = ask("Biocon sale", build_index(tmp_path), multi, text_cap=6000)["hits"][0]
+    assert "29,473" in h["text"]
+    long = "Sale of products 29,473 " + "filler " * 3000 + "Biocon"
+    multi2 = build([Chunk("filing", "Filing 2024-03-31", long, "2024-03-31")])
+    h2 = ask("Biocon sale", build_index(tmp_path), multi2, text_cap=1000)["hits"][0]
+    assert len(h2["text"]) <= 1000 and "Biocon" in h2["text"]

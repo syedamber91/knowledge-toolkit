@@ -104,6 +104,10 @@ def search(conn, query: str, k: int = 5, source: str = None):
     if q:
         hit = [r for r in rows if q in f"{r[3]} {r[1]}".lower()]
         rows = hit + [r for r in rows if r not in hit]
+    d = re.search(r"\b\d{4}-\d{2}-\d{2}\b", query)  # a date in the question (a quarter-end, a call date) puts that date's chunks first
+    if d:
+        hit = [r for r in rows if d.group(0) in f"{r[3]} {r[1]}"]
+        rows = hit + [r for r in rows if r not in hit]
     return [r[:3] for r in rows[:k]]
 
 

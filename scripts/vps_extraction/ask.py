@@ -25,6 +25,20 @@ def _snippet(text: str, terms, number=None, width=110) -> str:
     return flat[max(0, at - width): at + width]
 
 
+def _window(text: str, terms, number, cap: int) -> str:
+    """Up to cap chars of the flattened text, centred on the first match but never starting past what fits:
+    a page that fits is shown whole (a late match used to push the start, and the number, out of view)."""
+    flat = " ".join(text.split())
+    if len(flat) <= cap:
+        return flat
+    at = flat.find(number) if number and number in flat else -1
+    if at < 0:
+        m = next(filter(None, (re.search(re.escape(t), flat, re.I) for t in terms)), None)
+        at = m.start() if m else 0
+    start = max(0, min(at - cap // 2, len(flat) - cap))
+    return flat[start:start + cap]
+
+
 def ask(question: str, ar_conn, multi_conn, k: int = 5, number: str = None, width: int = 110, text_cap: int = 6000) -> dict:
     terms = query_terms(question)
     hits = []
@@ -38,7 +52,7 @@ def ask(question: str, ar_conn, multi_conn, k: int = 5, number: str = None, widt
     for h in hits:
         out["hits"].append({"source": h["source"], "label": h["label"],
                             "snippet": _snippet(h["text"], terms, number if number and _has_number(h["text"], number) else None, width),
-                            "text": _snippet(h["text"], terms, number if number and _has_number(h["text"], number) else None, text_cap // 2)})
+                            "text": _window(h["text"], terms, number if number and _has_number(h["text"], number) else None, text_cap)})
         if number and "found_in" not in out and _has_number(h["text"], number):
             out["found_in"] = (h["source"], h["label"])
     if number and "found_in" not in out:
