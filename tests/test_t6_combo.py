@@ -139,3 +139,25 @@ def test_tune_picks_the_threshold_on_train_rows_and_scores_it_on_unseen_test_row
     out = tune(rows, hits, replies, lambda q, a, e: 0.2, grid=[0.0, 0.1, 0.3, 0.5])
     assert out["best"] == 0.3            # lowest threshold that blocks them all
     assert out["train"][0.3] == 2 and out["test"][0.3] == 2 and out["test"][0.0] == 0
+
+
+def test_nim_generate_retries_a_timeout_then_returns_the_reply():
+    from types import SimpleNamespace as NS
+    from vps_extraction.t6_combo import nim_generate
+    calls = []
+
+    def fake(prompt, model, **kw):
+        calls.append(kw.get("timeout_seconds"))
+        if len(calls) < 3:
+            return None, NS(summary="status=transport_error attempts=1: ReadTimeout")
+        return NS(content='{"refuse": true}', finish_reason="stop"), NS(summary="ok")
+    text, err = nim_generate("m", call=fake, sleep=lambda s: None)("p")
+    assert text == '{"refuse": true}' and err is None and len(calls) == 3 and calls[0] >= 300
+
+
+def test_nim_generate_gives_up_after_three_timeouts_and_reports_it():
+    from types import SimpleNamespace as NS
+    from vps_extraction.t6_combo import nim_generate
+    fake = lambda p, m, **kw: (None, NS(summary="status=transport_error attempts=1: ReadTimeout"))
+    text, err = nim_generate("m", call=fake, sleep=lambda s: None)("p")
+    assert text is None and "transport_error" in err

@@ -100,15 +100,25 @@ def nemotron_ids():
     return sorted(m["id"] for m in r.json().get("data", []) if "nemotron" in m.get("id", "").lower())
 
 
-def nim_generate(model, max_tokens=2000):
-    """The soic-ladder client (retries, key scrubbing, reasoning kept apart); needs src/ on PYTHONPATH."""
-    from soic_ladder.commentary_llm import call_nvidia_parts
+def nim_generate(model, max_tokens=2000, timeout_seconds=300, call=None, sleep=None):
+    """The soic-ladder client (retries 5xx, key scrubbing, reasoning kept apart); needs src/ on PYTHONPATH.
+    Measured 2026-11-05: 29 of 132 Ultra calls died on the client's 120 s read timeout, which it does not retry,
+    so wait longer and retry a timeout here (3 tries)."""
+    if call is None:
+        from soic_ladder.commentary_llm import call_nvidia_parts as call
+    if sleep is None:
+        import time
+        sleep = time.sleep
 
     def generate(prompt):
-        parts, meta = call_nvidia_parts(prompt, model, max_tokens=max_tokens, system="/no_think")
-        if parts is None:
-            return None, meta.summary
-        return parts.content, (None if parts.content.strip() else f"empty content (finish={parts.finish_reason})")
+        for attempt in range(3):
+            parts, meta = call(prompt, model, max_tokens=max_tokens, timeout_seconds=timeout_seconds, system="/no_think")
+            if parts is not None:
+                return parts.content, (None if parts.content.strip() else f"empty content (finish={parts.finish_reason})")
+            if "transport_error" not in meta.summary:
+                break
+            sleep(5 * (attempt + 1))
+        return None, meta.summary
     return generate
 
 
