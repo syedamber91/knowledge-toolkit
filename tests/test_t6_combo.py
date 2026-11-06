@@ -199,3 +199,17 @@ def test_grep_first_uses_grep_for_prose_sources_and_the_model_for_tables():
     model = {"A": [{"answer": "MODEL"}], "B": [{"answer": "MODEL"}]}
     out = grep_first(rows, hits, model)
     assert "854" in out["A"][0]["answer"] and out["B"] == [{"answer": "MODEL"}]
+
+
+def test_the_gate_finds_a_cite_the_same_loose_way_the_scorer_does():
+    # a right answer whose cite carries brackets/trailing words must not be blocked by the gate itself
+    reply = {"answer": "INR 854 crores", "cite": "[c p7] (call)"}
+    assert gate(reply, HITS, "q", []) == reply
+    assert run_arms([ROW], {"C05": HITS}, {"C05": [reply]}, {"plain": []})["plain"]["blocked_right"] == 0
+
+
+def test_replies_can_be_saved_and_reloaded_for_offline_rescoring(tmp_path):
+    from vps_extraction.t6_combo import load_replies, save_replies
+    p = tmp_path / "r.json"
+    save_replies(p, {"C05": [GOOD, None]})
+    assert load_replies(p) == {"C05": [GOOD, None]}

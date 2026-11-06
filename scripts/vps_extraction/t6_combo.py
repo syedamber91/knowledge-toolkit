@@ -19,7 +19,7 @@ import re
 import sys
 from pathlib import Path
 
-from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, UTILITY, score_row, shown_text, verdict, why_wrong
+from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, UTILITY, find_hit, score_row, shown_text, verdict, why_wrong
 
 ARMS = {"nemotron": [], "nemotron+jev": ["jev"], "nemotron+laya": ["laya"], "nemotron+jev+laya": ["jev", "laya"]}
 
@@ -28,12 +28,12 @@ def gate(reply, hits, question, verifiers, errors=None, mins=None):
     """Keep an answer only if every verifier accepts it. Refusals and empty replies pass through."""
     if not reply or reply.get("refuse") is True:
         return reply
-    cited = next((h for h in hits if h["label"] == reply.get("cite")), None)
+    cited = find_hit(hits, reply.get("cite"))
     if cited is None:
         return {"refuse": True, "gated_by": "cite"}
     for i, v in enumerate(verifiers):
         try:
-            p = v(question, str(reply.get("answer", "")), cited["snippet"])
+            p = v(question, str(reply.get("answer", "")), shown_text(cited))
         except Exception as e:  # fail closed, but count it
             if errors is not None:
                 errors.append((i, type(e).__name__))
@@ -182,6 +182,15 @@ def run_arms(rows, hits, replies, arms, mins=None):
     return out
 
 
+def save_replies(path, replies):
+    """Keep the model's raw replies so a scorer fix can be re-applied offline, without paying for the run again."""
+    Path(path).write_text(json.dumps(replies))
+
+
+def load_replies(path):
+    return json.loads(Path(path).read_text())
+
+
 def cached(v):
     """Ask the verifier once per input, so a threshold sweep costs no extra model calls."""
     memo = {}
@@ -242,6 +251,7 @@ def main(argv=None) -> int:
     ar, multi = build_index(a.ar), build(chunks)
     hits = {r["id"]: ask(r["question"], ar, multi, a.k, width=900)["hits"] for r in rows}
     replies, errors = collect_replies(rows, hits, a.reps, nim_generate(a.model, a.max_tokens))
+    save_replies(a.out.with_suffix(".replies.json"), replies)
     for rid, why in errors[:5]:
         print(f"{rid}: {why}", file=sys.stderr)
     check_error_rate(errors, len(rows) * a.reps, list_models=nemotron_ids)
