@@ -120,3 +120,32 @@ Runs 10 and 11 said "Jev and Laya add nothing". That was **not proven**. What th
 - **Grep was never compared.** Measured: the right number is on the retrieved pages for 37 of 40 answerable rows. Picking the right line scores 19 of 44 (43%) with the old 900-char excerpts; best possible with those excerpts was 35 (80%); Nemotron got 28-32. Grep matches the best possible on announcements (6 of 6), loses on annual-report tables (3 of 10) and decks (2 of 8). So the model is needed for tables, not for prose.
 
 Fixes (soic-ladder PR #1308): three-way scoring (right +1, refused 0, wrong -1), loose cite match, the model sees and the scorer checks up to 6,000 chars of page text (offline ceiling 35 -> 41 of 44), words-based check for rows without digits, `grep-only` and `grep-first` arms. Offline with the wider text, grep-only scores 24 right / 1 refused / 19 wrong. Not yet re-run with the model: runs 10-11 numbers above are from the old exam and are not comparable.
+
+## Run 12-13: the fair exam, and Claude's own BIOCON tables as the answer key (2026-11-06/07)
+
+Same model (Nemotron Ultra), fixed exam: right +1 / refused 0 / wrong -1, loose cite match, up to 6,000 chars of page text shown and scored, gate finds cites the same loose way (a first fair run had a gate bug that blocked 20 right answers itself). Reports: soic-ladder PRs #1315 (golden) and #1316 (truth table).
+
+**Golden exam, 44 rows x 3 reps (PR #1315):**
+
+| arm | right % | right / refused / wrong / none | utility |
+|---|---|---|---|
+| Nemotron alone | 86.4-88.6 | 116 / 5 / 6 / 5 | +110 |
+| + Jev | 84.1-88.6 | 115 / 7 / 5 / 5 | +110 |
+| + Laya | 72.7-77.3 | 99 / 24 / 4 / 5 | +95 |
+| grep, model on tables | 79.5-81.8 | 107 / 5 / 16 / 4 | +91 |
+| grep alone | 54.5 | 72 / 3 / 57 / 0 | +15 |
+
+**Truth-table exam, 117 questions, 1 rep (PR #1316)** - one question per cell of `docs/idea/case-study/BIOCON/truth-table.csv` (Claude's finished table, values >= 1,000), searched in the quarterly-filing statement excerpts (`data/excerpts/consolidated-*.txt`, source `filing`):
+
+| arm | right | refused | wrong | none | utility |
+|---|---|---|---|---|---|
+| Nemotron alone | 91 (77.8%) | 20 | 2 | 4 | +89 |
+| + Jev | 91 | 20 | 2 | 4 | +89 |
+| + Laya | 8 | 105 | 0 | 4 | +8 |
+| grep alone | 6 | 0 | 111 | 0 | -105 |
+
+Read: the model is worth keeping for table cells (grep finds the page, cannot pick the column or quarter). Jev is neutral, Laya hurts, on both exams; neither caught a wrong answer. Sweeps on unseen rows: Jev +0 to -3, Laya +0 to -39.
+
+**The 20 truth-table refusals, looked into:** the model was right to refuse in all 20 - the gold number was on no excerpt it was shown (checked offline against the saved replies, `t6-truth-2026-08-30.replies.json`). Cause 1 (15 rows): a filing is only 4-5k chars, the window was centred on the first query word (late in the text) and cut the number off. Cause 2 (5 rows): the wrong quarter's filing ranked first (an ISO date in the question did not rank that date's chunks first). Fix (soic-ladder PR #1317): a page that fits the cap is shown whole; a date in the question ranks that date first. Offline ceiling on the truth rows 93 -> 117 of 117, golden 41 -> 43 of 44 (G11 is the one that stays missed). **Not yet re-run with the model** - Run 13's refusal count is the old window's.
+
+**Not verified:** the scorer only checks the number is on the cited filing (a prior-quarter number in the same table would also pass); the truth table is Claude's work, tied to XBRL for some quarters only, so a mismatch is "check", not "wrong"; one rep on the truth rows.
