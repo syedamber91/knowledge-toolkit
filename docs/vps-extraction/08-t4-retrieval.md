@@ -76,10 +76,26 @@ Not done: no `Home.md` / `Log.md` link to the note (those are builder-owned in t
 - Run it on the VPS (key in `$SOIC_ROOT/.env`, never printed): see the usage block at the top of the file. Needs NIM model ids (not chosen yet).
 - Unchecked: the real NIM call (`nim_call`) has never run; endpoint/response shape taken from the OpenAI-compatible NIM docs from memory.
 
-## Run 9 - T6 combination: Nemotron + Jev + Laya (2026-11-05, built here, NOT yet run)
+## Run 9 - T6 combination: Nemotron + Jev + Laya (2026-11-05, built here; run results in Run 10)
 `scripts/vps_extraction/t6_combo.py`. Nemotron answers from the short hits; Jev (typesafe_sdk noul question, hosted) and Laya (local noul question) act as gates that can only turn an answer into a refusal; fail closed, errors counted. One set of Nemotron replies is shared by four arms (`nemotron`, `+jev`, `+laya`, `+jev+laya`) so arms differ only by the gate. Table adds "blocked right" (good answers a gate wrongly stopped) and "caught wrong" (bad answers it stopped). 11 offline tests; scorer is code.
 - Unverified: `jev_verify` result shape (parser accepts any dict with `verdict`; unknown shape = counted error); Laya zero-shot is overconfident (noul 0.6-0.9), so `--laya-min 0.5` is a weak gate - tune on a held-out split, not these 40 rows.
 - Advisory only: measures the tiers; gates nothing in the repo (G2 / verify_briefs unaffected).
 - Needs on the VPS: `NVIDIA_API_KEY` and `TYPESAFE_API_KEY` as project environment variables (read from the environment; `--env` file is optional), `LAYA_DIR`, and the Nemotron NIM model id (`--model`).
 
-Run path found (2026-11-05): the keys are GitHub Actions secrets of `syedamber91/soic-ladder` (`NVIDIA_API_KEY` 2026-09-12, `TYPESAFE_API_KEY` 2026-09-21; checked by name with `gh secret list`, values never read). soic-ladder's `soic-run` workflow runs jobs on the self-hosted VPS runner; a job must be added to `scripts/soic_run.sh` (10,077 lines, JOBS list at line 61) and the `job:` choice list in `.github/workflows/soic-run.yml`, merged to `main`, then dispatched (the workflow header notes the first trigger after a merge can still hit "unknown job"). Existing precedent: job `jev-vs-nemotron`. Nemotron id used by the repo's briefs: `nvidia/nemotron-3-super-120b-a12b` (now the `--model` default; unverified today). No new secret is needed.
+Run path found (2026-11-05): the keys are GitHub Actions secrets of `syedamber91/soic-ladder` (`NVIDIA_API_KEY` 2026-09-12, `TYPESAFE_API_KEY` 2026-09-21; checked by name with `gh secret list`, values never read). soic-ladder's `soic-run` workflow runs jobs on the self-hosted VPS runner; a job must be added to `scripts/soic_run.sh` (10,077 lines, JOBS list at line 61) and the `job:` choice list in `.github/workflows/soic-run.yml`, merged to `main`, then dispatched (the workflow header notes the first trigger after a merge can still hit "unknown job"). Existing precedent: job `jev-vs-nemotron`. Nemotron id used by the repo's briefs: `nvidia/nemotron-3-super-120b-a12b` (404s on this account today; the only callable one found is `nvidia/nemotron-3-ultra-550b-a55b`, pass it with `-f companies=<id>`). No new secret is needed.
+
+## Run 10 - T6 combination results (2026-11-05/06, soic-ladder job `t6-combo`, Nemotron Ultra)
+Model `nvidia/nemotron-3-ultra-550b-a55b`, 44 rows x 3 reps, top-5 hits, 2000 max tokens. One row = 2.3 points (noise floor).
+
+| Run | Nemotron alone | +Jev | +Laya | +Jev+Laya | Note |
+|---|---|---|---|---|---|
+| 42068847813 (before fix) | 9-14% | 9-14% | 9-11% | 9-11% | Scorer bug, see below. Ignore. |
+| 42080207585 | 64-71% | 64-71% | 43-55% | 43-55% | 8 of 132 calls with no usable reply |
+| 42102477040 (+ threshold sweep) | 52-64% | 52-64% | 46-50% | 46-50% | 29 of 132 replies had no JSON |
+
+- **Bug found and fixed (PR 1302):** the prompt shows labels as `[AR p347]`; the model copied the brackets; the scorer rejected 96 of 132 replies as "cite is not a shown label". `parse_reply` now strips them.
+- **Threshold sweep (PR 1304):** each gate's cutoff picked on even rows, scored on odd rows (no extra model calls). Result for BOTH Jev and Laya: best cutoff = 0.0 (never block). Held-out gain +0. Jev is +0 at every cutoff up to 0.9 (-18 at 0.95). Laya is +0 up to 0.25, then loses answers (-9 at the old 0.5, -34 at 0.8+).
+- **Why they cannot help here:** a gate can only turn an answer into a refusal. "Caught wrong" was 0 in every run, so blocking only removes right answers. On this exam the wrong answers are mostly format/JSON/cite problems, not claims the excerpt contradicts.
+- **Unstable baseline:** plain Nemotron moved from 64-71% to 52-64% between runs (no-JSON replies 9 -> 29). That swing is larger than any gate effect. Fix the empty/non-JSON replies before comparing anything else.
+- **Not tried:** other callable Nemotron ids; other Jev question wordings; a bigger exam (44 rows, 22 per half); grep-only baseline on the same rows.
+- **Verdict (advisory, gates nothing):** on this fact-lookup exam Jev and Laya add nothing as answer filters. Do not wire them in.
