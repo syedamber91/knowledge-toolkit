@@ -149,3 +149,17 @@ Read: the model is worth keeping for table cells (grep finds the page, cannot pi
 **The 20 truth-table refusals, looked into:** the model was right to refuse in all 20 - the gold number was on no excerpt it was shown (checked offline against the saved replies, `t6-truth-2026-08-30.replies.json`). Cause 1 (15 rows): a filing is only 4-5k chars, the window was centred on the first query word (late in the text) and cut the number off. Cause 2 (5 rows): the wrong quarter's filing ranked first (an ISO date in the question did not rank that date's chunks first). Fix (soic-ladder PR #1317): a page that fits the cap is shown whole; a date in the question ranks that date first. Offline ceiling on the truth rows 93 -> 117 of 117, golden 41 -> 43 of 44 (G11 is the one that stays missed). **Not yet re-run with the model** - Run 13's refusal count is the old window's.
 
 **Not verified:** the scorer only checks the number is on the cited filing (a prior-quarter number in the same table would also pass); the truth table is Claude's work, tied to XBRL for some quarters only, so a mismatch is "check", not "wrong"; one rep on the truth rows.
+
+## Run 14: PI Industries, a second company (2026-11-07)
+
+Corpus: the FY26 annual report only (275 pages; no calls, decks or quarterly filings in the repo). `docs/vps-extraction/golden_piind.jsonl`: 16 annual-report rows + 1 refuse row (P17, a quarterly figure), written from the report, **all 17 confirmed by the owner against the PDF** (viewer page numbers). Job `t6-piind` (soic-ladder PR #1319 holds the report), Nemotron Ultra, 3 reps, no Jev/Laya.
+
+| arm | right | refused | wrong | utility |
+|---|---|---|---|---|
+| Nemotron alone, as run | 45 | 0 | 6 | +39 |
+| Nemotron alone, key with the owner's two accepted alternatives | **51 of 51** | 0 | 0 | +51 |
+| grep alone | 33 | 9 | 9 | +24 |
+
+The 6 "wrong" were two questions x 3 reps where the model gave a different but valid figure from another page; the owner accepted both: P05 EPS 87.06 (standalone accounts, p234) as well as 87.1 (highlights, p34); P09 employees 3,726 (the "Total Employees" row, p135) as well as 3,842 (workforce, p19). The key now carries `also_ok` token sets and the saved replies were re-scored offline (`t6-piind-2026-08-30.replies.json`), no new model calls. Nemotron also refused P17 correctly. Retrieval: 15 of 16 answers are on a page `ask` retrieves (P09 only via the alternative page). Grep as a stand-alone answerer fails on the same "right page, wrong cell" way as on BIOCON, e.g. P03 EBITDA margin: it answered with the CAGR line (8.0%, 10.9%), not 25.4%. `ask --answer` (model reads the pages, code checks every figure against the cited page) is the user-facing path; the code check cannot catch a number from the wrong line or quarter that is on the page.
+
+**Not verified:** n = 17 rows from one document type; no tables-heavy PIIND filings, no quarterly numbers; the question wording was chosen after one retrieval probe ("FY26 consolidated revenue from operations?" finds the page, "FY26 revenue from operations?" returns energy-intensity pages).

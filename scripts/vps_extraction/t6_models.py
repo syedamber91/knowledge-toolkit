@@ -95,6 +95,11 @@ def _facts_present(row, answer, text) -> bool:
     return bool(words) and all(w in answer.lower() and w in text.lower() for w in words)
 
 
+def _row_ok(row, answer, text) -> bool:
+    """The row's tokens, or any alternative token set the owner accepted (row["also_ok"], e.g. 87.06 for 87.1)."""
+    return any(_facts_present(dict(row, tokens=t), answer, text) for t in [row["tokens"], *row.get("also_ok", [])])
+
+
 def score_row(row, hits, reply) -> bool:
     return verdict(row, hits, reply) == "right"
 
@@ -112,7 +117,7 @@ def verdict(row, hits, reply) -> str:
     if refused:
         return "refused"
     cited = find_hit(hits, reply.get("cite"))
-    return "right" if cited and _facts_present(row, str(reply.get("answer", "")), shown_text(cited)) else "wrong"
+    return "right" if cited and _row_ok(row, str(reply.get("answer", "")), shown_text(cited)) else "wrong"
 
 
 def why_wrong(row, hits, reply) -> str:
@@ -127,6 +132,8 @@ def why_wrong(row, hits, reply) -> str:
     if cited is None:
         return "cite is not a shown label"
     answer = str(reply.get("answer", ""))
+    if _row_ok(row, answer, shown_text(cited)):
+        return "ok"
     nums = _numbers(row["tokens"])
     if nums:
         if not all(_has_number(answer, n) for n in nums):

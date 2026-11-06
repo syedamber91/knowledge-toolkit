@@ -234,10 +234,9 @@ def main(argv=None) -> int:
     ap.add_argument("--max-tokens", type=int, default=2000, help="reasoning models need room to think before they answer")
     ap.add_argument("--reps", type=int, default=3)
     ap.add_argument("-k", type=int, default=5)
+    ap.add_argument("--no-gates", action="store_true", help="skip Jev and Laya (measured: neither helps); needs only NVIDIA_API_KEY")
     ap.add_argument("--out", type=Path, required=True)
     a = ap.parse_args(argv)
-    import laya
-    from typesafe_sdk import Noul, TypeSafeClient
     from vps_extraction.ask import ask
     from vps_extraction.eval_multi_index import load_chunks
     from vps_extraction.multi_index import build
@@ -255,7 +254,11 @@ def main(argv=None) -> int:
     for rid, why in errors[:5]:
         print(f"{rid}: {why}", file=sys.stderr)
     check_error_rate(errors, len(rows) * a.reps, list_models=nemotron_ids)
-    verifiers = {"jev": cached(jev_verifier(TypeSafeClient(), Noul)), "laya": cached(laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions")))}
+    verifiers = {}
+    if not a.no_gates:
+        import laya
+        from typesafe_sdk import Noul, TypeSafeClient
+        verifiers = {"jev": cached(jev_verifier(TypeSafeClient(), Noul)), "laya": cached(laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions")))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
              f"Generator calls that returned no usable reply: {len(errors)} of {len(rows) * a.reps} (those rows count as 'none': no credit, no penalty, in every arm).\n",
@@ -264,7 +267,7 @@ def main(argv=None) -> int:
              "and the cite may carry brackets or trailing words.\n",
              "| arm | right min-max % | right / refused / wrong / none (all reps) | utility | blocked right | caught wrong | verifier errors |",
              "|---|---|---|---|---|---|---|"]
-    jobs = [(n, [verifiers[x] for x in xs], [mins[x] for x in xs], replies) for n, xs in ARMS.items()]
+    jobs = [(n, [verifiers[x] for x in xs], [mins[x] for x in xs], replies) for n, xs in ARMS.items() if all(x in verifiers for x in xs)]
     jobs += [("grep-only (no model)", [], None, {r["id"]: [grep_answer(r["question"], hits[r["id"]]) for _ in range(a.reps)] for r in rows}),
              ("grep-first, model on tables", [], None, grep_first(rows, hits, replies))]
     for name, vs, mn, rep_src in jobs:
@@ -274,7 +277,7 @@ def main(argv=None) -> int:
         lines.append(f"| {name} | {min(pct):.1f}-{max(pct):.1f} | {v['right']} / {v['refused']} / {v['wrong']} / {v['none']} | {res['util']:+d} | "
                      f"{res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
     lines += ["", "Threshold sweep (utility gained vs no gate, summed over reps; train = even rows, test = odd rows):", ""]
-    for name in ("jev", "laya"):
+    for name in [n for n in ("jev", "laya") if n in verifiers]:
         try:
             tu = tune(rows, hits, replies, verifiers[name])
         except Exception as e:  # a sweep is extra; never lose the table above

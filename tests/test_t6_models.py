@@ -123,3 +123,13 @@ def test_the_model_is_shown_and_scored_on_the_same_text_not_a_short_snippet():
     row = {"id": "G", "kind": "page_grep", "question": "q", "tokens": ["172,695"]}
     assert "172,695" in build_prompt("q", [hit])
     assert score_row(row, [hit], {"answer": "172,695", "cite": "AR p5"}) is True
+
+
+def test_a_row_can_list_other_acceptable_answers_and_any_one_of_them_passes():
+    row = {"id": "P05", "kind": "page_grep", "question": "q", "tokens": ["87.1"], "also_ok": [["87.06"]]}
+    hits = [{"source": "annual-report", "label": "AR p234", "snippet": "s", "text": "EPS Basic 87.06 and also 87.1"}]
+    assert score_row(row, hits, {"answer": "87.06", "cite": "AR p234"}) is True
+    assert score_row(row, hits, {"answer": "87.1", "cite": "AR p234"}) is True
+    assert score_row(row, hits, {"answer": "88.0", "cite": "AR p234"}) is False
+    hits2 = [{"source": "annual-report", "label": "AR p234", "snippet": "s", "text": "EPS Basic 87.06"}]
+    assert score_row(row, hits2, {"answer": "87.06", "cite": "AR p234"}) is True   # the alternative only needs itself on the page
