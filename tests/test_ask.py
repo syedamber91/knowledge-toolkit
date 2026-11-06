@@ -59,3 +59,13 @@ def test_note_records_a_refusal_plainly(tmp_path):
     note = tmp_path / "BIOCON.md"
     write_note(note, "total income", ask("total income", ar, multi, number="999,999"), "999,999", "t")
     assert "REFUSE" in note.read_text()
+
+
+def test_hits_carry_the_page_text_capped_and_centred_when_it_is_long(tmp_path):
+    ar, multi = _indexes(tmp_path)
+    h = ask("total income", ar, multi)["hits"][0]
+    assert "172,695" in h["text"]
+    (tmp_path / "p003.md").write_text("total income " + "filler " * 3000 + " 999,111 at the end")
+    from vps_extraction.page_index import build_index
+    long_hit = [x for x in ask("total income", build_index(tmp_path), multi, text_cap=500)["hits"] if x["label"] == "AR p3"][0]
+    assert len(long_hit["text"]) <= 500

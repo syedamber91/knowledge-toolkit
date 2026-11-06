@@ -138,7 +138,7 @@ def test_tune_picks_the_threshold_on_train_rows_and_scores_it_on_unseen_test_row
     replies = {r["id"]: [GOOD] for r in rows}
     out = tune(rows, hits, replies, lambda q, a, e: 0.2, grid=[0.0, 0.1, 0.3, 0.5])
     assert out["best"] == 0.3            # lowest threshold that blocks them all
-    assert out["train"][0.3] == 2 and out["test"][0.3] == 2 and out["test"][0.0] == 0
+    assert out["train"][0.3] == 4 and out["test"][0.3] == 4 and out["test"][0.0] == 0  # utility: wrong(-1) -> right(+1) = +2 per row
 
 
 def test_nim_generate_retries_a_timeout_then_returns_the_reply():
@@ -161,3 +161,41 @@ def test_nim_generate_gives_up_after_three_timeouts_and_reports_it():
     fake = lambda p, m, **kw: (None, NS(summary="status=transport_error attempts=1: ReadTimeout"))
     text, err = nim_generate("m", call=fake, sleep=lambda s: None)("p")
     assert text is None and "transport_error" in err
+
+
+def test_a_gate_that_turns_a_wrong_answer_on_an_answerable_row_into_a_refusal_now_earns_a_point():
+    from vps_extraction.t6_combo import tune
+    rows = [dict(ROW, id=f"C{i}") for i in range(4)]
+    hits = {r["id"]: HITS for r in rows}
+    bad = {"answer": "INR 999", "cite": "c p7"}      # confident wrong number
+    replies = {r["id"]: [bad] for r in rows}
+    out = run_arms(rows, hits, replies, {"plain": [], "gated": [no]})
+    assert out["plain"]["util"] == -4 and out["gated"]["util"] == 0 and out["gated"]["verdicts"]["refused"] == 4  # +1 each
+    assert tune(rows, hits, replies, lambda q, a, e: 0.2, grid=[0.0, 0.5])["best"] == 0.5
+
+
+def test_a_gate_that_blocks_a_right_answer_loses_a_point():
+    rows = [ROW]
+    out = run_arms(rows, {"C05": HITS}, {"C05": [GOOD]}, {"plain": [], "gated": [no]})
+    assert out["plain"]["util"] == 1 and out["gated"]["util"] == 0
+
+
+def test_grep_answer_picks_the_line_that_shares_the_most_question_words_and_refuses_when_too_few():
+    from vps_extraction.t6_combo import grep_answer
+    hits = [{"source": "call", "label": "c p7", "snippet": "x",
+             "text": "Intro words only. Syngene revenue from operations was INR 854 crores in the quarter. Other 12 things."}]
+    got = grep_answer("What was Syngene revenue from operations?", hits)
+    assert got["cite"] == "c p7" and "854" in got["answer"] and "12" not in got["answer"]
+    assert grep_answer("Totally unrelated zebra question", hits) == {"refuse": True}
+
+
+def test_grep_first_uses_grep_for_prose_sources_and_the_model_for_tables():
+    from vps_extraction.t6_combo import grep_first
+    prose = {"source": "call", "label": "c p7", "snippet": "s", "text": "Syngene revenue from operations INR 854 crores"}
+    table = {"source": "annual-report", "label": "AR p1", "snippet": "s", "text": "Total income 172,695"}
+    rows = [{"id": "A", "kind": "call_grep", "question": "Syngene revenue from operations?", "tokens": ["854"]},
+            {"id": "B", "kind": "page_grep", "question": "Total income?", "tokens": ["172,695"]}]
+    hits = {"A": [prose], "B": [table]}
+    model = {"A": [{"answer": "MODEL"}], "B": [{"answer": "MODEL"}]}
+    out = grep_first(rows, hits, model)
+    assert "854" in out["A"][0]["answer"] and out["B"] == [{"answer": "MODEL"}]

@@ -87,3 +87,39 @@ def test_why_wrong_names_the_first_reason_a_reply_fails():
 def test_parse_reply_strips_brackets_the_prompt_shows_around_a_cite():
     assert parse_reply('{"answer": "1", "cite": "[AR p347]"}')["cite"] == "AR p347"
     assert parse_reply('{"answer": "1", "cite": "AR p347"}')["cite"] == "AR p347"
+
+
+# --- exam fixes after the Opus review (2026-11-06) ---
+from vps_extraction.t6_models import UTILITY, find_hit, verdict
+
+
+def test_find_hit_accepts_a_cite_with_trailing_junk_and_brackets_but_not_a_guess():
+    assert find_hit(HITS, "AR p1] (annual-report)")["label"] == "AR p1"
+    assert find_hit(HITS, "[2024-02-09 p7]")["label"] == "2024-02-09 p7"
+    assert find_hit(HITS, "ar P1")["label"] == "AR p1"
+    assert find_hit(HITS, "AR p10") is None  # p10 must not match p1
+    assert find_hit(HITS, "2020-01-01 p9") is None
+
+
+def test_verdict_is_right_refused_wrong_or_none_and_refused_beats_wrong():
+    assert verdict(ROW, HITS, {"answer": "INR 854", "cite": "2024-02-09 p7"}) == "right"
+    assert verdict(ROW, HITS, {"refuse": True}) == "refused"
+    assert verdict(ROW, HITS, {"answer": "INR 999", "cite": "2024-02-09 p7"}) == "wrong"
+    assert verdict(ROW, HITS, None) == "none"
+    assert verdict(NOT, HITS, {"refuse": True}) == "right"
+    assert verdict(NOT, HITS, {"answer": "5", "cite": "AR p1"}) == "wrong"
+    assert UTILITY["right"] > UTILITY["refused"] > UTILITY["wrong"]
+
+
+def test_a_row_with_no_digits_is_scored_on_its_words_not_failed_forever():
+    row = {"id": "A06", "kind": "announcement_grep", "question": "q", "tokens": ["Biofusion Therapeutics"]}
+    hits = [{"source": "announcement", "label": "a1", "snippet": "Biocon acquires Biofusion Therapeutics Inc."}]
+    assert score_row(row, hits, {"answer": "Biofusion Therapeutics", "cite": "a1"}) is True
+    assert score_row(row, hits, {"answer": "Something else", "cite": "a1"}) is False
+
+
+def test_the_model_is_shown_and_scored_on_the_same_text_not_a_short_snippet():
+    hit = {"source": "annual-report", "label": "AR p5", "snippet": "short", "shown": "short ... Total income 172,695"}
+    row = {"id": "G", "kind": "page_grep", "question": "q", "tokens": ["172,695"]}
+    assert "172,695" in build_prompt("q", [hit])
+    assert score_row(row, [hit], {"answer": "172,695", "cite": "AR p5"}) is True

@@ -15,10 +15,11 @@ usage (VPS; NVIDIA_API_KEY and TYPESAFE_API_KEY as project environment variables
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
-from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, score_row, why_wrong
+from vps_extraction.t6_models import ANSWERABLE, build_prompt, parse_reply, UTILITY, score_row, shown_text, verdict, why_wrong
 
 ARMS = {"nemotron": [], "nemotron+jev": ["jev"], "nemotron+laya": ["laya"], "nemotron+jev+laya": ["jev", "laya"]}
 
@@ -63,6 +64,40 @@ def laya_verifier(agent):
         text = f"Question: {question}\nProposed answer: {answer}\nExcerpt: {excerpt}"
         return float(agent.system_one(text, q)["answers"]["ok"]["noul"])
     return v
+
+
+_NUM = re.compile(r"\(?\d[\d,]*(?:\.\d+)?\)?\s?%?")
+_PROSE = {"call", "announcement"}  # tables (annual report, decks) go to the model; measured: grep fails there
+
+
+def grep_answer(question, hits, min_terms=3):
+    """No model: the line (across the shown hits) sharing the most question words, answered with its numbers.
+    Refuses if fewer than min_terms question words match, so a weak match is a refusal, not a guess."""
+    from vps_extraction.page_index import query_terms
+    terms = {t.lower() for t in query_terms(question)}
+    best = None
+    for i, h in enumerate(hits):
+        for line in re.split(r"(?<=[a-z\)])\.\s+(?=[A-Z])", shown_text(h)):
+            if not re.search(r"\d", line):
+                continue
+            score = sum(t in line.lower() for t in terms)
+            if score >= min_terms and (best is None or (score, -i) > best[0]):
+                best = ((score, -i), h["label"], line)
+    if best is None:
+        return {"refuse": True}
+    return {"answer": " ; ".join(m.group(0).strip() for m in _NUM.finditer(best[2])), "cite": best[1]}
+
+
+def grep_first(rows, hits, replies):
+    """Replies for the 'grep-first' arm: grep answers when the top hit is prose, the shared model reply otherwise."""
+    out = {}
+    for r in rows:
+        hs = hits[r["id"]]
+        if hs and hs[0]["source"] in _PROSE:
+            out[r["id"]] = [grep_answer(r["question"], hs) for _ in replies[r["id"]]]
+        else:
+            out[r["id"]] = replies[r["id"]]
+    return out
 
 
 def collect_replies(rows, hits, reps, generate):
@@ -127,18 +162,23 @@ def run_arms(rows, hits, replies, arms, mins=None):
     n_reps = len(next(iter(replies.values())))
     out = {}
     for name, vs in arms.items():
-        reps, errors, blocked_right, caught_wrong = [], [], 0, 0
+        reps, errors, blocked_right, caught_wrong, util = [], [], 0, 0, 0
+        verdicts = {v: 0 for v in UTILITY}
         for k in range(n_reps):
             rep = []
             for r in rows:
                 raw = replies[r["id"]][k]
                 base = score_row(r, hits[r["id"]], raw)
-                gated = score_row(r, hits[r["id"]], gate(raw, hits[r["id"]], r["question"], vs, errors, mins))
+                v = verdict(r, hits[r["id"]], gate(raw, hits[r["id"]], r["question"], vs, errors, mins))
+                gated = v == "right"
                 blocked_right += base and not gated
                 caught_wrong += (not base) and gated
+                verdicts[v] += 1
+                util += UTILITY[v]
                 rep.append(gated)
             reps.append(rep)
-        out[name] = {"reps": reps, "errors": len(errors), "blocked_right": blocked_right, "caught_wrong": caught_wrong}
+        out[name] = {"reps": reps, "errors": len(errors), "blocked_right": blocked_right, "caught_wrong": caught_wrong,
+                     "util": util, "verdicts": verdicts}
     return out
 
 
@@ -157,10 +197,9 @@ GRID = [round(0.05 * i, 2) for i in range(20)]  # 0.0 = never block
 
 
 def _net(rows, hits, replies, verifier, t):
-    """Answers gained (+) or lost (-) vs no gate, summed over reps, at threshold t."""
-    plain = run_arms(rows, hits, replies, {"p": []})["p"]["reps"]
-    gated = run_arms(rows, hits, replies, {"g": [verifier]}, [t])["g"]["reps"]
-    return sum(map(sum, gated)) - sum(map(sum, plain))
+    """Utility gained (+) or lost (-) vs no gate, summed over reps, at threshold t (right +1, refused 0, wrong -1)."""
+    plain = run_arms(rows, hits, replies, {"p": []})["p"]["util"]
+    return run_arms(rows, hits, replies, {"g": [verifier]}, [t])["g"]["util"] - plain
 
 
 def tune(rows, hits, replies, verifier, grid=GRID):
@@ -203,14 +242,22 @@ def main(argv=None) -> int:
     verifiers = {"jev": cached(jev_verifier(TypeSafeClient(), Noul)), "laya": cached(laya_verifier(laya.load(a.laya_checkpoint) if a.laya_checkpoint else laya.load("convaiinnovations/laya", subfolder="typed-decisions")))}
     mins = {"jev": a.jev_min, "laya": a.laya_min}
     lines = [f"# combo-table ({len(rows)} rows, {a.reps} reps, generator {a.model}, top-{a.k} hits)\n",
-             f"Generator calls that returned no usable reply: {len(errors)} of {len(rows) * a.reps} (those rows count as wrong in every arm).\n",
+             f"Generator calls that returned no usable reply: {len(errors)} of {len(rows) * a.reps} (those rows count as 'none': no credit, no penalty, in every arm).\n",
              f"Noise floor: one row = {100 / len(rows):.1f} points; a gap below that is a tie (pick the cheaper arm).\n",
-             "| arm | min % | max % | blocked right | caught wrong | verifier errors |", "|---|---|---|---|---|---|"]
-    for name, names in ARMS.items():
-        res = run_arms(rows, hits, replies, {name: [verifiers[n] for n in names]}, [mins[n] for n in names])[name]
+             "Scoring: right +1, refused 0, wrong -1 (a refusal beats a silent wrong number). Excerpts shown to the model are the long page text (cap 6000 chars), "
+             "and the cite may carry brackets or trailing words.\n",
+             "| arm | right min-max % | right / refused / wrong / none (all reps) | utility | blocked right | caught wrong | verifier errors |",
+             "|---|---|---|---|---|---|---|"]
+    jobs = [(n, [verifiers[x] for x in xs], [mins[x] for x in xs], replies) for n, xs in ARMS.items()]
+    jobs += [("grep-only (no model)", [], None, {r["id"]: [grep_answer(r["question"], hits[r["id"]]) for _ in range(a.reps)] for r in rows}),
+             ("grep-first, model on tables", [], None, grep_first(rows, hits, replies))]
+    for name, vs, mn, rep_src in jobs:
+        res = run_arms(rows, hits, rep_src, {name: vs}, mn)[name]
         pct = [100 * sum(rep) / len(rep) for rep in res["reps"]]
-        lines.append(f"| {name} | {min(pct):.1f} | {max(pct):.1f} | {res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
-    lines += ["", "Threshold sweep (answers gained vs no gate, summed over reps; train = even rows, test = odd rows):", ""]
+        v = res["verdicts"]
+        lines.append(f"| {name} | {min(pct):.1f}-{max(pct):.1f} | {v['right']} / {v['refused']} / {v['wrong']} / {v['none']} | {res['util']:+d} | "
+                     f"{res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
+    lines += ["", "Threshold sweep (utility gained vs no gate, summed over reps; train = even rows, test = odd rows):", ""]
     for name in ("jev", "laya"):
         try:
             tu = tune(rows, hits, replies, verifiers[name])
