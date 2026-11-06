@@ -23,7 +23,7 @@ from pathlib import Path
 from vps_extraction.page_index import _has_number
 
 URL = "https://integrate.api.nvidia.com/v1/chat/completions"
-ANSWERABLE = {"page_grep", "announcement_grep", "call_grep", "deck_grep"}
+ANSWERABLE = {"page_grep", "announcement_grep", "call_grep", "deck_grep", "filing_grep"}
 
 
 def load_key(env_path=None) -> str:

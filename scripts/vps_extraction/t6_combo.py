@@ -212,7 +212,8 @@ def tune(rows, hits, replies, verifier, grid=GRID):
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--golden", nargs="+", required=True, type=Path)
+    ap.add_argument("--golden", nargs="*", default=[], type=Path)
+    ap.add_argument("--truth-table", type=Path, help="Claude's finished BIOCON truth-table.csv: adds one question per cell and searches the quarterly-filing excerpts in DATA/excerpts")
     ap.add_argument("--data", required=True, type=Path)
     ap.add_argument("--ar", required=True, type=Path)
     ap.add_argument("--model", default="nvidia/nemotron-3-super-120b-a12b",
@@ -233,7 +234,12 @@ def main(argv=None) -> int:
     from vps_extraction.multi_index import build
     from vps_extraction.page_index import build_index
     rows = [r for f in a.golden for r in map(json.loads, f.open()) if r["kind"] in ANSWERABLE or r["kind"] == "not_in_corpus"]
-    ar, multi = build_index(a.ar), build(load_chunks(a.data))
+    chunks = load_chunks(a.data)
+    if a.truth_table:
+        from vps_extraction.truth_exam import filing_chunks, truth_rows
+        rows += truth_rows(a.truth_table)
+        chunks += filing_chunks(a.data / "excerpts")
+    ar, multi = build_index(a.ar), build(chunks)
     hits = {r["id"]: ask(r["question"], ar, multi, a.k, width=900)["hits"] for r in rows}
     replies, errors = collect_replies(rows, hits, a.reps, nim_generate(a.model, a.max_tokens))
     for rid, why in errors[:5]:
