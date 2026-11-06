@@ -89,9 +89,18 @@ def main(argv=None) -> int:
     ap.add_argument("--number")
     ap.add_argument("-k", type=int, default=5)
     ap.add_argument("--note", type=Path, help="append the result to this Obsidian note (created if missing)")
+    ap.add_argument("--answer", action="store_true", help="ask a model to read the pages, then CODE-check its figures against the cited page (needs NVIDIA_API_KEY and PYTHONPATH=scripts:src)")
+    ap.add_argument("--model", default="nvidia/nemotron-3-ultra-550b-a55b", help="NIM model id for --answer")
     a = ap.parse_args(argv)
     from vps_extraction.eval_multi_index import load_chunks
     from vps_extraction.multi_index import build
+    if a.answer:
+        from vps_extraction.answer import ask_and_answer
+        from vps_extraction.t6_combo import nim_generate
+        res = ask_and_answer(a.question, build_index(a.ar), build(load_chunks(a.data)), nim_generate(a.model, max_tokens=6000),
+                             a.k, a.note, datetime.now().strftime("%Y-%m-%d %H:%M"))
+        print(f"ANSWER: {res['answer']}\n  source: {res['source']} {res['cite']}" if res["status"] == "ok" else f"REFUSE: {res['reason']}")
+        return 0 if res["status"] == "ok" else 1
     r = ask(a.question, build_index(a.ar), build(load_chunks(a.data)), a.k, a.number)
     for h in r["hits"]:
         print(f"[{h['source']}] {h['label']}\n    ...{h['snippet']}...")

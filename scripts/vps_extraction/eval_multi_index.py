@@ -30,6 +30,8 @@ def load_chunks(data: Path):
         chunks += chunk_deck_layout(f.read_text(errors="replace"))
     seen = set()
     for f in ("announcements-2021-2026-08-30.csv", "announcements-latest.csv"):
+        if not (data / f).exists():  # a company with a partial corpus (e.g. only an annual report) still loads
+            continue
         for c in chunk_announcements((data / f).read_text(errors="replace")):
             if c.label not in seen:
                 seen.add(c.label)
