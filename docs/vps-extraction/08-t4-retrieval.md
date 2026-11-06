@@ -108,3 +108,15 @@ Cause of the empty replies: 29 of 132 Ultra calls died on the client's 120 s rea
 | 63.6-72.7% | 63.6-72.7% | 52.3-54.5% (19 right answers blocked) | 52.3-54.5% |
 
 Sweep again: best cutoff for Jev and Laya = 0.0 (never block); held-out gain +0. Wrong plain replies (39 of 132): 13 cite not a shown label, 11 no usable reply, 10 refused an answerable row, 5 number missing from the answer. Baseline is now steady across runs 2 and 4 (64-71% vs 64-73%). Conclusion unchanged: Jev and Laya add nothing here.
+
+## Correction after an Opus adversarial review (2026-11-06)
+
+Runs 10 and 11 said "Jev and Laya add nothing". That was **not proven**. What the review found, and what was measured offline (same 44 rows, no model calls):
+
+- **The old scorer gave a gate no way to earn a point.** A refusal on an answerable row counted as wrong, so a gate could only gain on the 4 refusal rows, which the model already refused. "Caught wrong = 0" and "best cutoff = never block" were built into the scorer. They say nothing about Jev or Laya.
+- **Some misses were the exam's fault.** Two rows (A06, A07) have no digits and could never pass; six rows (G07, G08, G10, G14, G15, C04) had the number on the retrieved page but outside the 900-char excerpt. 13 correct-looking replies failed on cite format.
+- **The "timeouts" story fits only run 3's drop (120 s read timeouts).** Run 11's 11 remaining empty replies were `finish=length`: the model spent its 2,000 tokens thinking.
+- **"Steady baseline" rested on 2 runs**, each swinging about 9 points between reps.
+- **Grep was never compared.** Measured: the right number is on the retrieved pages for 37 of 40 answerable rows. Picking the right line scores 19 of 44 (43%) with the old 900-char excerpts; best possible with those excerpts was 35 (80%); Nemotron got 28-32. Grep matches the best possible on announcements (6 of 6), loses on annual-report tables (3 of 10) and decks (2 of 8). So the model is needed for tables, not for prose.
+
+Fixes (soic-ladder PR #1308): three-way scoring (right +1, refused 0, wrong -1), loose cite match, the model sees and the scorer checks up to 6,000 chars of page text (offline ceiling 35 -> 41 of 44), words-based check for rows without digits, `grep-only` and `grep-first` arms. Offline with the wider text, grep-only scores 24 right / 1 refused / 19 wrong. Not yet re-run with the model: runs 10-11 numbers above are from the old exam and are not comparable.
