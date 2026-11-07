@@ -1,0 +1,82 @@
+# T2 — Run the existing BIOCON jobs on the VPS (plan, 2026-11-04). NOT RUN YET.
+
+## Correction to the handoff
+Handoff A says trigger with `git push origin HEAD:run/<job>/<name>`. **That cannot select a case-study mode.** Read from soic-ladder `.github/workflows/soic-run.yml` @ main (6f97ab9): a `run/**` push "carries no inputs"; the case-study MODE comes from the `companies` input; blank mode → `soic_run.sh` exits 1 ("There is no default mode"). So use workflow dispatch:
+
+```bash
+gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main \
+  -f job=case-study -f companies=<mode> [-f as_of=<YYYY-MM-DD>]
+```
+- `case-study` is already a dispatch choice (workflow line 109) → the "new job name" trap does not apply.
+- Company is hard-coded `CASE_STUDY_COMPANY="BIOCON"` (soic_run.sh line 9013).
+- Default snapshot date is `2026-08-30`. A run with no `as_of` regenerates the 2026-08-30 files → perfect for the idempotence test (T2 done-when d).
+- Each run ends as a PR titled `results: case-study <date>` on soic-ladder (private). Merging it is a separate decision. Never merge without the owner.
+- Never run from the stale local clone; dispatch uses GitHub `main`, which is right.
+
+## Order (cheapest, offline first)
+| # | mode | network? | model? | proves |
+|---|---|---|---|---|
+| 1 | excerpts | no | no (per comments) | idempotence: expect EMPTY diff vs committed files |
+| 2 | management-text | no | no | same |
+| 3 | qa-pairs | no | no | same |
+| 4 | screener | no | no | same |
+| 5 | announcements-latest | yes | no | new rows since 2026-08-30; NSE cookie handled by the script (UNCHECKED) |
+| 6 | fetch-results / fetch-calls / fetch-decks | yes | no | new Q2 FY27 filing/call/deck if published |
+
+Stop after #1 and read the result before running #2+.
+
+## Done-when for each run (from spec §2b)
+1. Output files carry source_url + fetched_at (where the mode fetches).
+2. No model-written prose: grep outputs for hedge/summary words; read the run log for any API call.
+3. Offline modes: PR diff empty (byte-identical) at default as_of.
+4. Counts at the pinned SHA match: announcements 582 rows? (UNCHECKED), FY26 pages 559 ✓ (counted), calls 14? decks 11? results 11? (UNCHECKED).
+
+## Owner decision needed
+Dispatching = a real run on the owner's VPS + a PR on a private repo. Needs an explicit yes. Public repo note: outputs stay in private soic-ladder, not in this public repo.
+
+## RESULT of run #1 — mode `excerpts` (2026-11-04, GitHub Actions run 41887808011)
+Command: `gh workflow run soic-run.yml --repo syedamber91/soic-ladder --ref main -f job=case-study -f companies=excerpts`
+- **Outcome: success. "the job changed nothing; no pull request to open."** → idempotent at default as_of (done-when d, offline modes): PASSED.
+- Wall time ~47 s end to end (18:30:22 → 18:31:09 UTC); the script itself ~1 s (`scripts/case_study_excerpts.py` over 11 quarterly PDF-text files).
+- No model call: the log's only mentions of model/vendor names are workflow comments and the commit template (4 lines, read one by one).
+- Script warnings worth keeping: Jun-2024 quarter `not_found`; no segment table for 2024-06-30 and 2025-09-30; no consolidated income statement for 2024-06-30. These match the known gap list; not new.
+- Side note: the runner's commit template names "Claude Fable 5.1" as co-author regardless of who ran it. Not ours to change here.
+- The 11 quarters found (2023-12-31 … 2026-06-30) include 2026-06-30 but NOT 2026-09-30: the Q2 FY27 filing is not in the VPS text yet → needs `fetch-results` (network).
+
+## RESULT of run #2 — mode `announcements-latest` (run 41888407157)
+- Success, ~11 s of work (18:34:24 → 18:34:35). Network, no model. Script: `case_study_announcements_live.py --symbol BIOCON --start 2026-09-03 --end 2026-11-04` → **20 announcements** (NSE cookie handled by the script: the "UNCHECKED" cookie risk for this mode is now CHECKED, it worked).
+- Opened soic-ladder PR #1289 (1 file: `docs/idea/case-study/BIOCON/data/announcements-latest.csv`). NOT merged (owner's call). Read from branch `results/case-study-20261104-1834`.
+- **Q2 FY27 is out. Filed 2026-11-04** (title/URL only; contents NOT read yet):
+  - 13:19 Outcome of Board Meeting — "financial results for the period ended September 30, 2026" — `https://nsearchives.nseindia.com/corporate/BIOCON_04112026131527_BMOutcome.pdf`
+  - 13:23 Press release on results — `.../BIOCON_04112026132336_Press_Release.pdf`
+  - 15:09 Investor Presentation — `.../BIOCON_04112026150858_Presentation.pdf`
+  - 16:29 "Communication regarding withholding of final dividend for FY 2025-26" — `.../BIOCON_04112026162937_SE_Intimation.pdf` (unread)
+  - 16:36 "Resignation of Director/KMP/SMP" — `.../BIOCON_ROID_103428_KMP_Doc.zip` (a zip, unread; who resigned is UNCHECKED)
+  - 20:51 Link of earnings-call recording — `.../BIOCON_04112026205126_Earning_Calls_outcome.pdf` (transcript not yet published)
+- Why `fetch-results` cannot do this alone: it reads the frozen corpus wording filter, not new announcements. The route is `data/gap-urls.txt` + mode `fetch-gap`, which needs that file committed on a branch first (a write to soic-ladder). NOT done yet.
+
+## RESULT of run #3 — mode `fetch-gap`, branch `claude/q2fy27-gap-urls`, `as_of=2026-11-04` (run 41889054837)
+- Branch `claude/q2fy27-gap-urls` (soic-ladder, from main 6f97ab9) = 1 commit: appended 3 Q2 FY27 URLs to `data/gap-urls.txt` (kept the 4 Mar-2025 lines). Not merged. (Name avoids `run/**`, which would auto-trigger a run.)
+- Success. Network + pdftotext, no model. Opened soic-ladder **PR #1290** (2 files: gap-urls.txt + `gap-manifest-2026-11-04.json`). Not merged.
+- Results-marker counts (words found in the text, NOT figures read):
+  - q2fy27-a (BMOutcome 13:15): total income 2, profit before tax 5, quarter ended 15, segment 23, EPS 2 → looks like the results filing.
+  - q2fy27-b (Bioconlimited BMOutcome 13:25): same counts as -a → probably the same results document filed twice. UNCHECKED.
+  - q2fy27-c (press release): PBT 0 → not the results table.
+  - mar25-a..d re-fetched with identical counts to the original run (a mini repeat-check: PASS).
+- **GAP FOUND:** `fetch-gap` puts the PDF text on the VPS only (`$SOIC_RUNS/…/gap-pdftext-2026-11-04`, gitignored) and commits just the manifest. So a cloud session still cannot read the Q2 FY27 numbers. T2 done-when (b) is NOT met for this quarter. `excerpts` (which does commit text) has the Mar-2025 gap file hard-coded (`--extra 2025-03-31=…mar25-a`), so it would need a small code change to include `q2fy27-a`.
+
+## Runs #4–#7 (2026-11-04/05) — offline modes + Q2 text fix
+
+**Offline modes (dispatched on soic-ladder main, each "the job changed nothing; no pull request to open"):**
+management-text (run 41902113862), qa-pairs (41902734734), screener (41902896864). Idempotent, no model. CHECKED from the run logs.
+
+**Q2 text gap fixed (soic-ladder branch `claude/excerpts-q2fy27`, 2 commits, since merged):**
+- `scripts/soic_run.sh` excerpts mode now also passes `--extra 2026-09-30=.../gap-pdftext-2026-11-04/q2fy27-a.txt.gz`.
+- Test first: `test_case_study_excerpts_reads_the_frozen_filings...` got the new assert, was red, then green.
+- Full `tests/test_soic_run.py` + excerpts tests: the same 10 tests fail before and after my change (CHECKED by diffing the FAILED lists); none is excerpts. Looks like Mac-vs-Linux env, cause UNCHECKED.
+- First dispatch failed loud (FileNotFoundError): the Q2 text sits in `gap-pdftext-2026-11-04`, not the as_of folder. Path fixed. Second dispatch (41904673283) succeeded -> PR #1291 on branch `results/case-study-20261104-2014` with `consolidated-2026-09-30.txt`, `segment-2026-09-30.txt`, `excerpts-manifest.json`.
+- Spot check: Q2 consolidated table shows Revenue from operations 43,889 Rs million (= 4,389 cr) for 3 months ended 30.09.2026, matching the Screener Sep 2026 Sales 4,389 cr. Total income 44,234; PBT 548 (Rs million).
+- Known limits: the Q2 path is hard-coded to the 2026-11-04 folder (a next quarter needs another line); excerpts now fails loud if that VPS file is gone; 2024-06-30 still `not_found` (pre-existing); segment table missing for 2024-06-30 and 2025-09-30 (pre-existing).
+
+**Merged 2026-11-05 (owner yes):** PRs #1289, #1290, #1291 are on soic-ladder main. Branches `claude/q2fy27-gap-urls` and `claude/excerpts-q2fy27` left in place. Each PR showed the same one failing check (`test_annual_report_prose`, missing python lib on the runner) with 11,796 passed; whether it already fails on main is UNCHECKED.
+**Golden N03:** changed from a refuse row to an answerable row (Q2 filing now on main). Needs a retrieval test and a human check.

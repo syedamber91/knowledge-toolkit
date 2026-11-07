@@ -1908,3 +1908,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
 - **What is the exact relationship between `10 decision shapes table` and `primitives-overview / noul / choice / score`?**
   _Edge tagged AMBIGUOUS (relation: conceptually_related_to) - confidence is low._
+## Delta 2026-11-05 (hand-merged, not a full re-cluster)
+Added community 402 "VPS extraction (retrieval, golden set, free-model harness)": AST of `scripts/vps_extraction/*` and 8 test files, plus a semantic pass over `docs/vps-extraction/*.md` and the 2026-11-04 spec. All new nodes sit in community 402; other communities and labels are untouched. The semantic subagent read only the first part of 05, 06 and the spec, and the last ~4.5 KB of 08, so those four docs are thinly covered. Files changed since the last graph outside this work (System One scripts, other docs) are NOT in this delta. The manifest holds paths from another checkout, so `--update` would mark everything new; a full `/graphify .` is still the proper refresh.
