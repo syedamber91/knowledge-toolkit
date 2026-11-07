@@ -3768,5 +3768,20 @@
     "mtime": 1790923362.6609223,
     "ast_hash": "f15aaa42d5d299d091b1171097ea56ad",
     "semantic_hash": "f15aaa42d5d299d091b1171097ea56ad"
+  },
+  "scripts/funnel_v0.py": {
+    "mtime": 1793816028.0719569,
+    "ast_hash": "93d1c1b1ca2ac211de1dae54aafee2bc058c1e5152ce66b3551477e727f7eb06",
+    "semantic_hash": ""
+  },
+  "tests/test_funnel_v0.py": {
+    "mtime": 1793815876.563275,
+    "ast_hash": "ed9ce993e742ddd75e1602bc5060fdbe4a4485dcc469b82312dd88dd3fc8025c",
+    "semantic_hash": ""
+  },
+  "docs/FUNNEL-V0-CAVEMAN-SPEC.md": {
+    "mtime": 1793816324.0381644,
+    "ast_hash": "c66f03386832fd8dd4f9edac405f22229e6b73cf164b425660f5cea5f2e7b481",
+    "semantic_hash": ""
   }
 }
