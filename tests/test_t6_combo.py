@@ -219,7 +219,7 @@ def test_run_batched_scores_with_the_pages_the_batch_actually_showed_and_counts_
     from vps_extraction.t6_combo import run_batched
     r1 = dict(ROW, id="C05", question="q1")
     r2 = {"id": "C06", "kind": "call_grep", "question": "q2", "tokens": ["172,695"]}
-    hits = {"C05": [HITS[0]], "C06": [HITS[1]]}      # different top pages, but one batch of 2
+    hits = {"C05": [HITS[0], HITS[1]], "C06": [HITS[1]]}      # they share the AR page, so one batch of 2
 
     def gen(prompt):   # answers q1 from the call page and q2 from the AR page (shown in the same prompt)
         return ('{"answers": [{"q": 1, "answer": "INR 854 crores", "cite": "c p7"}, '
@@ -228,3 +228,40 @@ def test_run_batched_scores_with_the_pages_the_batch_actually_showed_and_counts_
     out = run_arms([r1, r2], bhits, replies, {"batched": []})["batched"]
     assert out["reps"] == [[True, True], [True, True]]
     assert stats["calls"] == 2 and stats["failed_calls"] == 0 and stats["chars"] > 0
+
+
+def test_run_batched_keeps_each_raw_batch_reply_and_why_a_row_was_refused():
+    from vps_extraction.t6_combo import run_batched
+    r1 = dict(ROW, id="C05", question="q1")
+    hits = {"C05": [HITS[0]]}
+    replies, bhits, stats = run_batched([r1], hits, lambda p: ('{"answers": [{"q": 1, "answer": "INR 999", "cite": "c p7"}]}', None), reps=1, size=6)
+    assert stats["log"][0]["reply"].startswith('{"answers"') and stats["log"][0]["questions"] == ["C05"]
+    assert stats["reasons"][0]["id"] == "C05" and "999" in stats["reasons"][0]["reason"] or stats["reasons"][0]["reason"]
+
+
+def test_a_failed_batch_call_is_no_reply_not_a_refusal():
+    from vps_extraction.t6_combo import run_batched
+    replies, bhits, stats = run_batched([ROW], {"C05": HITS}, lambda p: (None, "status=429"), reps=1, size=6)
+    assert replies["C05"] == [None] and stats["failed_calls"] == 1
+
+
+def test_nim_generate_backs_off_and_retries_on_429():
+    from types import SimpleNamespace as NS
+    from vps_extraction.t6_combo import nim_generate
+    calls, waits = [], []
+
+    def fake(prompt, model, **kw):
+        calls.append(1)
+        if len(calls) < 3:
+            return None, NS(summary="status=429 attempts=5: HTTP 429: Too Many Requests")
+        return NS(content='{"refuse": true}', finish_reason="stop"), NS(summary="ok")
+    text, err = nim_generate("m", call=fake, sleep=waits.append)("p")
+    assert text == '{"refuse": true}' and err is None and len(calls) == 3 and waits[0] >= 20 and waits[1] > waits[0]
+
+
+def test_checked_replies_hold_the_one_per_call_arm_to_the_same_figure_check_as_the_batched_arm():
+    from vps_extraction.t6_combo import checked_replies
+    wrong_page = {"answer": "INR 854 crores", "cite": "AR p1"}      # 854 is on c p7, not on AR p1
+    out = checked_replies([ROW], {"C05": HITS}, {"C05": [GOOD, wrong_page, None, {"refuse": True}]})
+    assert out["C05"][0] == GOOD and out["C05"][1] == {"answer": "INR 854 crores", "cite": "c p7"}  # cite re-pointed to the page that has it
+    assert out["C05"][2] is None and out["C05"][3] == {"refuse": True}

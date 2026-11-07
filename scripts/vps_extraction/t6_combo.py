@@ -146,10 +146,13 @@ def nim_generate(model, max_tokens=2000, timeout_seconds=300, call=None, sleep=N
         sleep = time.sleep
 
     def generate(prompt):
-        for attempt in range(3):
+        for attempt in range(4):
             parts, meta = call(prompt, model, max_tokens=max_tokens, timeout_seconds=timeout_seconds, system="/no_think")
             if parts is not None:
                 return parts.content, (None if parts.content.strip() else f"empty content (finish={parts.finish_reason})")
+            if "status=429" in meta.summary and attempt < 3:   # free-tier rate limit: back off hard, then retry
+                sleep(30 * 2 ** attempt)
+                continue
             if "transport_error" not in meta.summary:
                 break
             sleep(5 * (attempt + 1))
@@ -191,24 +194,47 @@ def load_replies(path):
     return json.loads(Path(path).read_text())
 
 
+def checked_replies(rows, hits, replies):
+    """The same figure check the batched path uses (answer.check_answer), applied to one-per-call replies, so both arms
+    are scored by one rule: a failing answer becomes a refusal, a passing one carries the page that really holds it."""
+    from vps_extraction.answer import check_answer
+    out = {}
+    for r in rows:
+        out[r["id"]] = []
+        for rep in replies[r["id"]]:
+            if not rep or rep.get("refuse") is True:
+                out[r["id"]].append(rep)
+                continue
+            ok, cited, _ = check_answer(rep, hits[r["id"]])
+            out[r["id"]].append({"answer": rep.get("answer"), "cite": cited["label"]} if ok else {"refuse": True})
+    return out
+
+
 def run_batched(rows, hits, generate, reps, size):
     """The batched arm: per rep, grep results for all rows are combined, each page is sent once, `size` questions per call.
     Returns (replies like collect_replies, hits each row was scored against = its batch's pages, stats)."""
-    from vps_extraction.answer import answer_batch, build_batch_prompt, group_questions, union_hits
+    from vps_extraction.answer import answer_batch, build_batch_prompt, group_questions
     groups = group_questions(rows, hits, size)
-    bhits = {q["id"]: union_hits(g, hits) for g in groups for q in g}
+    bhits = hits   # each answer is checked against its own question's pages
     replies = {r["id"]: [] for r in rows}
-    stats = {"calls": 0, "failed_calls": 0, "chars": 0}
+    stats = {"calls": 0, "failed_calls": 0, "chars": 0, "log": [], "reasons": []}
+
+    def logged(prompt):  # keep every raw batch reply: the report only has counts, the why is in the replies
+        text, err = generate(prompt)
+        stats["log"].append({"questions": [q["id"] for q in groups[len(stats["log"]) % len(groups)]], "chars": len(prompt), "reply": text, "error": err})
+        return text, err
     for _ in range(reps):
         for g in groups:
             stats["chars"] += len(build_batch_prompt(g, hits))
         stats["calls"] += len(groups)
-        res = answer_batch(rows, hits, generate, size)
+        res = answer_batch(rows, hits, logged, size)
         for r in rows:
             v = res[r["id"]]
-            stats["failed_calls"] += v["status"] == "refuse" and v["reason"].startswith("model call failed")
-            replies[r["id"]].append({"answer": v["answer"], "cite": v["cite"]} if v["status"] == "ok" else {"refuse": True})
-    stats["failed_calls"] = round(stats["failed_calls"] / max(1, size))  # one failed call refuses up to `size` rows
+            if v["status"] != "ok":
+                stats["reasons"].append({"id": r["id"], "reason": v["reason"]})
+            failed = v["status"] != "ok" and v["reason"].startswith("model call failed")
+            replies[r["id"]].append(None if failed else {"answer": v["answer"], "cite": v["cite"]} if v["status"] == "ok" else {"refuse": True})
+    stats["failed_calls"] = sum(1 for c in stats["log"] if c["error"] or not c["reply"])
     return replies, bhits, stats
 
 
@@ -290,6 +316,7 @@ def main(argv=None) -> int:
              "| arm | right min-max % | right / refused / wrong / none (all reps) | utility | blocked right | caught wrong | verifier errors |",
              "|---|---|---|---|---|---|---|"]
     jobs = [(n, [verifiers[x] for x in xs], [mins[x] for x in xs], replies) for n, xs in ARMS.items() if all(x in verifiers for x in xs)]
+    jobs += [("nemotron (same figure check as batched)", [], None, checked_replies(rows, hits, replies))]
     jobs += [("grep-only (no model)", [], None, {r["id"]: [grep_answer(r["question"], hits[r["id"]]) for _ in range(a.reps)] for r in rows}),
              ("grep-first, model on tables", [], None, grep_first(rows, hits, replies))]
     bstats = None
@@ -302,6 +329,7 @@ def main(argv=None) -> int:
         lines.append(f"| {name} | {min(pct):.1f}-{max(pct):.1f} | {v['right']} / {v['refused']} / {v['wrong']} / {v['none']} | {res['util']:+d} | "
                      f"{res['blocked_right']} | {res['caught_wrong']} | {res['errors']} |")
     if bstats:
+        Path(a.out.with_suffix(".batched.json")).write_text(json.dumps({"log": bstats["log"], "reasons": bstats["reasons"]}))
         per_q = sum(len(build_prompt(r["question"], hits[r["id"]])) for r in rows) * a.reps
         lines += ["", f"Cost of the two ways to ask (all reps): one question per call = {len(rows) * a.reps} calls, {per_q:,} chars of text sent; "
                       f"batched {a.batch} per call = {bstats['calls']} calls, {bstats['chars']:,} chars; failed batched calls: {bstats['failed_calls']}."]

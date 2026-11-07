@@ -83,7 +83,8 @@ def write_note(path, question: str, result: dict, number, when: str) -> None:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("question")
+    ap.add_argument("question", nargs="?", help="one question (or use --questions)")
+    ap.add_argument("--questions", type=Path, help="bulk refresh: a file with one question per line; answered 3 per call (needs --answer)")
     ap.add_argument("--data", required=True, type=Path, help="BIOCON/data (calls, decks-layout, announcements)")
     ap.add_argument("--ar", required=True, type=Path, help="annual-report/FYxx dir of pNNN.md pages")
     ap.add_argument("--number")
@@ -94,6 +95,17 @@ def main(argv=None) -> int:
     a = ap.parse_args(argv)
     from vps_extraction.eval_multi_index import load_chunks
     from vps_extraction.multi_index import build
+    if a.questions:
+        from vps_extraction.answer import ask_many
+        from vps_extraction.t6_combo import nim_generate
+        qs = [q.strip() for q in a.questions.read_text().splitlines() if q.strip()]
+        res = ask_many(qs, build_index(a.ar), build(load_chunks(a.data)), nim_generate(a.model, max_tokens=12000),
+                       a.k, 3, a.note, datetime.now().strftime("%Y-%m-%d %H:%M"))
+        for q, r in zip(qs, res):
+            print(f"Q: {q}\n  " + (f"ANSWER: {r['answer']}  ({r['source']} {r['cite']})" if r["status"] == "ok" else f"REFUSE: {r['reason']}"))
+        return 0 if all(r["status"] == "ok" for r in res) else 1
+    if not a.question:
+        ap.error("give a question or --questions FILE")
     if a.answer:
         from vps_extraction.answer import ask_and_answer
         from vps_extraction.t6_combo import nim_generate

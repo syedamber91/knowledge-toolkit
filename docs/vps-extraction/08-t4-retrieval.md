@@ -163,3 +163,27 @@ Corpus: the FY26 annual report only (275 pages; no calls, decks or quarterly fil
 The 6 "wrong" were two questions x 3 reps where the model gave a different but valid figure from another page; the owner accepted both: P05 EPS 87.06 (standalone accounts, p234) as well as 87.1 (highlights, p34); P09 employees 3,726 (the "Total Employees" row, p135) as well as 3,842 (workforce, p19). The key now carries `also_ok` token sets and the saved replies were re-scored offline (`t6-piind-2026-08-30.replies.json`), no new model calls. Nemotron also refused P17 correctly. Retrieval: 15 of 16 answers are on a page `ask` retrieves (P09 only via the alternative page). Grep as a stand-alone answerer fails on the same "right page, wrong cell" way as on BIOCON, e.g. P03 EBITDA margin: it answered with the CAGR line (8.0%, 10.9%), not 25.4%. `ask --answer` (model reads the pages, code checks every figure against the cited page) is the user-facing path; the code check cannot catch a number from the wrong line or quarter that is on the page.
 
 **Not verified:** n = 17 rows from one document type; no tables-heavy PIIND filings, no quarterly numbers; the question wording was chosen after one retrieval probe ("FY26 consolidated revenue from operations?" finds the page, "FY26 revenue from operations?" returns energy-intensity pages).
+
+## Run 15: batching (2026-11-07)
+
+Idea: grep for all questions, send each page once, ask several questions per call.
+
+**v1 (6 per call) lost points, mostly for fixable reasons.** PIIND 43-46 of 51 right (one per call: 51). BIOCON 117 vs 123 of 132. Saved raw replies showed why:
+- The model got the figure right but named a neighbouring page (P08 3,556, P13 11,508): cited p33/p34 in a batch, p19 one per call. Many pages in one prompt makes it mislabel.
+- One 429 (free-tier rate limit) killed a 6-question call.
+- One silent wrong (P09 3,840 from p79), likely a page that came in for another question.
+- Groups were not really grouped (sliced every 6), so savings were only 19-30% of text.
+- Unfair scoring: only the batched arm had to pass `check_answer` (every figure on the cited page).
+
+**v2 (Opus review fixes), 3 per call:** each answer checked against its own question's pages; code assigns the cite (the named page if it holds every figure, else the best-ranked holder); groups form only by shared pages; 429 backoff (30/60/120 s); a failed call is "no reply", not a refusal; the one-per-call arm gets the same figure check.
+
+| | one per call | one per call + same check | batched 3 |
+|---|---|---|---|
+| PIIND right (51 reps) | 51 | 51 | 51 (24 calls vs 51) |
+| BIOCON right / refused / wrong (132) | 125 / 3 / 4 | 113 / 15 / 4 | 117 / 15 / 0 |
+| BIOCON calls, chars | 132, 3.30M | | 51, 2.78M (-61%, -16%) |
+
+Verdict: same accuracy, no wrong answers, 60% fewer calls and no rate-limit hit; text saved only 16-22%. Adopted for bulk refreshes: `ask --answer --questions FILE` (3 per call, `answer.ask_many`); single questions stay one per call.
+Refusals on BIOCON: mostly the not-in-corpus rows (correct); A06-A08 are word-only rows the figure check cannot verify (it refuses them in every arm).
+Not tested: a third company; the batch prompt is ~85-110k chars, near what the free tier tolerates.
+Results: soic-ladder PRs #1331 (PIIND), #1332 (BIOCON).
