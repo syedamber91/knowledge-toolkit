@@ -6,8 +6,8 @@ overview see [`README.md`](README.md); for deep dives see [`docs/`](docs/).
 ## START HERE — read the knowledge graph first
 
 **Before exploring the codebase or planning any change, read the graphify
-knowledge graph.** It is a pre-computed map of this repo — 6181 nodes / 9760
-edges across 402 clustered communities (369 shown; refreshed 2026-10-03) — so you can orient in one read instead of
+knowledge graph.** It is a pre-computed map of this repo — 6538 nodes / 10416
+edges across 403 clustered communities (369 shown; refreshed 2026-10-03, incrementally extended 2026-11-07 with the VPS-extraction code and docs) — so you can orient in one read instead of
 grepping around blind.
 
 1. Read [`graphify-out/GRAPH_REPORT.md`](graphify-out/GRAPH_REPORT.md) — the
